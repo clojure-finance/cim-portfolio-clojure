@@ -1,16 +1,29 @@
 # cim_portfolio
 
-FIXME: description
+A portfolio analysis program written in Clojure.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Please ensure Java, Clojure, Leiningen are installed prior to running this application.
+
+KEY DEPENDENCY: clj-python/libpython-clj
+libpython-clj (https://github.com/clj-python/libpython-clj) is a key requirement to run Python code within Clojure.
+Python objects are linked to JVM, allowing Clojure to run the server.clj file that enables scraping data from Python's yfinance package.
+
+Please install Python on your system and ensure yfinance is installed.
+Please run: `pip install yfinance` 
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar cim_portfolio-0.1.0-standalone.jar [args]
+- Clone the github repository to your local computer.
+- Open the cloned folder in your terminal and run `lein gorilla`
+- Open the URL provided in the terminal in your browser of choice
+- Hit **Ctrl G + Ctrl L** and load `src/cim_portfolio/server.clj`
+- Run all the code blocks with **Shift + Enter** or **Ctrl + Enter**
+- If the output shows proper finance data, load `src/cim_portfolio/portfolio.clj`. If error, flag the issue and try to debug.
+- Run all code blocks in portfolio.clj except for the last one.
+- Enter the relative path to your csv file containing all your trades (relative to main directory)
+- Execute the final code block to get an overview of your portfolio as well as other statistics (such as individual stock performance etc.)
 
 ## Options
 
