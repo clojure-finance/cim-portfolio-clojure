@@ -15,6 +15,8 @@ Python objects are linked to JVM, allowing Clojure to run the server.clj file th
 
 ## Usage
 
+Here's a video tutorial on running the program: [CIM Portfolio Tutorial](https://youtu.be/kpxD8rUBuFk)
+
 - Clone the github repository to your local computer.
 - Open the cloned folder in your terminal and run `lein gorilla`
 - Open the URL provided in the terminal in your browser of choice
