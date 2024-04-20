@@ -20,7 +20,7 @@ Here's a video tutorial on running the program: [CIM Portfolio Tutorial](https:/
 - Clone the github repository to your local computer.
 - Open the cloned folder in your terminal and run `lein gorilla`
 - Open the URL provided in the terminal in your browser of choice
-- Hit **Ctrl G + Ctrl L** (on Mac) or **Alt G + Alt L** (on Linux) and load `src/cim_portfolio/server.clj`
+- Hit **Ctrl G + Ctrl L** (on Mac) or **Alt G + Alt L** (on Linux) and load `src/cim_portfolio/yfinanceclient.clj`
 - Run all the code blocks with **Shift + Enter** or **Ctrl + Enter**
 - If the output shows proper finance data, load `src/cim_portfolio/portfolio.clj`. If error, flag the issue and try to debug.
 - Run all code blocks in portfolio.clj except for the last one.
