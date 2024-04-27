@@ -90,14 +90,14 @@
 ;; **
 
 ;; @@
-(client/get-ticker-price-all "NVDA" "2024-02-15")
+(client/get-ticker-price-all "NVDA" "2024-04-15")
 ;; @@
 ;; ->
 ;;; [*********************100%%**********************]  1 of 1 completed
 ;;; 
 ;; <-
 ;; =>
-;;; {"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-16&quot;</span>","value":"\"2024-02-16\""},{"type":"html","content":"<span class='clj-double'>741.0</span>","value":"741.0"},{"type":"html","content":"<span class='clj-double'>726.0959472656</span>","value":"726.0959472656"}],"value":"[\"2024-02-16\" 741.0 726.0959472656]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-20&quot;</span>","value":"\"2024-02-20\""},{"type":"html","content":"<span class='clj-double'>719.4699707031</span>","value":"719.4699707031"},{"type":"html","content":"<span class='clj-double'>694.4874267578</span>","value":"694.4874267578"}],"value":"[\"2024-02-20\" 719.4699707031 694.4874267578]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-21&quot;</span>","value":"\"2024-02-21\""},{"type":"html","content":"<span class='clj-double'>680.0599975586</span>","value":"680.0599975586"},{"type":"html","content":"<span class='clj-double'>674.688293457</span>","value":"674.688293457"}],"value":"[\"2024-02-21\" 680.0599975586 674.688293457]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-22&quot;</span>","value":"\"2024-02-22\""},{"type":"html","content":"<span class='clj-double'>750.25</span>","value":"750.25"},{"type":"html","content":"<span class='clj-double'>785.3431396484</span>","value":"785.3431396484"}],"value":"[\"2024-02-22\" 750.25 785.3431396484]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-23&quot;</span>","value":"\"2024-02-23\""},{"type":"html","content":"<span class='clj-double'>807.9000244141</span>","value":"807.9000244141"},{"type":"html","content":"<span class='clj-double'>788.1329956055</span>","value":"788.1329956055"}],"value":"[\"2024-02-23\" 807.9000244141 788.1329956055]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-26&quot;</span>","value":"\"2024-02-26\""},{"type":"html","content":"<span class='clj-double'>797.0</span>","value":"797.0"},{"type":"html","content":"<span class='clj-double'>790.8828735352</span>","value":"790.8828735352"}],"value":"[\"2024-02-26\" 797.0 790.8828735352]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-27&quot;</span>","value":"\"2024-02-27\""},{"type":"html","content":"<span class='clj-double'>793.8099975586</span>","value":"793.8099975586"},{"type":"html","content":"<span class='clj-double'>786.9730834961</span>","value":"786.9730834961"}],"value":"[\"2024-02-27\" 793.8099975586 786.9730834961]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-28&quot;</span>","value":"\"2024-02-28\""},{"type":"html","content":"<span class='clj-double'>776.200012207</span>","value":"776.200012207"},{"type":"html","content":"<span class='clj-double'>776.5935668945</span>","value":"776.5935668945"}],"value":"[\"2024-02-28\" 776.200012207 776.5935668945]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-02-29&quot;</span>","value":"\"2024-02-29\""},{"type":"html","content":"<span class='clj-double'>790.9400024414</span>","value":"790.9400024414"},{"type":"html","content":"<span class='clj-double'>791.0828857422</span>","value":"791.0828857422"}],"value":"[\"2024-02-29\" 790.9400024414 791.0828857422]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-01&quot;</span>","value":"\"2024-03-01\""},{"type":"html","content":"<span class='clj-double'>800.0</span>","value":"800.0"},{"type":"html","content":"<span class='clj-double'>822.7514038086</span>","value":"822.7514038086"}],"value":"[\"2024-03-01\" 800.0 822.7514038086]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-04&quot;</span>","value":"\"2024-03-04\""},{"type":"html","content":"<span class='clj-double'>841.299987793</span>","value":"841.299987793"},{"type":"html","content":"<span class='clj-double'>852.3300170898</span>","value":"852.3300170898"}],"value":"[\"2024-03-04\" 841.299987793 852.3300170898]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-05&quot;</span>","value":"\"2024-03-05\""},{"type":"html","content":"<span class='clj-double'>852.700012207</span>","value":"852.700012207"},{"type":"html","content":"<span class='clj-double'>859.6400146484</span>","value":"859.6400146484"}],"value":"[\"2024-03-05\" 852.700012207 859.6400146484]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-06&quot;</span>","value":"\"2024-03-06\""},{"type":"html","content":"<span class='clj-double'>880.2199707031</span>","value":"880.2199707031"},{"type":"html","content":"<span class='clj-double'>887.0</span>","value":"887.0"}],"value":"[\"2024-03-06\" 880.2199707031 887.0]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-07&quot;</span>","value":"\"2024-03-07\""},{"type":"html","content":"<span class='clj-double'>901.5800170898</span>","value":"901.5800170898"},{"type":"html","content":"<span class='clj-double'>926.6900024414</span>","value":"926.6900024414"}],"value":"[\"2024-03-07\" 901.5800170898 926.6900024414]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-08&quot;</span>","value":"\"2024-03-08\""},{"type":"html","content":"<span class='clj-double'>951.3800048828</span>","value":"951.3800048828"},{"type":"html","content":"<span class='clj-double'>875.2800292969</span>","value":"875.2800292969"}],"value":"[\"2024-03-08\" 951.3800048828 875.2800292969]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-11&quot;</span>","value":"\"2024-03-11\""},{"type":"html","content":"<span class='clj-double'>864.2899780273</span>","value":"864.2899780273"},{"type":"html","content":"<span class='clj-double'>857.7399902344</span>","value":"857.7399902344"}],"value":"[\"2024-03-11\" 864.2899780273 857.7399902344]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-12&quot;</span>","value":"\"2024-03-12\""},{"type":"html","content":"<span class='clj-double'>880.4899902344</span>","value":"880.4899902344"},{"type":"html","content":"<span class='clj-double'>919.1300048828</span>","value":"919.1300048828"}],"value":"[\"2024-03-12\" 880.4899902344 919.1300048828]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-13&quot;</span>","value":"\"2024-03-13\""},{"type":"html","content":"<span class='clj-double'>910.549987793</span>","value":"910.549987793"},{"type":"html","content":"<span class='clj-double'>908.8800048828</span>","value":"908.8800048828"}],"value":"[\"2024-03-13\" 910.549987793 908.8800048828]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-14&quot;</span>","value":"\"2024-03-14\""},{"type":"html","content":"<span class='clj-double'>895.7700195312</span>","value":"895.7700195312"},{"type":"html","content":"<span class='clj-double'>879.4400024414</span>","value":"879.4400024414"}],"value":"[\"2024-03-14\" 895.7700195312 879.4400024414]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-15&quot;</span>","value":"\"2024-03-15\""},{"type":"html","content":"<span class='clj-double'>869.299987793</span>","value":"869.299987793"},{"type":"html","content":"<span class='clj-double'>878.3699951172</span>","value":"878.3699951172"}],"value":"[\"2024-03-15\" 869.299987793 878.3699951172]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-18&quot;</span>","value":"\"2024-03-18\""},{"type":"html","content":"<span class='clj-double'>903.8800048828</span>","value":"903.8800048828"},{"type":"html","content":"<span class='clj-double'>884.549987793</span>","value":"884.549987793"}],"value":"[\"2024-03-18\" 903.8800048828 884.549987793]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-19&quot;</span>","value":"\"2024-03-19\""},{"type":"html","content":"<span class='clj-double'>867.0</span>","value":"867.0"},{"type":"html","content":"<span class='clj-double'>893.9799804688</span>","value":"893.9799804688"}],"value":"[\"2024-03-19\" 867.0 893.9799804688]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-20&quot;</span>","value":"\"2024-03-20\""},{"type":"html","content":"<span class='clj-double'>897.9699707031</span>","value":"897.9699707031"},{"type":"html","content":"<span class='clj-double'>903.7199707031</span>","value":"903.7199707031"}],"value":"[\"2024-03-20\" 897.9699707031 903.7199707031]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-21&quot;</span>","value":"\"2024-03-21\""},{"type":"html","content":"<span class='clj-double'>923.0</span>","value":"923.0"},{"type":"html","content":"<span class='clj-double'>914.3499755859</span>","value":"914.3499755859"}],"value":"[\"2024-03-21\" 923.0 914.3499755859]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-22&quot;</span>","value":"\"2024-03-22\""},{"type":"html","content":"<span class='clj-double'>911.4099731445</span>","value":"911.4099731445"},{"type":"html","content":"<span class='clj-double'>942.8900146484</span>","value":"942.8900146484"}],"value":"[\"2024-03-22\" 911.4099731445 942.8900146484]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-25&quot;</span>","value":"\"2024-03-25\""},{"type":"html","content":"<span class='clj-double'>939.4099731445</span>","value":"939.4099731445"},{"type":"html","content":"<span class='clj-double'>950.0200195312</span>","value":"950.0200195312"}],"value":"[\"2024-03-25\" 939.4099731445 950.0200195312]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-26&quot;</span>","value":"\"2024-03-26\""},{"type":"html","content":"<span class='clj-double'>958.5100097656</span>","value":"958.5100097656"},{"type":"html","content":"<span class='clj-double'>925.6099853516</span>","value":"925.6099853516"}],"value":"[\"2024-03-26\" 958.5100097656 925.6099853516]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-27&quot;</span>","value":"\"2024-03-27\""},{"type":"html","content":"<span class='clj-double'>931.1199951172</span>","value":"931.1199951172"},{"type":"html","content":"<span class='clj-double'>902.5</span>","value":"902.5"}],"value":"[\"2024-03-27\" 931.1199951172 902.5]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-03-28&quot;</span>","value":"\"2024-03-28\""},{"type":"html","content":"<span class='clj-double'>900.0</span>","value":"900.0"},{"type":"html","content":"<span class='clj-double'>903.5599975586</span>","value":"903.5599975586"}],"value":"[\"2024-03-28\" 900.0 903.5599975586]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-01&quot;</span>","value":"\"2024-04-01\""},{"type":"html","content":"<span class='clj-double'>902.9899902344</span>","value":"902.9899902344"},{"type":"html","content":"<span class='clj-double'>903.6300048828</span>","value":"903.6300048828"}],"value":"[\"2024-04-01\" 902.9899902344 903.6300048828]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-02&quot;</span>","value":"\"2024-04-02\""},{"type":"html","content":"<span class='clj-double'>884.4799804688</span>","value":"884.4799804688"},{"type":"html","content":"<span class='clj-double'>894.5200195312</span>","value":"894.5200195312"}],"value":"[\"2024-04-02\" 884.4799804688 894.5200195312]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-03&quot;</span>","value":"\"2024-04-03\""},{"type":"html","content":"<span class='clj-double'>884.8400268555</span>","value":"884.8400268555"},{"type":"html","content":"<span class='clj-double'>889.6400146484</span>","value":"889.6400146484"}],"value":"[\"2024-04-03\" 884.8400268555 889.6400146484]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-04&quot;</span>","value":"\"2024-04-04\""},{"type":"html","content":"<span class='clj-double'>904.0599975586</span>","value":"904.0599975586"},{"type":"html","content":"<span class='clj-double'>859.049987793</span>","value":"859.049987793"}],"value":"[\"2024-04-04\" 904.0599975586 859.049987793]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-05&quot;</span>","value":"\"2024-04-05\""},{"type":"html","content":"<span class='clj-double'>868.6599731445</span>","value":"868.6599731445"},{"type":"html","content":"<span class='clj-double'>880.0800170898</span>","value":"880.0800170898"}],"value":"[\"2024-04-05\" 868.6599731445 880.0800170898]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-08&quot;</span>","value":"\"2024-04-08\""},{"type":"html","content":"<span class='clj-double'>887.0</span>","value":"887.0"},{"type":"html","content":"<span class='clj-double'>871.3300170898</span>","value":"871.3300170898"}],"value":"[\"2024-04-08\" 887.0 871.3300170898]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-09&quot;</span>","value":"\"2024-04-09\""},{"type":"html","content":"<span class='clj-double'>874.4199829102</span>","value":"874.4199829102"},{"type":"html","content":"<span class='clj-double'>853.5399780273</span>","value":"853.5399780273"}],"value":"[\"2024-04-09\" 874.4199829102 853.5399780273]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-10&quot;</span>","value":"\"2024-04-10\""},{"type":"html","content":"<span class='clj-double'>839.2600097656</span>","value":"839.2600097656"},{"type":"html","content":"<span class='clj-double'>870.3900146484</span>","value":"870.3900146484"}],"value":"[\"2024-04-10\" 839.2600097656 870.3900146484]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-11&quot;</span>","value":"\"2024-04-11\""},{"type":"html","content":"<span class='clj-double'>874.200012207</span>","value":"874.200012207"},{"type":"html","content":"<span class='clj-double'>906.1599731445</span>","value":"906.1599731445"}],"value":"[\"2024-04-11\" 874.200012207 906.1599731445]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-12&quot;</span>","value":"\"2024-04-12\""},{"type":"html","content":"<span class='clj-double'>896.9899902344</span>","value":"896.9899902344"},{"type":"html","content":"<span class='clj-double'>881.8599853516</span>","value":"881.8599853516"}],"value":"[\"2024-04-12\" 896.9899902344 881.8599853516]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-15&quot;</span>","value":"\"2024-04-15\""},{"type":"html","content":"<span class='clj-double'>890.9799804688</span>","value":"890.9799804688"},{"type":"html","content":"<span class='clj-double'>860.0100097656</span>","value":"860.0100097656"}],"value":"[\"2024-04-15\" 890.9799804688 860.0100097656]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-16&quot;</span>","value":"\"2024-04-16\""},{"type":"html","content":"<span class='clj-double'>864.3300170898</span>","value":"864.3300170898"},{"type":"html","content":"<span class='clj-double'>874.1500244141</span>","value":"874.1500244141"}],"value":"[\"2024-04-16\" 864.3300170898 874.1500244141]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-17&quot;</span>","value":"\"2024-04-17\""},{"type":"html","content":"<span class='clj-double'>883.4000244141</span>","value":"883.4000244141"},{"type":"html","content":"<span class='clj-double'>840.3499755859</span>","value":"840.3499755859"}],"value":"[\"2024-04-17\" 883.4000244141 840.3499755859]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-18&quot;</span>","value":"\"2024-04-18\""},{"type":"html","content":"<span class='clj-double'>849.700012207</span>","value":"849.700012207"},{"type":"html","content":"<span class='clj-double'>846.7100219727</span>","value":"846.7100219727"}],"value":"[\"2024-04-18\" 849.700012207 846.7100219727]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-19&quot;</span>","value":"\"2024-04-19\""},{"type":"html","content":"<span class='clj-double'>831.5</span>","value":"831.5"},{"type":"html","content":"<span class='clj-double'>762.0</span>","value":"762.0"}],"value":"[\"2024-04-19\" 831.5 762.0]"}],"value":"[[\"2024-02-16\" 741.0 726.0959472656] [\"2024-02-20\" 719.4699707031 694.4874267578] [\"2024-02-21\" 680.0599975586 674.688293457] [\"2024-02-22\" 750.25 785.3431396484] [\"2024-02-23\" 807.9000244141 788.1329956055] [\"2024-02-26\" 797.0 790.8828735352] [\"2024-02-27\" 793.8099975586 786.9730834961] [\"2024-02-28\" 776.200012207 776.5935668945] [\"2024-02-29\" 790.9400024414 791.0828857422] [\"2024-03-01\" 800.0 822.7514038086] [\"2024-03-04\" 841.299987793 852.3300170898] [\"2024-03-05\" 852.700012207 859.6400146484] [\"2024-03-06\" 880.2199707031 887.0] [\"2024-03-07\" 901.5800170898 926.6900024414] [\"2024-03-08\" 951.3800048828 875.2800292969] [\"2024-03-11\" 864.2899780273 857.7399902344] [\"2024-03-12\" 880.4899902344 919.1300048828] [\"2024-03-13\" 910.549987793 908.8800048828] [\"2024-03-14\" 895.7700195312 879.4400024414] [\"2024-03-15\" 869.299987793 878.3699951172] [\"2024-03-18\" 903.8800048828 884.549987793] [\"2024-03-19\" 867.0 893.9799804688] [\"2024-03-20\" 897.9699707031 903.7199707031] [\"2024-03-21\" 923.0 914.3499755859] [\"2024-03-22\" 911.4099731445 942.8900146484] [\"2024-03-25\" 939.4099731445 950.0200195312] [\"2024-03-26\" 958.5100097656 925.6099853516] [\"2024-03-27\" 931.1199951172 902.5] [\"2024-03-28\" 900.0 903.5599975586] [\"2024-04-01\" 902.9899902344 903.6300048828] [\"2024-04-02\" 884.4799804688 894.5200195312] [\"2024-04-03\" 884.8400268555 889.6400146484] [\"2024-04-04\" 904.0599975586 859.049987793] [\"2024-04-05\" 868.6599731445 880.0800170898] [\"2024-04-08\" 887.0 871.3300170898] [\"2024-04-09\" 874.4199829102 853.5399780273] [\"2024-04-10\" 839.2600097656 870.3900146484] [\"2024-04-11\" 874.200012207 906.1599731445] [\"2024-04-12\" 896.9899902344 881.8599853516] [\"2024-04-15\" 890.9799804688 860.0100097656] [\"2024-04-16\" 864.3300170898 874.1500244141] [\"2024-04-17\" 883.4000244141 840.3499755859] [\"2024-04-18\" 849.700012207 846.7100219727] [\"2024-04-19\" 831.5 762.0]]"}
+;;; {"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-16&quot;</span>","value":"\"2024-04-16\""},{"type":"html","content":"<span class='clj-double'>864.3300170898</span>","value":"864.3300170898"},{"type":"html","content":"<span class='clj-double'>874.1500244141</span>","value":"874.1500244141"}],"value":"[\"2024-04-16\" 864.3300170898 874.1500244141]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-17&quot;</span>","value":"\"2024-04-17\""},{"type":"html","content":"<span class='clj-double'>883.4000244141</span>","value":"883.4000244141"},{"type":"html","content":"<span class='clj-double'>840.3499755859</span>","value":"840.3499755859"}],"value":"[\"2024-04-17\" 883.4000244141 840.3499755859]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-18&quot;</span>","value":"\"2024-04-18\""},{"type":"html","content":"<span class='clj-double'>849.700012207</span>","value":"849.700012207"},{"type":"html","content":"<span class='clj-double'>846.7100219727</span>","value":"846.7100219727"}],"value":"[\"2024-04-18\" 849.700012207 846.7100219727]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-19&quot;</span>","value":"\"2024-04-19\""},{"type":"html","content":"<span class='clj-double'>831.5</span>","value":"831.5"},{"type":"html","content":"<span class='clj-double'>762.0</span>","value":"762.0"}],"value":"[\"2024-04-19\" 831.5 762.0]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-22&quot;</span>","value":"\"2024-04-22\""},{"type":"html","content":"<span class='clj-double'>781.0399780273</span>","value":"781.0399780273"},{"type":"html","content":"<span class='clj-double'>795.1799926758</span>","value":"795.1799926758"}],"value":"[\"2024-04-22\" 781.0399780273 795.1799926758]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-23&quot;</span>","value":"\"2024-04-23\""},{"type":"html","content":"<span class='clj-double'>807.6900024414</span>","value":"807.6900024414"},{"type":"html","content":"<span class='clj-double'>824.2299804688</span>","value":"824.2299804688"}],"value":"[\"2024-04-23\" 807.6900024414 824.2299804688]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-24&quot;</span>","value":"\"2024-04-24\""},{"type":"html","content":"<span class='clj-double'>839.5</span>","value":"839.5"},{"type":"html","content":"<span class='clj-double'>796.7700195312</span>","value":"796.7700195312"}],"value":"[\"2024-04-24\" 839.5 796.7700195312]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-25&quot;</span>","value":"\"2024-04-25\""},{"type":"html","content":"<span class='clj-double'>788.6799926758</span>","value":"788.6799926758"},{"type":"html","content":"<span class='clj-double'>826.3200073242</span>","value":"826.3200073242"}],"value":"[\"2024-04-25\" 788.6799926758 826.3200073242]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-26&quot;</span>","value":"\"2024-04-26\""},{"type":"html","content":"<span class='clj-double'>838.1799926758</span>","value":"838.1799926758"},{"type":"html","content":"<span class='clj-double'>877.3499755859</span>","value":"877.3499755859"}],"value":"[\"2024-04-26\" 838.1799926758 877.3499755859]"}],"value":"[[\"2024-04-16\" 864.3300170898 874.1500244141] [\"2024-04-17\" 883.4000244141 840.3499755859] [\"2024-04-18\" 849.700012207 846.7100219727] [\"2024-04-19\" 831.5 762.0] [\"2024-04-22\" 781.0399780273 795.1799926758] [\"2024-04-23\" 807.6900024414 824.2299804688] [\"2024-04-24\" 839.5 796.7700195312] [\"2024-04-25\" 788.6799926758 826.3200073242] [\"2024-04-26\" 838.1799926758 877.3499755859]]"}
 ;; <=
 
 ;; **
@@ -169,7 +169,7 @@
 )
 
 (def view-options {
-                   :show-individual-stock-performance-by-day 	true
+                   :show-individual-stock-performance-by-day 	false
                    :show-cumulative-portfolio-return-by-day		true
                    :show-portfolio-value-by-day					true
                   }
@@ -180,9 +180,11 @@
 ;; <=
 
 ;; @@
-(def input-file "examples/testPortfolio1.csv")
+;; Please enter the relative paths of 1 or more CSV files (in a list) containing your trades below:
 
-(let [data (util/read-csv input-file)
+(def input-files ["examples/testPortfolio1.csv" "examples/testPortfolio.csv"])
+
+(let [data (util/read-multiple-csv input-files)
       [cash portfolio portfolio-value current-value cash-invested cash-invested-by-date stock-performance] (analyze-portfolio data)
       sorted-portfolio-value (map #(vector (first %) (+ (:starting-cash portfolio-options) (second %))) (util/sort-map-by-date portfolio-value))
       cash-invested-by-dates (into [] cash-invested-by-date)
@@ -223,286 +225,173 @@
 ;;; [*********************100%%**********************]  1 of 1 completed
 ;;; [*********************100%%**********************]  1 of 1 completed
 ;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
+;;; [*********************100%%**********************]  1 of 1 completed
 ;;; 
 ;;; 
 ;;; ----------------------------------
-;;; Current Portfolio Value: 205243.70 
+;;; Current Portfolio Value: 228642.85 
 ;;; 
-;;; Cash On Hand (excluding value of portfolio): 150671.80 
+;;; Cash On Hand (excluding value of portfolio): 23289.00 
 ;;; 
-;;; Portfolio (units held of each stock): {NVDA 70.0, GOOG 50.0, TSLA -30.0} 
+;;; Portfolio (units held of each stock): {IEF 100.0, NVDA 70.0, SHY 170.0, RSP 35.0, SPY 150.0, GOOG 50.0, TSLA -30.0, GSG 250.0, AGG 300.0} 
 ;;; 
-;;; Cash invested in each stock:  {NVDA 48171.300659181, GOOG 7172.49984741, TSLA -6015.600128175} 
+;;; Cash invested in each stock:  {IEF 9070.99990845, NVDA 48171.300659181, SHY 13787.499618528002, RSP 4944.7999572755, SPY 65155.500793454994, GOOG 7172.49984741, TSLA -6015.600128175, GSG 5449.999809275, AGG 28974.00054933} 
 ;;; 
-;;; Cumulative Portfolio Return:  0.015247496553739127 
+;;; Cumulative Portfolio Return:  0.07357479858461839 
 ;;; 
 ;;; ----------------------------------
 ;;; Portfolio Return by date: 
-;;;  {2024-02-16 -0.03867703657915007, 2024-02-26 -0.025080610779391756, 2024-03-01 -0.01478982974727278, 2024-03-11 -0.021283258141774782}
+;;;  {2024-02-16 -0.03067546939783191, 2024-02-26 -0.00814692008853303, 2024-03-01 -0.016924292153363663, 2024-03-11 -0.013469352597299093, 2023-10-16 0.08417281687627809, 2023-11-06 0.0824498209243624, 2023-12-04 0.0257567321054734}
 ;;; ----------------------------------
 ;;; 
 ;;; ----------------------------------
 ;;; Portfolio Value Day-by-Day: 
-;;; [2024-02-16 198509.59]
-;;; [2024-02-20 195348.74]
-;;; [2024-02-21 193368.83]
-;;; [2024-02-22 204434.31]
-;;; [2024-02-23 204713.30]
-;;; [2024-02-26 204753.29]
-;;; [2024-02-27 204429.81]
-;;; [2024-02-28 203258.36]
-;;; [2024-02-29 204824.79]
-;;; [2024-03-01 207906.64]
-;;; [2024-03-04 210616.80]
-;;; [2024-03-05 210856.40]
-;;; [2024-03-06 213439.60]
-;;; [2024-03-07 217373.40]
-;;; [2024-03-08 212499.40]
-;;; [2024-03-11 210696.40]
-;;; [2024-03-12 217425.00]
-;;; [2024-03-13 217217.70]
-;;; [2024-03-14 213850.40]
-;;; [2024-03-15 212702.50]
-;;; [2024-03-18 214879.20]
-;;; [2024-03-19 214758.00]
-;;; [2024-03-20 216768.30]
-;;; [2024-03-21 218636.90]
-;;; [2024-03-22 221003.70]
-;;; [2024-03-25 222587.80]
-;;; [2024-03-26 221041.90]
-;;; [2024-03-27 218006.10]
-;;; [2024-03-28 217075.70]
-;;; [2024-04-01 217346.00]
-;;; [2024-04-02 215505.60]
-;;; [2024-04-03 215031.50]
-;;; [2024-04-04 212509.10]
-;;; [2024-04-05 213620.40]
-;;; [2024-04-08 213413.40]
-;;; [2024-04-09 211464.10]
-;;; [2024-04-10 212074.20]
-;;; [2024-04-11 216841.20]
-;;; [2024-04-12 215008.60]
-;;; [2024-04-15 212437.30]
-;;; [2024-04-16 212630.30]
-;;; [2024-04-17 209893.40]
-;;; [2024-04-18 209355.70]
-;;; [2024-04-19 200183.30]
+;;; [2023-10-16 199719.78]
+;;; [2023-10-17 199651.02]
+;;; [2023-10-18 198954.37]
+;;; [2023-10-19 198477.53]
+;;; [2023-10-20 197950.91]
+;;; [2023-10-23 197890.51]
+;;; [2023-10-24 198250.81]
+;;; [2023-10-25 197515.23]
+;;; [2023-10-26 197079.11]
+;;; [2023-10-27 196854.03]
+;;; [2023-10-30 197347.89]
+;;; [2023-10-31 197626.64]
+;;; [2023-11-01 198190.48]
+;;; [2023-11-02 199155.01]
+;;; [2023-11-03 199697.75]
+;;; [2023-11-06 199340.62]
+;;; [2023-11-07 199423.71]
+;;; [2023-11-08 199426.54]
+;;; [2023-11-09 198742.51]
+;;; [2023-11-10 199870.58]
+;;; [2023-11-13 199889.37]
+;;; [2023-11-14 201479.19]
+;;; [2023-11-15 201510.64]
+;;; [2023-11-16 201514.89]
+;;; [2023-11-17 201713.47]
+;;; [2023-11-20 202334.91]
+;;; [2023-11-21 202223.29]
+;;; [2023-11-22 202453.75]
+;;; [2023-11-24 202400.48]
+;;; [2023-11-27 202301.23]
+;;; [2023-11-28 202506.44]
+;;; [2023-11-29 202606.55]
+;;; [2023-11-30 202765.29]
+;;; [2023-12-01 203324.06]
+;;; [2023-12-04 202579.42]
+;;; [2023-12-05 202754.38]
+;;; [2023-12-06 202451.64]
+;;; [2023-12-07 203023.51]
+;;; [2023-12-08 203149.45]
+;;; [2023-12-11 203459.89]
+;;; [2023-12-12 203788.71]
+;;; [2023-12-13 205476.62]
+;;; [2023-12-14 206213.46]
+;;; [2023-12-15 205984.64]
+;;; [2023-12-18 206342.16]
+;;; [2023-12-19 206925.69]
+;;; [2023-12-20 205971.13]
+;;; [2023-12-21 206721.91]
+;;; [2023-12-22 206819.79]
+;;; [2023-12-26 207281.59]
+;;; [2023-12-27 207659.56]
+;;; [2023-12-28 207519.67]
+;;; [2023-12-29 207188.32]
+;;; [2024-01-02 206547.07]
+;;; [2024-01-03 206029.75]
+;;; [2024-01-04 205594.64]
+;;; [2024-01-05 205634.34]
+;;; [2024-01-08 206750.33]
+;;; [2024-01-09 206665.72]
+;;; [2024-01-10 206964.34]
+;;; [2024-01-11 207224.35]
+;;; [2024-01-12 207379.61]
+;;; [2024-01-16 206725.95]
+;;; [2024-01-17 206155.43]
+;;; [2024-01-18 206822.58]
+;;; [2024-01-19 207744.14]
+;;; [2024-01-22 208051.94]
+;;; [2024-01-23 208191.01]
+;;; [2024-01-24 208187.90]
+;;; [2024-01-25 208907.05]
+;;; [2024-01-26 208804.45]
+;;; [2024-01-29 209543.94]
+;;; [2024-01-30 209594.31]
+;;; [2024-01-31 208499.60]
+;;; [2024-02-01 209681.38]
+;;; [2024-02-02 209937.69]
+;;; [2024-02-05 209284.33]
+;;; [2024-02-06 209787.90]
+;;; [2024-02-07 210376.30]
+;;; [2024-02-08 210374.95]
+;;; [2024-02-09 210791.29]
+;;; [2024-02-12 210822.66]
+;;; [2024-02-13 209274.10]
+;;; [2024-02-14 210121.90]
+;;; [2024-02-15 210853.14]
+;;; [2024-02-16 208838.06]
+;;; [2024-02-20 205276.87]
+;;; [2024-02-21 203269.49]
+;;; [2024-02-22 215969.85]
+;;; [2024-02-23 216398.36]
+;;; [2024-02-26 216098.19]
+;;; [2024-02-27 215922.75]
+;;; [2024-02-28 214727.36]
+;;; [2024-02-29 216669.50]
+;;; [2024-03-01 220685.59]
+;;; [2024-03-04 223197.69]
+;;; [2024-03-05 222832.05]
+;;; [2024-03-06 225943.16]
+;;; [2024-03-07 230791.78]
+;;; [2024-03-08 225452.27]
+;;; [2024-03-11 223564.07]
+;;; [2024-03-12 230995.38]
+;;; [2024-03-13 230670.69]
+;;; [2024-03-14 226859.32]
+;;; [2024-03-15 225166.60]
+;;; [2024-03-18 227846.87]
+;;; [2024-03-19 228298.04]
+;;; [2024-03-20 231134.47]
+;;; [2024-03-21 233310.41]
+;;; [2024-03-22 235619.67]
+;;; [2024-03-25 236934.62]
+;;; [2024-03-26 235243.88]
+;;; [2024-03-27 233107.04]
+;;; [2024-03-28 232186.45]
+;;; [2024-04-01 231997.95]
+;;; [2024-04-02 229627.11]
+;;; [2024-04-03 229326.50]
+;;; [2024-04-04 225950.70]
+;;; [2024-04-05 227690.05]
+;;; [2024-04-08 227472.80]
+;;; [2024-04-09 225756.20]
+;;; [2024-04-10 224983.45]
+;;; [2024-04-11 230310.75]
+;;; [2024-04-12 227419.80]
+;;; [2024-04-15 223613.90]
+;;; [2024-04-16 223502.25]
+;;; [2024-04-17 220407.00]
+;;; [2024-04-18 219587.25]
+;;; [2024-04-19 209872.25]
+;;; [2024-04-22 212295.65]
+;;; [2024-04-23 217237.70]
+;;; [2024-04-24 215929.25]
+;;; [2024-04-25 216704.65]
+;;; [2024-04-26 225176.05]
 ;;; ----------------------------------
 ;;; 
 ;;; ----------------------------------
 ;;; Individual Stock Performance: 
-;;; {&quot;NVDA&quot;
-;;;  {:cumulative-return -0.03867703657915007,
-;;;   :arithmetic-returns
-;;;   {&quot;2024-03-12&quot; 0.018743723309248228,
-;;;    &quot;2024-03-13&quot; 0.03414007869708735,
-;;;    &quot;2024-03-14&quot; -0.016231913085435146,
-;;;    &quot;2024-03-15&quot; -0.029550030879636924,
-;;;    &quot;2024-03-18&quot; 0.039779152853312016,
-;;;    &quot;2024-03-19&quot; -0.04080188153689934,
-;;;    &quot;2024-03-20&quot; 0.03572084279480969,
-;;;    &quot;2024-03-21&quot; 0.027874015962139342,
-;;;    &quot;2024-03-22&quot; -0.012556908835861358,
-;;;    &quot;2024-03-25&quot; 0.03072163002934425,
-;;;    &quot;2024-03-26&quot; 0.020331950018761535,
-;;;    &quot;2024-03-27&quot; -0.028575616706494444,
-;;;    &quot;2024-03-28&quot; -0.03342211023326047,
-;;;    &quot;2024-04-01&quot; 0.003322211371555639,
-;;;    &quot;2024-04-02&quot; -0.02049857691201551,
-;;;    &quot;2024-04-03&quot; 4.070712674686394E-4,
-;;;    &quot;2024-04-04&quot; 0.02172140739541706,
-;;;    &quot;2024-04-05&quot; -0.039156720250533406,
-;;;    &quot;2024-04-08&quot; 0.021113010179472314,
-;;;    &quot;2024-04-09&quot; -0.014182657372942442,
-;;;    &quot;2024-04-10&quot; -0.04020948037758976,
-;;;    &quot;2024-04-11&quot; 0.04163191625341289,
-;;;    &quot;2024-04-12&quot; 0.026069523803671224,
-;;;    &quot;2024-04-15&quot; -0.006700197138241659,
-;;;    &quot;2024-04-16&quot; -0.029910844197619135,
-;;;    &quot;2024-04-17&quot; 0.02206334032978363,
-;;;    &quot;2024-04-18&quot; -0.03814807706106982,
-;;;    &quot;2024-04-19&quot; -0.02141933852599054},
-;;;   :log-returns
-;;;   {&quot;2024-03-12&quot; 0.01857022438511924,
-;;;    &quot;2024-03-13&quot; 0.03357023953839369,
-;;;    &quot;2024-03-14&quot; -0.01636509373764299,
-;;;    &quot;2024-03-15&quot; -0.029995429355316856,
-;;;    &quot;2024-03-18&quot; 0.039008337577523575,
-;;;    &quot;2024-03-19&quot; -0.04165763683966735,
-;;;    &quot;2024-03-20&quot; 0.035097650765528586,
-;;;    &quot;2024-03-21&quot; 0.027492606956781733,
-;;;    &quot;2024-03-22&quot; -0.012636413068358577,
-;;;    &quot;2024-03-25&quot; 0.03025916860673016,
-;;;    &quot;2024-03-26&quot; 0.020128015546544874,
-;;;    &quot;2024-03-27&quot; -0.028991848198055024,
-;;;    &quot;2024-03-28&quot; -0.03399339406540293,
-;;;    &quot;2024-04-01&quot; 0.0033167050194969068,
-;;;    &quot;2024-04-02&quot; -0.020711588726739456,
-;;;    &quot;2024-04-03&quot; 4.0698843643823283E-4,
-;;;    &quot;2024-04-04&quot; 0.021488859117099194,
-;;;    &quot;2024-04-05&quot; -0.039943963696467195,
-;;;    &quot;2024-04-08&quot; 0.020893218835441294,
-;;;    &quot;2024-04-09&quot; -0.01428419242590349,
-;;;    &quot;2024-04-10&quot; -0.041040227057899226,
-;;;    &quot;2024-04-11&quot; 0.0407886335670611,
-;;;    &quot;2024-04-12&quot; 0.025735506444720013,
-;;;    &quot;2024-04-15&quot; -0.006722744228823572,
-;;;    &quot;2024-04-16&quot; -0.03036729851013696,
-;;;    &quot;2024-04-17&quot; 0.021823466700346357,
-;;;    &quot;2024-04-18&quot; -0.038894766423201305,
-;;;    &quot;2024-04-19&quot; -0.02165206174276012}},
-;;;  &quot;GOOG&quot;
-;;;  {:cumulative-return 0.11538577795478142,
-;;;   :arithmetic-returns
-;;;   {&quot;2024-02-27&quot; 0.00972977371891881,
-;;;    &quot;2024-02-28&quot; -0.019057910859243576,
-;;;    &quot;2024-02-29&quot; 0.01709965967213356,
-;;;    &quot;2024-03-01&quot; -0.012161947081457236,
-;;;    &quot;2024-03-04&quot; -0.028099687365633286,
-;;;    &quot;2024-03-05&quot; -0.003129643654627867,
-;;;    &quot;2024-03-06&quot; -0.009119459050920375,
-;;;    &quot;2024-03-07&quot; 0.02021732033764745,
-;;;    &quot;2024-03-08&quot; 0.007763884577428604,
-;;;    &quot;2024-03-11&quot; 0.01944390113613914,
-;;;    &quot;2024-03-12&quot; 0.0048941461339531145,
-;;;    &quot;2024-03-13&quot; 0.008236708175892948,
-;;;    &quot;2024-03-14&quot; 0.025360460020227737,
-;;;    &quot;2024-03-15&quot; -0.015033935319771152,
-;;;    &quot;2024-03-18&quot; 0.04438346795998149,
-;;;    &quot;2024-03-19&quot; -0.0037715353900450443,
-;;;    &quot;2024-03-20&quot; 0.01189828642973878,
-;;;    &quot;2024-03-21&quot; -0.006279978812104736,
-;;;    &quot;2024-03-22&quot; 0.020371108426767703,
-;;;    &quot;2024-03-25&quot; -0.00408519706494026,
-;;;    &quot;2024-03-26&quot; 0.003638789771150286,
-;;;    &quot;2024-03-27&quot; 0.0015821061175231854,
-;;;    &quot;2024-03-28&quot; 0.002106042255221263,
-;;;    &quot;2024-04-01&quot; 0.027847140720937302,
-;;;    &quot;2024-04-02&quot; -0.004025590305431259,
-;;;    &quot;2024-04-03&quot; 0.003207801473426919,
-;;;    &quot;2024-04-04&quot; -0.02833019641958623,
-;;;    &quot;2024-04-05&quot; 0.013163090482188,
-;;;    &quot;2024-04-08&quot; 0.014291262266528104,
-;;;    &quot;2024-04-09&quot; 0.012809017598428563,
-;;;    &quot;2024-04-10&quot; -0.0030352581848535065,
-;;;    &quot;2024-04-11&quot; 0.019852781626900518,
-;;;    &quot;2024-04-12&quot; -0.009950811067285126,
-;;;    &quot;2024-04-15&quot; -0.017965956193466415,
-;;;    &quot;2024-04-16&quot; -0.002110930897682217,
-;;;    &quot;2024-04-17&quot; 0.0056410569410256794,
-;;;    &quot;2024-04-18&quot; 0.003697104876642987,
-;;;    &quot;2024-04-19&quot; -0.011050459920032396},
-;;;   :log-returns
-;;;   {&quot;2024-02-27&quot; 0.009682744281726864,
-;;;    &quot;2024-02-28&quot; -0.01924185363555232,
-;;;    &quot;2024-02-29&quot; 0.016955106043255397,
-;;;    &quot;2024-03-01&quot; -0.012236508719703257,
-;;;    &quot;2024-03-04&quot; -0.028502038799374928,
-;;;    &quot;2024-03-05&quot; -0.003134551231316087,
-;;;    &quot;2024-03-06&quot; -0.009161295864592816,
-;;;    &quot;2024-03-07&quot; 0.020015663756857732,
-;;;    &quot;2024-03-08&quot; 0.007733900719707719,
-;;;    &quot;2024-03-11&quot; 0.01925728365879598,
-;;;    &quot;2024-03-12&quot; 0.004882208733839472,
-;;;    &quot;2024-03-13&quot; 0.008202971620612674,
-;;;    &quot;2024-03-14&quot; 0.025044219081981015,
-;;;    &quot;2024-03-15&quot; -0.015148090504825953,
-;;;    &quot;2024-03-18&quot; 0.043426728495015436,
-;;;    &quot;2024-03-19&quot; -0.0037786655630901826,
-;;;    &quot;2024-03-20&quot; 0.011828058333563249,
-;;;    &quot;2024-03-21&quot; -0.006299780826732111,
-;;;    &quot;2024-03-22&quot; 0.020166392916391915,
-;;;    &quot;2024-03-25&quot; -0.004093564278054266,
-;;;    &quot;2024-03-26&quot; 0.003632185392100155,
-;;;    &quot;2024-03-27&quot; 0.001580855906110676,
-;;;    &quot;2024-03-28&quot; 0.00210382765704401,
-;;;    &quot;2024-04-01&quot; 0.02746646017990375,
-;;;    &quot;2024-04-02&quot; -0.004033714805353822,
-;;;    &quot;2024-04-03&quot; 0.0032026674546259083,
-;;;    &quot;2024-04-04&quot; -0.028739240486219824,
-;;;    &quot;2024-04-05&quot; 0.01307720982233686,
-;;;    &quot;2024-04-08&quot; 0.014190104817235887,
-;;;    &quot;2024-04-09&quot; 0.012727676000077327,
-;;;    &quot;2024-04-10&quot; -0.003039873923316099,
-;;;    &quot;2024-04-11&quot; 0.01965828514101921,
-;;;    &quot;2024-04-12&quot; -0.010000651297178366,
-;;;    &quot;2024-04-15&quot; -0.01812930340115913,
-;;;    &quot;2024-04-16&quot; -0.0021131620527386707,
-;;;    &quot;2024-04-17&quot; 0.00562520576297966,
-;;;    &quot;2024-04-18&quot; 0.0036902873825688087,
-;;;    &quot;2024-04-19&quot; -0.011111969813760454}},
-;;;  &quot;TSLA&quot;
-;;;  {:cumulative-return -0.2971690621166354,
-;;;   :arithmetic-returns
-;;;   {&quot;2024-03-04&quot; -0.008926832769100779,
-;;;    &quot;2024-03-05&quot; -0.0789009863272001,
-;;;    &quot;2024-03-06&quot; -0.016716730442960293,
-;;;    &quot;2024-03-07&quot; -0.03133506982371348,
-;;;    &quot;2024-03-08&quot; 0.041009427279603994,
-;;;    &quot;2024-03-11&quot; -0.03333335014765837,
-;;;    &quot;2024-03-12&quot; 0.01322318247166998,
-;;;    &quot;2024-03-13&quot; -0.026551167841931345,
-;;;    &quot;2024-03-14&quot; -0.0305114052943386,
-;;;    &quot;2024-03-15&quot; -0.02747809794957279,
-;;;    &quot;2024-03-18&quot; 0.04204462157654065,
-;;;    &quot;2024-03-19&quot; 0.013763064810594638,
-;;;    &quot;2024-03-20&quot; 0.003713154950878872,
-;;;    &quot;2024-03-21&quot; 0.019595372194219696,
-;;;    &quot;2024-03-22&quot; -0.054991762468206695,
-;;;    &quot;2024-03-25&quot; 0.012418213660580601,
-;;;    &quot;2024-03-26&quot; 0.058189189641768335,
-;;;    &quot;2024-03-27&quot; 0.01584724942312743,
-;;;    &quot;2024-03-28&quot; -0.021829042687612876,
-;;;    &quot;2024-04-01&quot; -0.0072132927659257495,
-;;;    &quot;2024-04-02&quot; -0.06482374006697367,
-;;;    &quot;2024-04-03&quot; -0.004430930060698057,
-;;;    &quot;2024-04-04&quot; 0.036885763285609,
-;;;    &quot;2024-04-05&quot; -0.005821164523223565,
-;;;    &quot;2024-04-08&quot; 0.001537701111806955,
-;;;    &quot;2024-04-09&quot; 0.021081890878729137,
-;;;    &quot;2024-04-10&quot; 7.517761913535814E-4,
-;;;    &quot;2024-04-11&quot; -0.0028316588841394985,
-;;;    &quot;2024-04-12&quot; -0.0012170774279091079,
-;;;    &quot;2024-04-15&quot; -0.012185162407585604,
-;;;    &quot;2024-04-16&quot; -0.07929980947127757,
-;;;    &quot;2024-04-17&quot; 0.005741953967451252,
-;;;    &quot;2024-04-18&quot; -0.040535393392177155,
-;;;    &quot;2024-04-19&quot; -0.01507437209454543},
-;;;   :log-returns
-;;;   {&quot;2024-03-04&quot; -0.008966915661229745,
-;;;    &quot;2024-03-05&quot; -0.08218774180298156,
-;;;    &quot;2024-03-06&quot; -0.016858031927332002,
-;;;    &quot;2024-03-07&quot; -0.03183651618203155,
-;;;    &quot;2024-03-08&quot; 0.040190845576076405,
-;;;    &quot;2024-03-11&quot; -0.033901569069810844,
-;;;    &quot;2024-03-12&quot; 0.013136519333363105,
-;;;    &quot;2024-03-13&quot; -0.026910016251739145,
-;;;    &quot;2024-03-14&quot; -0.030986568467997484,
-;;;    &quot;2024-03-15&quot; -0.02786268235452426,
-;;;    &quot;2024-03-18&quot; 0.041184765424412045,
-;;;    &quot;2024-03-19&quot; 0.013669213970453118,
-;;;    &quot;2024-03-20&quot; 0.003706278208716729,
-;;;    &quot;2024-03-21&quot; 0.01940585466509325,
-;;;    &quot;2024-03-22&quot; -0.05656163456152617,
-;;;    &quot;2024-03-25&quot; 0.012341740104424025,
-;;;    &quot;2024-03-26&quot; 0.05655913563696795,
-;;;    &quot;2024-03-27&quot; 0.015722992797362372,
-;;;    &quot;2024-03-28&quot; -0.022070821245679117,
-;;;    &quot;2024-04-01&quot; -0.007239434349310188,
-;;;    &quot;2024-04-02&quot; -0.06702025416249456,
-;;;    &quot;2024-04-03&quot; -0.004440775725699217,
-;;;    &quot;2024-04-04&quot; 0.03622176241320018,
-;;;    &quot;2024-04-05&quot; -0.005838173541743741,
-;;;    &quot;2024-04-08&quot; 0.0015365200600337267,
-;;;    &quot;2024-04-09&quot; 0.02086274250751641,
-;;;    &quot;2024-04-10&quot; 7.514937491793084E-4,
-;;;    &quot;2024-04-11&quot; -0.0028356756146232704,
-;;;    &quot;2024-04-12&quot; -0.0012178186681340737,
-;;;    &quot;2024-04-15&quot; -0.012260010141679696,
-;;;    &quot;2024-04-16&quot; -0.08262082174937443,
-;;;    &quot;2024-04-17&quot; 0.005725531783397452,
-;;;    &quot;2024-04-18&quot; -0.041379851543738425,
-;;;    &quot;2024-04-19&quot; -0.01518914532518197}}}
+;;; Omitting...
 ;;; ----------------------------------
 ;;; 
 ;;; 
@@ -519,5 +408,5 @@
 (plot/list-plot (cons (:starting-cash portfolio-options) (map #(second %) portfolio-value-by-day)) :joined true :plot-size 800 :x-title "Day" :y-title "Portfolio Value (in $)" :color "#7f3b08")
 ;; @@
 ;; =>
-;;; {"type":"vega","content":{"width":800,"height":494.4376,"padding":{"top":10,"left":80,"bottom":50,"right":10},"data":[{"name":"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b","values":[{"x":0,"y":200000},{"x":1,"y":198509.59472656},{"x":2,"y":195348.74267578},{"x":3,"y":193368.82934569998},{"x":4,"y":204434.31396484},{"x":5,"y":204713.29956055002},{"x":6,"y":204753.28750611},{"x":7,"y":204429.808807375},{"x":8,"y":203258.35647583},{"x":9,"y":204824.788665775},{"x":10,"y":207906.640625005},{"x":11,"y":210616.80145263},{"x":12,"y":210856.401519774},{"x":13,"y":213439.600067141},{"x":14,"y":217373.40072632},{"x":15,"y":212499.40261841},{"x":16,"y":210696.399078371},{"x":17,"y":217425.000762943},{"x":18,"y":217217.701110845},{"x":19,"y":213850.401458742},{"x":20,"y":212702.499847414},{"x":21,"y":214879.19952393},{"x":22,"y":214757.998657233},{"x":23,"y":216768.296508789},{"x":24,"y":218636.898498534},{"x":25,"y":221003.701629638},{"x":26,"y":222587.80136108},{"x":27,"y":221041.899414067},{"x":28,"y":218006.100769045},{"x":29,"y":217075.700073242},{"x":30,"y":217346.00082397502},{"x":31,"y":215505.60180663998},{"x":32,"y":215031.502838136},{"x":33,"y":212509.09973145},{"x":34,"y":213620.401763914},{"x":35,"y":213413.402252193},{"x":36,"y":211464.098052975},{"x":37,"y":212074.202423092},{"x":38,"y":216841.198120115},{"x":39,"y":215008.598937995},{"x":40,"y":212437.301330571},{"x":41,"y":212630.303802496},{"x":42,"y":209893.399200437},{"x":43,"y":209355.703582771},{"x":44,"y":200183.300781252}]}],"marks":[{"type":"line","from":{"data":"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"y":{"scale":"y","field":"data.y"},"stroke":{"value":"#7f3b08"},"strokeWidth":{"value":3},"strokeOpacity":{"value":1}}}}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b","field":"data.y"}}],"axes":[{"type":"x","scale":"x","title":"Day","titleOffset":40,"grid":true},{"type":"y","scale":"y","title":"Portfolio Value (in $)","titleOffset":65,"grid":true}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 800, :height 494.4376, :padding {:top 10, :left 80, :bottom 50, :right 10}, :data [{:name \"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b\", :values ({:x 0, :y 200000} {:x 1, :y 198509.59472656} {:x 2, :y 195348.74267578} {:x 3, :y 193368.82934569998} {:x 4, :y 204434.31396484} {:x 5, :y 204713.29956055002} {:x 6, :y 204753.28750611} {:x 7, :y 204429.808807375} {:x 8, :y 203258.35647583} {:x 9, :y 204824.788665775} {:x 10, :y 207906.640625005} {:x 11, :y 210616.80145263} {:x 12, :y 210856.401519774} {:x 13, :y 213439.600067141} {:x 14, :y 217373.40072632} {:x 15, :y 212499.40261841} {:x 16, :y 210696.399078371} {:x 17, :y 217425.000762943} {:x 18, :y 217217.701110845} {:x 19, :y 213850.401458742} {:x 20, :y 212702.499847414} {:x 21, :y 214879.19952393} {:x 22, :y 214757.998657233} {:x 23, :y 216768.296508789} {:x 24, :y 218636.898498534} {:x 25, :y 221003.701629638} {:x 26, :y 222587.80136108} {:x 27, :y 221041.899414067} {:x 28, :y 218006.100769045} {:x 29, :y 217075.700073242} {:x 30, :y 217346.00082397502} {:x 31, :y 215505.60180663998} {:x 32, :y 215031.502838136} {:x 33, :y 212509.09973145} {:x 34, :y 213620.401763914} {:x 35, :y 213413.402252193} {:x 36, :y 211464.098052975} {:x 37, :y 212074.202423092} {:x 38, :y 216841.198120115} {:x 39, :y 215008.598937995} {:x 40, :y 212437.301330571} {:x 41, :y 212630.303802496} {:x 42, :y 209893.399200437} {:x 43, :y 209355.703582771} {:x 44, :y 200183.300781252})}], :marks [{:type \"line\", :from {:data \"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :y {:scale \"y\", :field \"data.y\"}, :stroke {:value \"#7f3b08\"}, :strokeWidth {:value 3}, :strokeOpacity {:value 1}}}}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"a95e97c0-0fc1-4c12-a8b7-3c4b5be0f84b\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\", :title \"Day\", :titleOffset 40, :grid true} {:type \"y\", :scale \"y\", :title \"Portfolio Value (in $)\", :titleOffset 65, :grid true}]}}"}
+;;; {"type":"vega","content":{"width":800,"height":494.4376,"padding":{"top":10,"left":80,"bottom":50,"right":10},"data":[{"name":"052a90ec-fb2e-412c-a73c-407934cb2612","values":[{"x":0,"y":200000},{"x":1,"y":199719.7846984845},{"x":2,"y":199651.0173034635},{"x":3,"y":198954.3738555885},{"x":4,"y":198477.530441278},{"x":5,"y":197950.9052276615},{"x":6,"y":197890.5139923005},{"x":7,"y":198250.8129119795},{"x":8,"y":197515.231704717},{"x":9,"y":197079.1099548335},{"x":10,"y":196854.0324401775},{"x":11,"y":197347.8922271745},{"x":12,"y":197626.6390228225},{"x":13,"y":198190.4830169695},{"x":14,"y":199155.00755310451},{"x":15,"y":199697.7532958945},{"x":16,"y":199340.616683947},{"x":17,"y":199423.712997428},{"x":18,"y":199426.5386963025},{"x":19,"y":198742.5130271815},{"x":20,"y":199870.578174563},{"x":21,"y":199889.371738445},{"x":22,"y":201479.1877365115},{"x":23,"y":201510.644283281},{"x":24,"y":201514.8925590555},{"x":25,"y":201713.4732055655},{"x":26,"y":202334.9057197305},{"x":27,"y":202223.2902145375},{"x":28,"y":202453.74719620802},{"x":29,"y":202400.47693251},{"x":30,"y":202301.23283387002},{"x":31,"y":202506.4446639995},{"x":32,"y":202606.5455245835},{"x":33,"y":202765.2862930145},{"x":34,"y":203324.062633497},{"x":35,"y":202579.421482057},{"x":36,"y":202754.3825912485},{"x":37,"y":202451.64300915351},{"x":38,"y":203023.51001738},{"x":39,"y":203149.452419265},{"x":40,"y":203459.885311134},{"x":41,"y":203788.709812156},{"x":42,"y":205476.62380217548},{"x":43,"y":206213.458271002},{"x":44,"y":205984.643955204},{"x":45,"y":206342.159461943},{"x":46,"y":206925.686874367},{"x":47,"y":205971.130657173},{"x":48,"y":206721.9116210545},{"x":49,"y":206819.791507678},{"x":50,"y":207281.5949439435},{"x":51,"y":207659.5568847295},{"x":52,"y":207519.671974172},{"x":53,"y":207188.3189201185},{"x":54,"y":206547.071361539},{"x":55,"y":206029.748954724},{"x":56,"y":205594.636173239},{"x":57,"y":205634.343433372},{"x":58,"y":206750.3279876285},{"x":59,"y":206665.7194137435},{"x":60,"y":206964.336700445},{"x":61,"y":207224.352607696},{"x":62,"y":207379.6105575295},{"x":63,"y":206725.946617106},{"x":64,"y":206155.43197627648},{"x":65,"y":206822.5763892845},{"x":66,"y":207744.144725771},{"x":67,"y":208051.9437026835},{"x":68,"y":208191.007232661},{"x":69,"y":208187.898101778},{"x":70,"y":208907.0541190705},{"x":71,"y":208804.447212203},{"x":72,"y":209543.9396667385},{"x":73,"y":209594.3068694665},{"x":74,"y":208499.602375042},{"x":75,"y":209681.380119284},{"x":76,"y":209937.690219846},{"x":77,"y":209284.325733151},{"x":78,"y":209787.8993987725},{"x":79,"y":210376.2996864305},{"x":80,"y":210374.9526786395},{"x":81,"y":210791.291007952},{"x":82,"y":210822.6575851255},{"x":83,"y":209274.1005897125},{"x":84,"y":210121.90343854701},{"x":85,"y":210853.1390571525},{"x":86,"y":208838.058662395},{"x":87,"y":205276.8674850145},{"x":88,"y":203269.4924926365},{"x":89,"y":215969.8532104305},{"x":90,"y":216398.3602523755},{"x":91,"y":216098.1854248155},{"x":92,"y":215922.7509498685},{"x":93,"y":214727.3605918735},{"x":94,"y":216669.49502941399},{"x":95,"y":220685.589275362},{"x":96,"y":223197.6866149695},{"x":97,"y":222832.04624173648},{"x":98,"y":225943.156204208},{"x":99,"y":230791.776733392},{"x":100,"y":225452.270832031},{"x":101,"y":223564.06599041552},{"x":102,"y":230995.3822898585},{"x":103,"y":230670.69057466398},{"x":104,"y":226859.32054521},{"x":105,"y":225166.5995597525},{"x":106,"y":227846.8660545395},{"x":107,"y":228298.037853262},{"x":108,"y":231134.465370166},{"x":109,"y":233310.407085407},{"x":110,"y":235619.6690368415},{"x":111,"y":236934.62371822697},{"x":112,"y":235243.8771628985},{"x":113,"y":233107.03752515302},{"x":114,"y":232186.45002361148},{"x":115,"y":231997.94580458148},{"x":116,"y":229627.105751031},{"x":117,"y":229326.499233233},{"x":118,"y":225950.700836171},{"x":119,"y":227690.0499725085},{"x":120,"y":227472.79533384898},{"x":121,"y":225756.1981582245},{"x":122,"y":224983.451442677},{"x":123,"y":230310.74766157},{"x":124,"y":227419.798526769},{"x":125,"y":223613.901882145},{"x":126,"y":223502.2530364895},{"x":127,"y":220406.9981384305},{"x":128,"y":219587.251930227},{"x":129,"y":209872.2490882675},{"x":130,"y":212295.649147015},{"x":131,"y":217237.69712446502},{"x":132,"y":215929.2524527985},{"x":133,"y":216704.650154109},{"x":134,"y":225176.0490989645}]}],"marks":[{"type":"line","from":{"data":"052a90ec-fb2e-412c-a73c-407934cb2612"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"y":{"scale":"y","field":"data.y"},"stroke":{"value":"#7f3b08"},"strokeWidth":{"value":3},"strokeOpacity":{"value":1}}}}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"052a90ec-fb2e-412c-a73c-407934cb2612","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"052a90ec-fb2e-412c-a73c-407934cb2612","field":"data.y"}}],"axes":[{"type":"x","scale":"x","title":"Day","titleOffset":40,"grid":true},{"type":"y","scale":"y","title":"Portfolio Value (in $)","titleOffset":65,"grid":true}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 800, :height 494.4376, :padding {:top 10, :left 80, :bottom 50, :right 10}, :data [{:name \"052a90ec-fb2e-412c-a73c-407934cb2612\", :values ({:x 0, :y 200000} {:x 1, :y 199719.7846984845} {:x 2, :y 199651.0173034635} {:x 3, :y 198954.3738555885} {:x 4, :y 198477.530441278} {:x 5, :y 197950.9052276615} {:x 6, :y 197890.5139923005} {:x 7, :y 198250.8129119795} {:x 8, :y 197515.231704717} {:x 9, :y 197079.1099548335} {:x 10, :y 196854.0324401775} {:x 11, :y 197347.8922271745} {:x 12, :y 197626.6390228225} {:x 13, :y 198190.4830169695} {:x 14, :y 199155.00755310451} {:x 15, :y 199697.7532958945} {:x 16, :y 199340.616683947} {:x 17, :y 199423.712997428} {:x 18, :y 199426.5386963025} {:x 19, :y 198742.5130271815} {:x 20, :y 199870.578174563} {:x 21, :y 199889.371738445} {:x 22, :y 201479.1877365115} {:x 23, :y 201510.644283281} {:x 24, :y 201514.8925590555} {:x 25, :y 201713.4732055655} {:x 26, :y 202334.9057197305} {:x 27, :y 202223.2902145375} {:x 28, :y 202453.74719620802} {:x 29, :y 202400.47693251} {:x 30, :y 202301.23283387002} {:x 31, :y 202506.4446639995} {:x 32, :y 202606.5455245835} {:x 33, :y 202765.2862930145} {:x 34, :y 203324.062633497} {:x 35, :y 202579.421482057} {:x 36, :y 202754.3825912485} {:x 37, :y 202451.64300915351} {:x 38, :y 203023.51001738} {:x 39, :y 203149.452419265} {:x 40, :y 203459.885311134} {:x 41, :y 203788.709812156} {:x 42, :y 205476.62380217548} {:x 43, :y 206213.458271002} {:x 44, :y 205984.643955204} {:x 45, :y 206342.159461943} {:x 46, :y 206925.686874367} {:x 47, :y 205971.130657173} {:x 48, :y 206721.9116210545} {:x 49, :y 206819.791507678} {:x 50, :y 207281.5949439435} {:x 51, :y 207659.5568847295} {:x 52, :y 207519.671974172} {:x 53, :y 207188.3189201185} {:x 54, :y 206547.071361539} {:x 55, :y 206029.748954724} {:x 56, :y 205594.636173239} {:x 57, :y 205634.343433372} {:x 58, :y 206750.3279876285} {:x 59, :y 206665.7194137435} {:x 60, :y 206964.336700445} {:x 61, :y 207224.352607696} {:x 62, :y 207379.6105575295} {:x 63, :y 206725.946617106} {:x 64, :y 206155.43197627648} {:x 65, :y 206822.5763892845} {:x 66, :y 207744.144725771} {:x 67, :y 208051.9437026835} {:x 68, :y 208191.007232661} {:x 69, :y 208187.898101778} {:x 70, :y 208907.0541190705} {:x 71, :y 208804.447212203} {:x 72, :y 209543.9396667385} {:x 73, :y 209594.3068694665} {:x 74, :y 208499.602375042} {:x 75, :y 209681.380119284} {:x 76, :y 209937.690219846} {:x 77, :y 209284.325733151} {:x 78, :y 209787.8993987725} {:x 79, :y 210376.2996864305} {:x 80, :y 210374.9526786395} {:x 81, :y 210791.291007952} {:x 82, :y 210822.6575851255} {:x 83, :y 209274.1005897125} {:x 84, :y 210121.90343854701} {:x 85, :y 210853.1390571525} {:x 86, :y 208838.058662395} {:x 87, :y 205276.8674850145} {:x 88, :y 203269.4924926365} {:x 89, :y 215969.8532104305} {:x 90, :y 216398.3602523755} {:x 91, :y 216098.1854248155} {:x 92, :y 215922.7509498685} {:x 93, :y 214727.3605918735} {:x 94, :y 216669.49502941399} {:x 95, :y 220685.589275362} {:x 96, :y 223197.6866149695} {:x 97, :y 222832.04624173648} {:x 98, :y 225943.156204208} {:x 99, :y 230791.776733392} {:x 100, :y 225452.270832031} {:x 101, :y 223564.06599041552} {:x 102, :y 230995.3822898585} {:x 103, :y 230670.69057466398} {:x 104, :y 226859.32054521} {:x 105, :y 225166.5995597525} {:x 106, :y 227846.8660545395} {:x 107, :y 228298.037853262} {:x 108, :y 231134.465370166} {:x 109, :y 233310.407085407} {:x 110, :y 235619.6690368415} {:x 111, :y 236934.62371822697} {:x 112, :y 235243.8771628985} {:x 113, :y 233107.03752515302} {:x 114, :y 232186.45002361148} {:x 115, :y 231997.94580458148} {:x 116, :y 229627.105751031} {:x 117, :y 229326.499233233} {:x 118, :y 225950.700836171} {:x 119, :y 227690.0499725085} {:x 120, :y 227472.79533384898} {:x 121, :y 225756.1981582245} {:x 122, :y 224983.451442677} {:x 123, :y 230310.74766157} {:x 124, :y 227419.798526769} {:x 125, :y 223613.901882145} {:x 126, :y 223502.2530364895} {:x 127, :y 220406.9981384305} {:x 128, :y 219587.251930227} {:x 129, :y 209872.2490882675} {:x 130, :y 212295.649147015} {:x 131, :y 217237.69712446502} {:x 132, :y 215929.2524527985} {:x 133, :y 216704.650154109} {:x 134, :y 225176.0490989645})}], :marks [{:type \"line\", :from {:data \"052a90ec-fb2e-412c-a73c-407934cb2612\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :y {:scale \"y\", :field \"data.y\"}, :stroke {:value \"#7f3b08\"}, :strokeWidth {:value 3}, :strokeOpacity {:value 1}}}}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"052a90ec-fb2e-412c-a73c-407934cb2612\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"052a90ec-fb2e-412c-a73c-407934cb2612\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\", :title \"Day\", :titleOffset 40, :grid true} {:type \"y\", :scale \"y\", :title \"Portfolio Value (in $)\", :titleOffset 65, :grid true}]}}"}
 ;; <=
