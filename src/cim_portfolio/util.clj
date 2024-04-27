@@ -8,6 +8,7 @@
 (ns cim_portfolio.util
   (:require [cheshire.core :as json]
             [clj-time.core :as t]
+            [clj-time.coerce :as coerce]
             [clj-time.format :as tf]
             [clojure.data.csv :as csv]
             [java-time :as jt]))
@@ -22,6 +23,12 @@
 
 (defn parse-date [date]
   (tf/unparse multi-parser (tf/parse multi-parser date)))
+
+(defn number-of-days-between [start-date end-date]
+  (let [end 	(coerce/from-string end-date)
+        start 	(coerce/from-string start-date)
+        days  	(t/in-days (t/interval start end))]
+    days))
 
 (defn read-csv [file]
   (with-open [reader (clojure.java.io/reader file)]
@@ -40,6 +47,13 @@
 ;; @@
 ;; =>
 ;;; {"type":"html","content":"<span class='clj-var'>#&#x27;cim_portfolio.util/read-multiple-csv</span>","value":"#'cim_portfolio.util/read-multiple-csv"}
+;; <=
+
+;; @@
+(number-of-days-between "2023-10-13" "2024-04-27")
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-unkown'>197</span>","value":"197"}
 ;; <=
 
 ;; @@
