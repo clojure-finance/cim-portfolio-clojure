@@ -108,3 +108,22 @@
 ;; =>
 ;;; {"type":"html","content":"<span class='clj-long'>6</span>","value":"6"}
 ;; <=
+
+;; @@
+(defn mean [a] (/ (reduce + a) (count a)))
+
+(defn square [n]
+  (* n n))
+
+(defn squares [avg prices] (map #(square (- % avg)) prices))
+
+(defn std-dev [coll]
+  (let [avg (mean coll)
+        squares (squares avg coll)
+        total (count coll)]
+    (Math/sqrt (/ (reduce + squares) (- total 1)))))
+
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;cim_portfolio.util/std-dev</span>","value":"#'cim_portfolio.util/std-dev"}
+;; <=
