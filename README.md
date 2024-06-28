@@ -4,13 +4,24 @@ A portfolio analysis program written in Clojure.
 
 ## Installation
 
-Please ensure Java, Clojure, Leiningen are installed prior to running this application.
-Please install Python on your system and ensure yfinance is installed.
-Please run: `pip install yfinance` to install yfinance
+Ensure that the following are installed:
+- Java
+- Clojure (install via homebrew on MacOS)
+- Leiningen (install via homebrew on MacOS)
+- Python 2/3 + pip 
+
+Run the following command to install the yfinance package and currency converter package:
+`pip install yfinance CurrencyConverter`
+
+CurrencyConverter: https://pypi.org/project/CurrencyConverter/
+yFinance: https://pypi.org/project/yfinance/
+
+If you're using Python3, run the above command with `pip3` instead on your Terminal.
+Verify that these packages are installed and can be run in a python environment.
 
 KEY DEPENDENCY: clj-python/libpython-clj
 libpython-clj (https://github.com/clj-python/libpython-clj) is a key requirement to run Python code within Clojure.
-Python objects are linked to JVM, allowing Clojure to run the server.clj file that enables scraping data from Python's yfinance package.
+Python objects are linked to the JVM, allowing Clojure to run the yfinanceclient.clj file that enables scraping data from Python's yfinance package.
 
 
 ## Usage
@@ -22,7 +33,7 @@ Here's a video tutorial on running the program: [CIM Portfolio Tutorial](https:/
 - Open the URL provided in the terminal in your browser of choice
 - Hit **Ctrl G + Ctrl L** (on Mac) or **Alt G + Alt L** (on Linux) and load `src/cim_portfolio/yfinanceclient.clj`
 - Run all the code blocks with **Shift + Enter** or **Ctrl + Enter**
-- If the output shows proper finance data, load `src/cim_portfolio/portfolio.clj`. If error, flag the issue and try to debug.
+- If the output shows proper historical price data, load `src/cim_portfolio/portfolio.clj`. If error, flag the issue and try to debug.
 - Run all code blocks in portfolio.clj except for the last one.
 - Enter the relative path to your csv file containing all your trades (relative to main directory)
 - Execute the final code block to get an overview of your portfolio as well as other statistics (such as individual stock performance etc.)

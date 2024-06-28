@@ -23,15 +23,17 @@
 
 ;; @@
 ;; Test if yfinance working through clojure-python wrapper
-(yf/download "AAPL" "2024-04-15" :progress false)
+(yf/download "AAPL" "2024-06-25" :progress false)
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-unkown'>                  Open        High  ...   Adj Close    Volume\nDate                                ...                      \n2024-04-15  175.360001  176.630005  ...  172.690002  73531800\n2024-04-16  171.750000  173.759995  ...  169.380005  73711200\n2024-04-17  169.610001  170.649994  ...  168.000000  50901200\n2024-04-18  168.029999  168.639999  ...  167.039993  43122900\n2024-04-19  166.210007  166.399994  ...  165.000000  67772100\n2024-04-22  165.520004  167.259995  ...  165.839996  48116400\n2024-04-23  165.350006  167.050003  ...  166.899994  49537800\n2024-04-24  166.539993  169.300003  ...  169.020004  48251800\n2024-04-25  169.529999  170.610001  ...  169.889999  50558300\n2024-04-26  169.880005  171.339996  ...  169.300003  44525100\n\n[10 rows x 6 columns]</span>","value":"                  Open        High  ...   Adj Close    Volume\nDate                                ...                      \n2024-04-15  175.360001  176.630005  ...  172.690002  73531800\n2024-04-16  171.750000  173.759995  ...  169.380005  73711200\n2024-04-17  169.610001  170.649994  ...  168.000000  50901200\n2024-04-18  168.029999  168.639999  ...  167.039993  43122900\n2024-04-19  166.210007  166.399994  ...  165.000000  67772100\n2024-04-22  165.520004  167.259995  ...  165.839996  48116400\n2024-04-23  165.350006  167.050003  ...  166.899994  49537800\n2024-04-24  166.539993  169.300003  ...  169.020004  48251800\n2024-04-25  169.529999  170.610001  ...  169.889999  50558300\n2024-04-26  169.880005  171.339996  ...  169.300003  44525100\n\n[10 rows x 6 columns]"}
+;;; {"type":"html","content":"<span class='clj-unkown'>                  Open        High  ...   Adj Close    Volume\nDate                                ...                      \n2024-06-25  209.149994  211.380005  ...  209.070007  56713900\n2024-06-26  211.500000  214.860001  ...  213.250000  66213200\n2024-06-27  214.690002  215.740005  ...  214.100006  49718000\n2024-06-28  215.804993  216.070007  ...  213.160095  34274691\n\n[4 rows x 6 columns]</span>","value":"                  Open        High  ...   Adj Close    Volume\nDate                                ...                      \n2024-06-25  209.149994  211.380005  ...  209.070007  56713900\n2024-06-26  211.500000  214.860001  ...  213.250000  66213200\n2024-06-27  214.690002  215.740005  ...  214.100006  49718000\n2024-06-28  215.804993  216.070007  ...  213.160095  34274691\n\n[4 rows x 6 columns]"}
 ;; <=
 
 ;; @@
 (def pythonWrapper (py/run-simple-string "from datetime import datetime, timedelta
 import yfinance as yf
+from currency_converter import CurrencyConverter
+
 def get_ticker_price_all(ticker, date):
     date = (datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
     count = 0
@@ -46,15 +48,19 @@ def get_ticker_price_all(ticker, date):
             break
     data.reset_index(inplace=True)
     data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')
+    stock = yf.Ticker(ticker)
+
+    if stock.info['currency'] != 'USD':
+        c = CurrencyConverter()
+        fx_to_usd = c.convert(1, stock.info['currency'], 'USD')
+    else:
+        fx_to_usd = 1
+    data['Open'] = data['Open'] * fx_to_usd
+    data['Adj Close'] = data['Adj Close'] * fx_to_usd
     return data[['Date', 'Open', 'Adj Close']].to_json(orient = 'values')"))
 
 (def get-ticker-price-all-wrapper (:get_ticker_price_all (:globals pythonWrapper)))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;cim_portfolio.yfinanceclient/get-ticker-price-all-wrapper</span>","value":"#'cim_portfolio.yfinanceclient/get-ticker-price-all-wrapper"}
-;; <=
 
-;; @@
 (defn get-ticker-price-all [ticker date]
   (json/read-str (get-ticker-price-all-wrapper ticker date))
 )
@@ -64,10 +70,10 @@ def get_ticker_price_all(ticker, date):
 ;; <=
 
 ;; @@
-;; Test if function is working
+;; Test if function is working + price is converted to USD
 
-(get-ticker-price-all "AAPL" "2024-04-15")
+(get-ticker-price-all "3330.HK" "2024-06-25")
 ;; @@
 ;; =>
-;;; {"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-16&quot;</span>","value":"\"2024-04-16\""},{"type":"html","content":"<span class='clj-double'>171.75</span>","value":"171.75"},{"type":"html","content":"<span class='clj-double'>169.3800048828</span>","value":"169.3800048828"}],"value":"[\"2024-04-16\" 171.75 169.3800048828]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-17&quot;</span>","value":"\"2024-04-17\""},{"type":"html","content":"<span class='clj-double'>169.6100006104</span>","value":"169.6100006104"},{"type":"html","content":"<span class='clj-double'>168.0</span>","value":"168.0"}],"value":"[\"2024-04-17\" 169.6100006104 168.0]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-18&quot;</span>","value":"\"2024-04-18\""},{"type":"html","content":"<span class='clj-double'>168.0299987793</span>","value":"168.0299987793"},{"type":"html","content":"<span class='clj-double'>167.0399932861</span>","value":"167.0399932861"}],"value":"[\"2024-04-18\" 168.0299987793 167.0399932861]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-19&quot;</span>","value":"\"2024-04-19\""},{"type":"html","content":"<span class='clj-double'>166.2100067139</span>","value":"166.2100067139"},{"type":"html","content":"<span class='clj-double'>165.0</span>","value":"165.0"}],"value":"[\"2024-04-19\" 166.2100067139 165.0]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-22&quot;</span>","value":"\"2024-04-22\""},{"type":"html","content":"<span class='clj-double'>165.5200042725</span>","value":"165.5200042725"},{"type":"html","content":"<span class='clj-double'>165.8399963379</span>","value":"165.8399963379"}],"value":"[\"2024-04-22\" 165.5200042725 165.8399963379]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-23&quot;</span>","value":"\"2024-04-23\""},{"type":"html","content":"<span class='clj-double'>165.3500061035</span>","value":"165.3500061035"},{"type":"html","content":"<span class='clj-double'>166.8999938965</span>","value":"166.8999938965"}],"value":"[\"2024-04-23\" 165.3500061035 166.8999938965]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-24&quot;</span>","value":"\"2024-04-24\""},{"type":"html","content":"<span class='clj-double'>166.5399932861</span>","value":"166.5399932861"},{"type":"html","content":"<span class='clj-double'>169.0200042725</span>","value":"169.0200042725"}],"value":"[\"2024-04-24\" 166.5399932861 169.0200042725]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-25&quot;</span>","value":"\"2024-04-25\""},{"type":"html","content":"<span class='clj-double'>169.5299987793</span>","value":"169.5299987793"},{"type":"html","content":"<span class='clj-double'>169.8899993896</span>","value":"169.8899993896"}],"value":"[\"2024-04-25\" 169.5299987793 169.8899993896]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-04-26&quot;</span>","value":"\"2024-04-26\""},{"type":"html","content":"<span class='clj-double'>169.8800048828</span>","value":"169.8800048828"},{"type":"html","content":"<span class='clj-double'>169.3000030518</span>","value":"169.3000030518"}],"value":"[\"2024-04-26\" 169.8800048828 169.3000030518]"}],"value":"[[\"2024-04-16\" 171.75 169.3800048828] [\"2024-04-17\" 169.6100006104 168.0] [\"2024-04-18\" 168.0299987793 167.0399932861] [\"2024-04-19\" 166.2100067139 165.0] [\"2024-04-22\" 165.5200042725 165.8399963379] [\"2024-04-23\" 165.3500061035 166.8999938965] [\"2024-04-24\" 166.5399932861 169.0200042725] [\"2024-04-25\" 169.5299987793 169.8899993896] [\"2024-04-26\" 169.8800048828 169.3000030518]]"}
+;;; {"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-06-26&quot;</span>","value":"\"2024-06-26\""},{"type":"html","content":"<span class='clj-double'>0.3803823471</span>","value":"0.3803823471"},{"type":"html","content":"<span class='clj-double'>0.3791015997</span>","value":"0.3791015997"}],"value":"[\"2024-06-26\" 0.3803823471 0.3791015997]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-06-27&quot;</span>","value":"\"2024-06-27\""},{"type":"html","content":"<span class='clj-double'>0.3752593575</span>","value":"0.3752593575"},{"type":"html","content":"<span class='clj-double'>0.3637326002</span>","value":"0.3637326002"}],"value":"[\"2024-06-27\" 0.3752593575 0.3637326002]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;2024-06-28&quot;</span>","value":"\"2024-06-28\""},{"type":"html","content":"<span class='clj-double'>0.3714171152</span>","value":"0.3714171152"},{"type":"html","content":"<span class='clj-double'>0.3778208523</span>","value":"0.3778208523"}],"value":"[\"2024-06-28\" 0.3714171152 0.3778208523]"}],"value":"[[\"2024-06-26\" 0.3803823471 0.3791015997] [\"2024-06-27\" 0.3752593575 0.3637326002] [\"2024-06-28\" 0.3714171152 0.3778208523]]"}
 ;; <=
