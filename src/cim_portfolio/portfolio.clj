@@ -171,7 +171,7 @@
             executed-date (first (first ticker-prices))				; gets the date the buy/sell order is executed
             ]
         (cond
-          (= action "buy")
+          (= (clojure.string/lower-case action) "buy")
           (if (pos? (Double. amount))
             (let [price (second (first ticker-prices))        	; Gets open price of next trading day
                   currPrice (nth (last ticker-prices) 2)		; Gets adj close price of latest day
@@ -190,7 +190,7 @@
                      (rest data)))
             (recur cash portfolio portfolio-value current-value cash-invested cash-invested-by-date stock-performance (rest data)))
 
-          (= action "sell")
+          (= (clojure.string/lower-case action) "sell")
           (let [price (second (first ticker-prices))
                 currPrice (second (last ticker-prices))
                 prices (map second ticker-prices)
@@ -214,7 +214,7 @@
 
 ;; @@
 (def portfolio-options {
-                        :starting-cash 200000
+                        :starting-cash 1000000
                        }
 )
 
@@ -251,7 +251,7 @@
   (println "Annualized Return of portfolio:" (format "%.2f" (* annualized-return 100)) "%\n")
   (println "Volatility of portfolio:" (format "%.4f" volatility) "%\n")
   (println "Annualized volatility of portfolio:" (format "%.4f" (* (Math/sqrt 252) volatility)) "%\n")
-  (println "Cash On Hand (excluding value of portfolio): $" (format "%.2f"(+ (:starting-cash portfolio-options) cash)) "\n")
+  (println "Cash On Hand (excluding value of stocks): $" (format "%.2f"(+ (:starting-cash portfolio-options) cash)) "\n")
   (println "Portfolio (units held of each stock):" portfolio "\n")
   (println "Cash invested in each stock: " cash-invested "\n")
   (println "Cumulative Portfolio Return: " cumulative-portfolio-return "\n")
@@ -286,7 +286,7 @@
 ;;; 
 ;;; Annualized volatility of portfolio: 8.0169 %
 ;;; 
-;;; Cash On Hand (excluding value of portfolio): $ 66643.17 
+;;; Cash On Hand (excluding value of stocks): $ 866643.17 
 ;;; 
 ;;; Portfolio (units held of each stock): {IEF 100.0, NVDA 70.0, SHY 170.0, RSP 35.0, SPY 150.0, GOOG 50.0, TSLA -30.0, GSG 250.0, AGG 300.0} 
 ;;; 
