@@ -1,17 +1,20 @@
 ;;; # Clojure Wrapper over Python's yfinance API 
 ;;; ### Requires python, yfinance etc. to be installed on local machine
+
+
+
 (ns cim_portfolio.yfinanceclient
   (:require [libpython-clj2.require :refer [require-python]]
             [libpython-clj2.python :refer [py. py.. py.-] :as py]
-            [nextjournal.clerk :as clerk]
             [clojure.data.json :as json]
+            [nextjournal.clerk :as clerk]
   )
 )
 
 ;;(require-python '[datetime :as dt])
 ;;(require-python '[yfinance :as yf])
 
-
+                
 ;; Test if yfinance working through clojure-python wrapper
 ;;(yf/download "AAPL" "2024-06-25" :progress false)
 
@@ -52,7 +55,4 @@ def get_ticker_price_all(ticker, date):
 
 ;; Test if function is working + price is converted to USD
 
-(get-ticker-price-all "0660.HK" "2024-06-25")
-
-(println "787y78y812312312")
-(get-ticker-price-all "0660.HK" "2024-06-25")
+(get-ticker-price-all "3330.HK" "2024-06-25")
