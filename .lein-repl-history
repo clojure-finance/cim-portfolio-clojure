@@ -1,0 +1,58 @@
+ls
+c
+(require 'user)
+cim-portfolio.core=> (require 'user)
+Execution error (FileNotFoundException) at cim-portfolio.core/eval2429 (form-init17722733929153944398.clj:1).
+(require 'user)
+Unhandled clojure.lang.ExceptionInfo
+Invalid symbol: coding:.
+{:ex-kind :reader-error :type :reader-exception}
+Hide stacktrace
+errors.clj:34clojure.tools.reader.impl.errors/throw-ex
+errors.clj:24clojure.tools.reader.impl.errors/throw-ex
+RestFn.java:442clojure.lang.RestFn
+errors.clj:40clojure.tools.reader.impl.errors/reader-error
+errors.clj:36clojure.tools.reader.impl.errors/reader-error
+RestFn.java:516clojure.lang.RestFn
+errors.clj:97clojure.tools.reader.impl.errors/throw-invalid
+errors.clj:96clojure.tools.reader.impl.errors/throw-invalid
+edn.clj:263clojure.tools.reader.edn/read-symbol
+edn.clj:250clojure.tools.reader.edn/read-symbol
+edn.clj:408clojure.tools.reader.edn/read
+edn.clj:372clojure.tools.reader.edn/read
+edn.clj:393clojure.tools.reader.edn/read
+edn.clj:372clojure.tools.reader.edn/read
+edn.clj:441clojure.tools.reader.edn/read-string
+edn.clj:430clojure.tools.reader.edn/read-string
+edn.clj:438clojure.tools.reader.edn/read-string
+edn.clj:430clojure.tools.reader.edn/read-string
+reader.cljc:109rewrite-clj.reader/string->edn
+reader.cljc:106rewrite-clj.reader/string->edn
+token.cljc:34rewrite-clj.parser.token/symbol-node
+token.cljc:23rewrite-clj.parser.token/symbol-node
+token.cljc:47rewrite-clj.parser.token/parse-token
+token.cljc:37rewrite-clj.parser.token/parse-token
+core.cljc:74rewrite-clj.parser.core/eval7813/fn--7814
+exit
+require-python yfinance :as yf
+(require-python [yfinance :as yf])
+exit
+'
+exit
+help
+exit
+exit]
+exit
+
+(browse/browse-url "http://localhost:3000")
+(browse)
+(clerk/serve! {:browse? true
+               :watch-paths ["notebooks" "src/cim_portfolio"]})
+(clerk/serve! {:browse? true
+               :watch-paths ["notebooks" "src/cim_portfolio"]})
+(:require [nextjournal.clerk :as clerk])
+(require [nextjournal.clerk :as clerk])
+exit
+(:require [nextjournal.clerk :as clerk])
+exit
+lein classpath
