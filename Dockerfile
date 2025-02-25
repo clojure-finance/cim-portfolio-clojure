@@ -1,5 +1,5 @@
 # Use an official OpenJDK runtime as the base image
-FROM eclipse-temurin AS base
+FROM eclipse-temurin:21 AS base
 
 # Install Python and pip
 RUN apt-get update && apt-get install -y \
@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages
-RUN pip3 install yfinance CurrencyConverter --break-system-packages
+RUN pip3 install yfinance>=0.2.54 CurrencyConverter --break-system-packages
 
 # Install Leiningen (Clojure build tool)
 RUN apt-get update && apt-get install -y curl
