@@ -35,4 +35,4 @@
                             :displayLogo false}})))
 
 ;; Example usage
-(list-plot [1 2 3 4 5 6 7 8 9 10 11] :x-title "Time" :y-title "Value")
+(list-plot [1 2 3 4 5 6 7 8] :x-title "Time" :y-title "Value")

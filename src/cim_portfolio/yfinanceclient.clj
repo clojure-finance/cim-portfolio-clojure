@@ -52,7 +52,6 @@ def get_ticker_price_all(ticker, date):
 
 ;; Test if function is working + price is converted to USD
 
-(get-ticker-price-all "0660.HK" "2024-06-25")
+(get-ticker-price-all "0700.HK" "2025-01-25")
 
-(println "787y78y812312312")
-(get-ticker-price-all "0660.HK" "2024-06-25")
+(get-ticker-price-all "0700.HK" "2025-01-25")
