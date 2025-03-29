@@ -5,6 +5,5 @@
 ;; Watch for changes in the notebooks and src directories
 
 (clerk/serve! {:browse? true
-               :paths ["notebooks", "src/user.clj", "src/cim_portfolio/*.clj"]
-               :watch-paths ["notebooks", "src/user.clj", "src/cim_portfolio/*.clj"]               
+               :watch-paths ["src"]               
                })
