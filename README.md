@@ -4,9 +4,6 @@ A portfolio analysis program written in Clojure.
 
 ## Installation
 
-<<<<<<< HEAD
-
-=======
 <!--
 >>>>>>> clerk-version
 ### RUNNING USING DOCKER IMAGE (RECOMMENDED - Tested on Windows, MacOS, Linux):
@@ -26,11 +23,8 @@ Ctrl G + Ctrl L (or Alt G + Alt L for Windows) to load worksheets - load `portfo
 
 For e.g., if your directory contains: examples/myTrades.csv, please enter "./examples/myTrades.csv"
 
-<<<<<<< HEAD
-=======
 -->
 
->>>>>>> clerk-version
 ### RUNNING LOCALLY:
 
 Ensure that the following are installed:
