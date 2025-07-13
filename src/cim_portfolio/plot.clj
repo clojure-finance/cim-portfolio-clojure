@@ -1,83 +1,38 @@
-;; gorilla-repl.fileformat = 1
-
-;; **
-;;; # Portfolio Plotting Functions
-;; **
-
-;; @@
 (ns cim_portfolio.plot
-  (:require [gorilla-plot.core :as plot]
-            [gorilla-plot.vega :as vega]
-            [gorilla-plot.util :as util]
-            [gorilla-repl.vega :as v]
-            
-            
+  (:require [nextjournal.clerk :as clerk]
             [clojure.string :as str]
-            #_[clojure.data.csv :as csv]
-            [clojure.data.json :as json]
-   ))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-nil'>nil</span>","value":"nil"}
-;; <=
+            [clojure.data.json :as json]))
 
-;; @@
+;; Generate a UUID
 (defn- uuid [] (str (java.util.UUID/randomUUID)))
 
+;; Add indices to data
 (defn add-indices [d] (map vector (range (count d)) d))
 
 (defn list-plot
-  "Function for plotting list data."
-  [data & {:keys [joined plot-size aspect-ratio colour color plot-range #_symbol symbol-size opacity x-title y-title]
-           :or   {joined       false
-                  plot-size    400
-                  aspect-ratio 1.618
-                  plot-range   [:all :all]
-                  symbol-size  70
-                  opacity      1
-                  }}]
-  (let [series-name (uuid)
-        plot-data (if (sequential? (first data))
+  "Function for plotting list data using Clerk's Plotly integration."
+  [data & {:keys [x-title y-title]
+           :or   {x-title "X"
+                  y-title "Y"}}]
+  (let [plot-data (if (sequential? (first data))
                     data
-                    (add-indices data))]
-     (v/vega-view (merge
-                   		
-                      (vega/container plot-size aspect-ratio)
-      				  {:padding {:top 10, :left 80, :bottom 50, :right 10}}
-                      (vega/data-from-list series-name plot-data)
-                      (if joined
-                        (vega/line-plot-marks series-name (or colour color) opacity)
-                        (vega/list-plot-marks series-name (or colour color) #_symbol symbol-size opacity))
-                      (vega/default-list-plot-scales series-name plot-range)
-       
-                      {:axes [
-                              {:type "x", :scale "x", :title x-title, :titleOffset 40, :grid true}
-                              {:type "y", :scale "y", :title y-title, :titleOffset 65, :grid true}
-                              ]
-                       }
-                   
-                       {:marks [
-                                {:type "line", :from {:data series-name},  
-                                 :properties {:enter 
-                                              {:x {:scale "x", :field "data.x"},  
-                                               :y {:scale "y", :field "data.y"},
-                                               :stroke {:value color}, 
-                                               :strokeWidth {:value 3},
-                                               :strokeOpacity {:value 1},
-                                               }
-                                             }
-                                 }
-                                ]
-                        }
-      ))))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;cim_portfolio.plot/list-plot</span>","value":"#'cim_portfolio.plot/list-plot"}
-;; <=
+                    (map-indexed vector data))
+        trace {:x (map first plot-data)
+               :y (map second plot-data)
+               :type "scatter"
+               :mode "lines"}]
+    (clerk/plotly {:data [trace]
+                   :layout {:xaxis {:title x-title
+                                     :title_standoff 40} ; Increase space between x-axis title and values
+                            :yaxis {:title y-title
+                                     :title_standoff 40} ; Increase space between y-axis title and values
+                            :width 750
+                            :height 375
+                            :margin {:l 70 :r 20 :b 70 :t 20} ; Further increase left and bottom margins
+                            :paper_bgcolor "transparent"
+                            :plot_bgcolor "transparent"}
+                   :config {:displayModeBar false
+                            :displayLogo false}})))
 
-;; @@
-(list-plot [1000 2000 3000 2000 4000] :joined true :plot-size 800 :x-title "x-axis" :y-title "y-axis" :color "black")
-;; @@
-;; =>
-;;; {"type":"vega","content":{"width":800,"height":494.4376,"padding":{"top":10,"left":80,"bottom":50,"right":10},"data":[{"name":"a71be385-91d1-4544-b8d1-30c9405f4797","values":[{"x":0,"y":1000},{"x":1,"y":2000},{"x":2,"y":3000},{"x":3,"y":2000},{"x":4,"y":4000}]}],"marks":[{"type":"line","from":{"data":"a71be385-91d1-4544-b8d1-30c9405f4797"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"y":{"scale":"y","field":"data.y"},"stroke":{"value":"black"},"strokeWidth":{"value":3},"strokeOpacity":{"value":1}}}}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"a71be385-91d1-4544-b8d1-30c9405f4797","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"a71be385-91d1-4544-b8d1-30c9405f4797","field":"data.y"}}],"axes":[{"type":"x","scale":"x","title":"x-axis","titleOffset":40,"grid":true},{"type":"y","scale":"y","title":"y-axis","titleOffset":65,"grid":true}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 800, :height 494.4376, :padding {:top 10, :left 80, :bottom 50, :right 10}, :data [{:name \"a71be385-91d1-4544-b8d1-30c9405f4797\", :values ({:x 0, :y 1000} {:x 1, :y 2000} {:x 2, :y 3000} {:x 3, :y 2000} {:x 4, :y 4000})}], :marks [{:type \"line\", :from {:data \"a71be385-91d1-4544-b8d1-30c9405f4797\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :y {:scale \"y\", :field \"data.y\"}, :stroke {:value \"black\"}, :strokeWidth {:value 3}, :strokeOpacity {:value 1}}}}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"a71be385-91d1-4544-b8d1-30c9405f4797\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"a71be385-91d1-4544-b8d1-30c9405f4797\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\", :title \"x-axis\", :titleOffset 40, :grid true} {:type \"y\", :scale \"y\", :title \"y-axis\", :titleOffset 65, :grid true}]}}"}
-;; <=
+;; Example usage
+(list-plot [1 2 3 4 5 6 7 8] :x-title "Time" :y-title "Value")
