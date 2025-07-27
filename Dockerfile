@@ -25,8 +25,9 @@ COPY . /app
 RUN lein deps
 # RUN lein uberjar
 
-# Expose the Gorilla REPL port (default is 8990)
+# Expose Clerk's webserver port (currently set to 8990, can set in user.clj)
 EXPOSE 8990
 
-# Run the Gorilla REPL
-CMD ["lein", "gorilla", ":ip", "0.0.0.0", ":port", "8990"]
+# Run the Lein REPL
+CMD ["lein", "repl"]
+

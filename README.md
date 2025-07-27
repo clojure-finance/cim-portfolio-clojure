@@ -4,9 +4,7 @@ A portfolio analysis program written in Clojure.
 
 ## Installation
 
-<!--
->>>>>>> clerk-version
-### RUNNING USING DOCKER IMAGE (RECOMMENDED - Tested on Windows, MacOS, Linux):
+### RUNNING USING DOCKER IMAGE (RECOMMENDED - Tested on Windows, Mac and Linux):
 
 Using the provided Dockerfile to build a Docker image and run a container greatly simplifies the usage of the software. Please install Docker on your system from the official website: https://www.docker.com/
 
@@ -17,13 +15,11 @@ Please ensure Docker is installed and then run the following commands in the roo
 1. Build the Docker image: `docker build -t cim-portfolio-env .`
 2. Run the container: `docker run -it -p 8990:8990 cim-portfolio-env`
 
-The Gorilla REPL should be accessible on: http://localhost:8990/worksheet.html
+The Clerk Notebook should be accessible on: http://localhost:8990
 
-Ctrl G + Ctrl L (or Alt G + Alt L for Windows) to load worksheets - load `portfolio.clj`. Execute every code cell one-by-one with Shift+Enter, ensuring no errors occur. Set your starting cash amount (important as it influences your return %, portfolio volatility etc.), toggle optional displays of statistics etc. Input the relative directory of your trade file in `input-files`.
+Load `portfolio.clj` and all the code cells should be automatically executed, please ensure no errors occur. You can edit the source code and your changes will be instantly reflected in the Clerk Notebook. Set your starting cash amount (important as it influences your return %, portfolio volatility etc.), toggle optional displays of statistics etc. Input the relative directory of your trade file in `input-files`.
 
 For e.g., if your directory contains: examples/myTrades.csv, please enter "./examples/myTrades.csv"
-
--->
 
 ### RUNNING LOCALLY:
 
