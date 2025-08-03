@@ -10,16 +10,32 @@ Using the provided Dockerfile to build a Docker image and run a container greatl
 
 Note: Please place your csv files containing your trades in the examples/ directory before starting.
 
+**Initial Setup**
+
 Please ensure Docker is installed and then run the following commands in the root directory:
 
 1. Build the Docker image: `docker build -t cim-portfolio-env .`
-2. Run the container: `docker run -it -p 8990:8990 cim-portfolio-env`
+2. Run the container: `docker run -it -p 8990:8990 -v ./src:/app/src:ro -v ./examples:/app/examples:ro --name cim-portfolio-app cim-portfolio-env`
 
 The Clerk Notebook should be accessible on: http://localhost:8990
 
 Load `portfolio.clj` and all the code cells should be automatically executed, please ensure no errors occur. You can edit the source code and your changes will be instantly reflected in the Clerk Notebook. Set your starting cash amount (important as it influences your return %, portfolio volatility etc.), toggle optional displays of statistics etc. Input the relative directory of your trade file in `input-files`.
 
 For e.g., if your directory contains: examples/myTrades.csv, please enter "./examples/myTrades.csv"
+
+Stop the application by running the following command in a new terminal:
+
+`docker stop cim-portfolio-app`
+
+**Subsequent Runs**
+
+After the initial setup, you can rerun the application using the following command:
+
+`docker start cim-portfolio-app`
+
+Stop the application once again by using the command:
+
+`docker stop cim-portfolio-app`
 
 ### RUNNING LOCALLY:
 
@@ -43,7 +59,7 @@ libpython-clj (https://github.com/clj-python/libpython-clj) is a key requirement
 Python objects are linked to the JVM, allowing Clojure to run the yfinanceclient.clj file that enables scraping data from Python's yfinance package.
 
 
-## Usage
+## Usage (Running Locally)
 
 <!-- Here's a video tutorial on running the program: [CIM Portfolio Tutorial](https://youtu.be/kpxD8rUBuFk) -->
 

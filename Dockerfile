@@ -21,6 +21,10 @@ WORKDIR /app
 # Copy the project files
 COPY . /app
 
+# These directories will be replaced by bind mounts to support writing from docker host
+RUN rm -rf /app/examples
+RUN rm -rf /app/src
+
 # Build the Clojure project
 RUN lein deps
 # RUN lein uberjar
