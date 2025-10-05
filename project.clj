@@ -12,12 +12,11 @@
                  [clojure.java-time "1.4.2"]
                  [clj-python/libpython-clj "2.025"]
                  [org.scicloj/clay "2-beta28"]
-                 [io.github.nextjournal/clerk "0.17.1102"]
                  [nrepl "1.0.0"]
                  [org.slf4j/slf4j-api "2.0.9"]         ; Add this line for SLF4J API
                  [org.slf4j/slf4j-simple "2.0.9"]
-                 [techascent/tech.ml.dataset "7.062"]
                  [generateme/fastmath "3.0.0-alpha3"]
+                 [org.scicloj/kindly "4-beta20"]
                  ]     ; Add this line for SLF4J Simple Logger
   :main ^:skip-aot cim-portfolio.core
   :target-path "target/%s"
