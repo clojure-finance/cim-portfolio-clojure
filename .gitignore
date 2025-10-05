@@ -2,3 +2,4 @@ temp/
 .lein-repl-history
 .clerk/
 config.edn
+**/.calva

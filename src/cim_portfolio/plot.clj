@@ -1,5 +1,5 @@
 (ns cim_portfolio.plot
-  (:require [nextjournal.clerk :as clerk]
+  (:require [scicloj.kindly.v4.kind :as kind]
             [clojure.string :as str]
             [clojure.data.json :as json]))
 
@@ -10,18 +10,19 @@
 (defn add-indices [d] (map vector (range (count d)) d))
 
 (defn list-plot
-  "Function for plotting list data using Clerk's Plotly integration."
+  "Function for plotting list data using Clerk's (Clay's) Plotly integration."
   [data & {:keys [x-title y-title]
            :or   {x-title "X"
                   y-title "Y"}}]
   (let [plot-data (if (sequential? (first data))
                     data
-                    (map-indexed vector data))
+                    (map-indexed vector data)) ; For only 1D data, e.g. [1 2 3 4 5]
+        
         trace {:x (map first plot-data)
                :y (map second plot-data)
                :type "scatter"
                :mode "lines"}]
-    (clerk/plotly {:data [trace]
+    (kind/plotly {:data [trace]
                    :layout {:xaxis {:title x-title
                                      :title_standoff 40} ; Increase space between x-axis title and values
                             :yaxis {:title y-title

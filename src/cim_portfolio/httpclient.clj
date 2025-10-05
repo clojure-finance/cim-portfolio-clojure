@@ -3,7 +3,8 @@
             [clojure.data.json :as json]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clj-http.client :as client]))
+            [clj-http.client :as client]
+            [scicloj.clay.v2.api :as clay]))
 
 
 ;; Get API Key (Environment Variables) from config.edn

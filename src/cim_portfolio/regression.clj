@@ -1,6 +1,6 @@
 (ns cim_portfolio.regression
     (:require [cim_portfolio.plot :as plot]
-              [cim_portfolio.portfolio :as port]
+              [cim_portfolio.portfoliofunctions :as portfolio]
               [fastmath.ml.regression :as reg]
               [libpython-clj2.require :refer [require-python]]
               [libpython-clj2.python :refer [py. py.. py.-] :as py]
@@ -61,8 +61,8 @@ market_data = snp_data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
 (def market-dates (map first market-data)) ;; Dates
 (def market-prices (map #(nth % 2) market-data)) ;; Closing Prices for S&P500 index
 
-(def stock-returns (vals (:arithmetic-returns (port/calculate-returns-with-corresponding-date stock-prices stock-dates))))
-(def market-returns (vals (:arithmetic-returns (port/calculate-returns-with-corresponding-date market-prices market-dates))))
+(def stock-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date stock-prices stock-dates))))
+(def market-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date market-prices market-dates))))
 
 ;; Regression
 
@@ -88,8 +88,34 @@ market_data = snp_data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
 
 (plot/list-plot (map vector plotted-dates plotted-betas) :x-title "Time" :y-title "β (NVDA)")
 
+;; Creating a function to return alphas and betas
 
+(defn get-alpha-beta [stock-data market-data]
+  (let [stock-dates (map first stock-data)
+        stock-prices (map #(nth % 2) stock-data)
+        market-dates (map first market-data)
+        market-prices (map #(nth % 2) market-data)
+        stock-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date stock-prices stock-dates)))
+        market-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date market-prices market-dates)))
+        plotted-dates (subvec (vec stock-dates) 252)
+        model (rolling-capm-regression stock-returns market-returns 252) 
+        ]
+    (-> {}
+        (assoc :plotted-dates plotted-dates)
+        (assoc :plotted-alpha (vec (model :alpha)))
+        (assoc :plotted-beta (vec (map first (model :beta))))
+        )))
 
+;; Testing said function
 
+(def regression-dataset (get-alpha-beta stock-data market-data))
 
+;; Alpha
 
+(plot/list-plot (map vector (:plotted-dates regression-dataset) (:plotted-alpha regression-dataset)) 
+                :x-title "Time" :y-title "α (NVDA)")
+
+;; Beta
+
+(plot/list-plot (map vector (:plotted-dates regression-dataset) (:plotted-beta regression-dataset))
+                :x-title "Time" :y-title "α (NVDA)")
