@@ -1,0 +1,1 @@
+["^ ","~:members",["^ ","checkPermitted",["~#set",[["^ ","~:flags",["^2",["~:method","~:public"]]]]],"checkExcluded",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"intersectPermittedSubtree",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"intersectEmptyPermittedSubtree",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"addExcludedSubtree",["^2",[["^ ","^3",["^2",["^4","^5"]]]]]]]

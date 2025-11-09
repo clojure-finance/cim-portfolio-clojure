@@ -8,8 +8,7 @@
                  [org.clojure/data.csv "1.0.1"]
                  [clj-time "0.15.2"]
                  [clj-http "3.13.1"]
-                 [cheshire "5.12.0"]
-                 [clojure.java-time "1.4.2"]
+                 [cheshire "5.12.0"] 
                  [clj-python/libpython-clj "2.025"]
                  [org.scicloj/clay "2-beta28"]
                  [nrepl "1.0.0"]
@@ -17,6 +16,7 @@
                  [org.slf4j/slf4j-simple "2.0.9"]
                  [generateme/fastmath "3.0.0-alpha3"]
                  [org.scicloj/kindly "4-beta20"]
+                 [datalevin "0.9.22"]
                  ]     ; Add this line for SLF4J Simple Logger
   :main ^:skip-aot cim-portfolio.core
   :target-path "target/%s"

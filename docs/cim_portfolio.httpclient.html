@@ -83,15 +83,7 @@
          (partition-all n)
          (map #(str/join &quot; &quot; %))
          (str/join &quot;\n&quot;)
-    ))</code></pre></div></div><div style="margin:15px;"><div><p>Send user prompt to LLM and obtain response</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(def chatbot-response (ask-chatbot &quot;Can you tell me the current market conditions that may affect one&apos;s portfolio?&quot;))</code></pre></div></div><div style="margin:15px;"><div><p>Chatbot response message</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(-&gt;&gt; (chatbot-response :message) 
-     (wrap-text 10)
-)</code></pre></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure printed-clojure">&quot;Of course. The current market environment is characterized by several\nkey themes that can significantly impact investment portfolios. It&apos;s important\nto remember that these conditions are dynamic, but as of\nlate 2023 and early 2024, the following are the dominant\nforces at play. Here’s a breakdown of the major market\nconditions and how they might affect a portfolio: ### 1.\nThe \&quot;Higher for Longer\&quot; Interest Rate Environment * **What&apos;s Happening:**\nCentral banks, led by the U.S. Federal Reserve, have raised\ninterest rates aggressively to combat inflation. While the pace of\nhikes has slowed, the message is that rates will remain\nhigh for an extended period. * **Impact on Your Portfolio:**\n* **Bonds:** Higher rates mean *newly issued* bonds pay more\nattractive yields, which is good for income. However, *existing* bonds\nwith lower yields lose market value, causing paper losses in\nthe short term. * **Stocks:** This is a major headwind.\nHigher rates make it more expensive for companies to borrow\nand invest, which can slow earnings growth. They also make\n\&quot;safe\&quot; assets like Treasury bonds more competitive, drawing money away\nfrom riskier stocks. Growth-oriented tech stocks, valued on future profits,\nare particularly sensitive. * **Cash &amp; CDs:** Savers finally earn\na meaningful return on cash holdings in high-yield savings accounts,\nmoney market funds, and Certificates of Deposit (CDs). ### 2.\nPersistent (But Cooling) Inflation * **What&apos;s Happening:** Inflation has fallen\nfrom its peak but remains above the Fed&apos;s 2% target.\nKey areas like housing and services are still seeing significant\nprice increases. * **Impact on Your Portfolio:** * **Erosion of\nPurchasing Power:** This is the primary risk. If your portfolio&apos;s\nreturn is less than the inflation rate, you are losing\nreal wealth. * **Sector Performance:** Companies with strong pricing power\n(able to pass costs to consumers) tend to perform better.\nEssential consumer staples may hold up, while discretionary spending on\nnon-essentials may suffer. * **Real Assets:** Investments like real estate\nand commodities (e.g., gold) are often seen as hedges against\ninflation, though they come with their own risks. ### 3.\nGeopolitical Tensions &amp; Uncertainty * **What&apos;s Happening:** The ongoing war\nin Ukraine, conflict in the Middle East, and U.S.-China trade\ntensions create a volatile backdrop. * **Impact on Your Portfolio:**\n* **Market Volatility:** Geopolitical shocks cause sudden spikes in fear\nand market swings. * **Energy Prices:** Conflicts can disrupt global\nenergy supplies, leading to higher oil and gas prices. This\nhurts consumers and businesses but benefits energy company stocks. *\n**Supply Chain Disruptions:** Tensions can re-ignite supply chain issues, contributing\nto inflationary pressures. * **Safe-Haven Flows:** During crises, investors often\nflock to the U.S. dollar, U.S. Treasuries, and gold. ###\n4. Slowing Global Economic Growth * **What&apos;s Happening:** Tighter monetary\npolicy is intentionally slowing down economies in the U.S. and\nEurope to curb inflation. China&apos;s economy is also facing its\nown set of challenges, including a property crisis. * **Impact\non Your Portfolio:** * **Corporate Earnings:** As economic growth slows,\ncompany revenues and profits are likely to decline, which can\nnegatively impact stock prices. * **Cyclical vs. Defensive Stocks:** Cyclical\nstocks (e.g., travel, luxury goods, automakers) that do well in\na strong economy tend to underperform. Defensive stocks (e.g., utilities,\nhealthcare, consumer staples) may be more resilient. * **International Exposure:**\nA slowdown in key regions like Europe or China can\nhurt the performance of internationally-focused companies and international stock funds.\n### 5. A Resilient but \&quot;Bifurcated\&quot; U.S. Labor Market *\n**What&apos;s Happening:** The job market has remained surprisingly strong, but\nthere are signs of softening. Wage growth is cooling but\nis still a factor the Fed is watching. * **Impact\non Your Portfolio:** * **Fed Policy:** A strong labor market\ngives the Fed room to keep rates \&quot;higher for longer\&quot;\nto ensure inflation is truly defeated. * **Consumer Spending:** Strong\nemployment supports consumer spending, which is a major driver of\nthe U.S. economy and corporate profits. However, if job losses\nrise, it would be a significant negative for the market.\n--- ### What This Means for Your Portfolio Strategy: 1.\n**Diversification is Key:** This is not the time to make\nconcentrated bets. A diversified portfolio across asset classes (stocks, bonds,\nalternatives) and geographies can help manage risk. 2. **Quality Matters:**\nFocus on high-quality companies with strong balance sheets (low debt)\nand stable earnings. In the bond portion, high-quality government and\ncorporate bonds are safer than high-yield \&quot;junk\&quot; bonds in a\npotential downturn. 3. **Rebalance:** Market moves may have thrown your\ntarget asset allocation out of whack. Rebalancing ensures you are\nsystematically selling assets that have done well and buying those\nthat have underperformed, which is a disciplined way to \&quot;buy\nlow and sell high.\&quot; 4. **Review Your Time Horizon:** If\nyou are investing for the long term (10+ years), short-term\nmarket volatility is less of a concern. If you need\nthe money soon (within 1-3 years), it should likely be\nin more conservative, liquid assets like cash or short-term bonds.\n5. **Don&apos;t Try to Time the Market:** Making drastic moves\nbased on headlines is often a recipe for missing the\nbest days in the market, which can severely damage long-term\nreturns. Staying invested according to a plan is historically a\nmore successful strategy. ***Disclaimer:*** *This information is for educational purposes\nonly and does not constitute financial advice. The market conditions\ndescribed are fluid and can change rapidly. It is essential\nto consult with a qualified financial advisor who can provide\npersonalized advice based on your individual circumstances, risk tolerance, and\nfinancial goals.*&quot;
-</code></pre></div></div><div style="margin:15px;"><div><p>Output Token Usage</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(let [token-usage (chatbot-response :token-usage)]
-    (format &quot;Input Tokens: %s\nOutput Tokens: %s\nTotal Tokens Used: %s&quot; 
-        (token-usage :prompt_tokens)
-        (token-usage :completion_tokens)
-        (token-usage :total_tokens)))</code></pre></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure printed-clojure">&quot;Input Tokens: 25\nOutput Tokens: 1290\nTotal Tokens Used: 1315&quot;
-</code></pre></div></div><div style="margin:15px;"><div><p>Try getting market news based on tickers and date (maybe get market news from wsj.com for now) keyword should be a string</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(defn get-market-news-json [query date]
+    ))</code></pre></div></div><div style="margin:15px;"><div><p>Send user prompt to LLM and obtain response (def chatbot-response (ask-chatbot "Can you tell me the current market conditions that may affect one's portfolio?"))</p><p>Chatbot response message (->> (chatbot-response :message) (wrap-text 10) )</p><p>Output Token Usage (let [token-usage (chatbot-response :token-usage)] (format "Input Tokens: %s\nOutput Tokens: %s\nTotal Tokens Used: %s" (token-usage :prompt_tokens) (token-usage :completion_tokens) (token-usage :total_tokens)))</p><p>Try getting market news based on tickers and date (maybe get market news from wsj.com for now) keyword should be a string</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(defn get-market-news-json [query date]
     (let [newsapi-api-key (:newsapi-api-key (load-config))
           response (client/get &quot;https://newsapi.org/v2/everything&quot; 
             {:accept :json
@@ -102,16 +94,787 @@
                             &quot;language&quot; &quot;en&quot;
                             &quot;sortBy&quot; &quot;popularity&quot;
                             &quot;sources&quot; &quot;the-wall-street-journal,bloomberg&quot;}})] ;;This would return 50 articles for now
-        (json/read-str (response :body) :key-fn keyword)))</code></pre></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(def market-news-raw (get-market-news-json &quot;&quot; (java.time.LocalDate/now)))</code></pre></div></div><div style="margin:15px;"><div><p>Make a call to the LLM asking which 5 article titles are most relevant to the portfolio. We take their contents and use it for RAG.</p><p>RAG Example (for demonstration)</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(def enhanced-response (ask-chatbot &quot;According to the WSJ, Stocks closed the week at record highs, propelled by investor optimism that the Federal Reserve 
-                                                will keep cutting interest rates—and keep the market rally going. All three major indexes posted weekly gains of more than 1%. 
-                                                The Fed cut the benchmark borrowing rate by 0.25% on Wednesday, and traders are now anticipating additional rate reductions in October and December. 
-                                                The median projection of the Fed’s interest-rate setting committee also penciled in two additional cuts in 2025.
-                                                
-                                                The S&amp;P 500 rose 0.5% on Friday, while the tech-heavy Nasdaq gained 0.7%. The Dow Jones Industrial Average added 0.4%, or 173 points.
-                                                
-                                                Based on this information, can you tell me the current market conditions that may affect one&apos;s portfolio?&quot;))</code></pre></div></div><div style="margin:15px;"><div><p>Enhanced Response</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(-&gt;&gt; (enhanced-response :message)
-     (wrap-text 10))</code></pre></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure printed-clojure">&quot;Based on the WSJ report, here are the key market\nconditions that may affect your portfolio: ### Current Market Environment:\n1. **Strong Bullish Momentum** - All three major indexes hit\nrecord highs with weekly gains exceeding 1% 2. **Federal Reserve\nSupport** - Recent 0.25% rate cut and anticipated additional cuts\nin October and December 3. **Continued Accommodative Policy** - The\nFed projects two more rate cuts in 2025, suggesting sustained\nsupportive monetary policy ### Potential Portfolio Impacts: **Positive Factors:** -\n**Equity Appreciation** - Rising stock prices across major indexes could\nboost portfolio values - **Growth Stock Strength** - Tech-heavy Nasdaq&apos;s\n0.7% gain suggests technology and growth stocks are performing well\n- **Lower Borrowing Costs** - Rate cuts may benefit companies\nreliant on debt financing and stimulate economic activity **Considerations:** -\n**Valuation Concerns** - Record highs might indicate elevated valuations requiring\ncareful stock selection - **Sector Rotation** - Different sectors respond\ndifferently to rate cuts; financials may face pressure while growth\nstocks benefit - **Market Expectations** - Current optimism is heavily\ndependent on Fed policy continuing as anticipated ### Investment Implications:\n- **Risk Assets Favored** - Low interest rates typically support\nequity investments over fixed income - **Duration Sensitivity** - Bond\nportfolios may see price appreciation as rates decline - **Growth\nvs. Value** - Technology and growth-oriented investments appear to be\nleading the rally The current conditions suggest a favorable environment\nfor equity investments, though investors should monitor Fed communications and\neconomic data for any shifts in the expected rate path.&quot;
-</code></pre></div></div><div style="margin:15px;"><div style="background-color:grey;height:2px;width:100%;"></div></div><div style="margin:15px;"><div><pre><small><small>source: src/cim_portfolio/httpclient.clj</small></small></pre></div></div></div></div></div></div></div><script type="text/javascript">/*!
+        (json/read-str (response :body) :key-fn keyword)))</code></pre></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">(def market-news-raw (get-market-news-json &quot;&quot; (java.time.LocalDate/now)))</code></pre></div></div><div style="margin:15px;"><div><p>Make a call to the LLM asking which 5 article titles are most relevant to the portfolio. We take their contents and use it for RAG.</p></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure source-clojure bg-light">market-news-raw</code></pre></div></div><div style="margin:15px;"><div><pre><code class="sourceCode language-clojure printed-clojure">{:status &quot;ok&quot;,
+ :totalResults 60,
+ :articles
+ [{:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Jennifer Williams and Connor Hart&quot;,
+   :title &quot;PepsiCo Taps Walmart Executive as New CFO&quot;,
+   :description
+   &quot;PepsiCo logged higher revenue in its fiscal third quarter, though profit slipped as volumes fell. The company also tapped a Walmart executive to fill its top...&quot;,
+   :url
+   &quot;https://www.wsj.com/articles/pepsico-posts-higher-revenue-profit-falls-a22216b3&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/ZcKOZPy4IUHnvpLsxQRiRw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/8c2cf51a92c8a5a4b3d4384c61a3d823&quot;,
+   :publishedAt &quot;2025-10-09T21:08:00Z&quot;,
+   :content
+   &quot;PepsiCo logged higher revenue in its fiscal third quarter, though profit slipped as volumes fell. - David Paul Morris/Bloomberg News\r\nPepsiCo is shaking up its finance chief ranks as the company look… [+3854 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;AnnaMaria Andriotis&quot;,
+   :title &quot;Goldman Sachs Profit Surges, Fueled by Dealmaking Boom&quot;,
+   :description
+   &quot;Investment banking revenue jumped 42% and results beat expectations, but the bank still plans job cuts.&quot;,
+   :url
+   &quot;https://www.wsj.com/business/earnings/goldman-sachs-gs-q3-earnings-report-stock-2025-1f1ac185&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/lFKu6zK4vwUyVZh3BC0EtA--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/b1a2a08a75950c4c7cd3b4a205c71995&quot;,
+   :publishedAt &quot;2025-10-14T15:02:00Z&quot;,
+   :content
+   &quot;Goldman Sachs building in New York - John Taggart for WSJ\r\nGoldman Sachs reported a stronger-than-expected profit in the third quarter, with the bank now on pace for its best year ever in its main in… [+3241 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Dominic Chopping and Eliot Brown&quot;,
+   :title
+   &quot;SoftBank Expands AI Footprint With Multibillion-Dollar Robotics Deal&quot;,
+   :description
+   &quot;The acquisition from ABB marks the largest in a long and patchy record of robotics investments by SoftBank Chief Executive Masayoshi Son.&quot;,
+   :url
+   &quot;https://www.wsj.com/business/deals/softbank-to-buy-abbs-robotics-unit-in-5-38-billion-deal-f95024c8&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/DnhiC0Bxb9Ak_lhnd5zAOQ--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/ef00b03d56f1dfe40a996e4f25f37b49&quot;,
+   :publishedAt &quot;2025-10-08T12:19:00Z&quot;,
+   :content
+   &quot;SoftBank CEO Masayoshi Sons autonomous aspirations go back years. - kim kyung-hoon/Reuters\r\nTech conglomerate SoftBank Group has agreed to a $5.4 billion deal for the industrial-robotics-focused busi… [+3079 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Dow Jones Newswires Staff&quot;,
+   :title
+   &quot;Global Markets Mixed, Gold Rally Pauses on Easing Middle Eastern Tensions&quot;,
+   :description
+   &quot;The yellow metal’s rally took a pause as a peace deal between Israel and Hamas begins to take shape.&quot;,
+   :url
+   &quot;https://www.wsj.com/finance/global-markets-mixed-gold-rally-pauses-on-easing-middle-eastern-tensions-49455149&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/AplclTsDXCIsvMsq6l4qqA--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/09942a44d09066c80c7824d59f5a5728&quot;,
+   :publishedAt &quot;2025-10-09T09:33:00Z&quot;,
+   :content
+   &quot;- timothy a. clary/Agence France-Presse/Getty Images\r\nU.S. stock futures fell slightly Thursday, while golds rally paused as a peace deal between Israel and Hamas begins to take shape. The dollar str… [+2274 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Alexander Gladstone and Margot Patrick&quot;,
+   :title
+   &quot;First Brands Boss Resigns and Jefferies Seeks to Calm Its Investors&quot;,
+   :description
+   &quot;The Wall Street firm sought to reassure investors it can absorb any potential losses related to the First Brands bankruptcy, after its shares fell 18% last...&quot;,
+   :url
+   &quot;https://www.wsj.com/finance/jefferies-seeks-to-calm-worries-over-first-brands-cc41acab&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/LfRCb5hcDB1GdkHKLHmkzA--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/03d4ef4c899b223c78c56e7a6b10ce8b&quot;,
+   :publishedAt &quot;2025-10-13T13:07:00Z&quot;,
+   :content
+   &quot;Jefferies Financial said its own exposure to First Brands is limited to roughly $45 million. - Jeenah Moon/Bloomberg News\r\nPatrick James, the chief executive of bankrupt auto-parts supplier First Bra… [+2965 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Alexander Saeedy&quot;,
+   :title &quot;Strong U.S. Economy Powers Bank of America Profit Higher&quot;,
+   :description
+   &quot;The bank’s quarterly profit rose 23%, with consumer spending up and investment banking results booming.&quot;,
+   :url
+   &quot;https://www.wsj.com/finance/banking/bank-of-america-bac-q3-earnings-report-stock-2025-6af3d29d&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/1qGlConlP9DwLdMvVCmTbw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/bcfd416e08d9e932b2bd73664756f7e2&quot;,
+   :publishedAt &quot;2025-10-15T12:40:00Z&quot;,
+   :content
+   &quot;Bank of America posted record-high net interest income, the profit it makes from lending. - Seeger Gray/WSJ\r\nBank of America reported third-quarter earnings and revenue that bested analysts expectati… [+3234 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Dow Jones Newswires Staff&quot;,
+   :title &quot;Global Markets Up After Powell Signals New Rate Cuts&quot;,
+   :description
+   &quot;Stock futures for the S 500 rose early following a volatile previous session marked by mixed rhetoric from the U.S. and China over trade.&quot;,
+   :url
+   &quot;https://www.wsj.com/finance/global-markets-up-after-powell-signals-new-rate-cuts-501472b8&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/vFq6aaxTWyOStav5kKW0Xw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/96d6017d2c1da1e6f112ad71deda873e&quot;,
+   :publishedAt &quot;2025-10-15T08:25:00Z&quot;,
+   :content
+   &quot;Federal Reserve Chair Jerome Powell signaled that an interest rate cut is coming at its meeting later this month. - Chip Somodevilla/Getty Images\r\nGlobal stock markets and U.S. stock futures rose ear… [+3189 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Jack Pitcher&quot;,
+   :title
+   &quot;BlackRock’s Assets Hit Record $13.5 Trillion After Market Rally, Dealmaking Spree&quot;,
+   :description
+   &quot;The investment manager’s base fees rose at an annualized rate of 10% in third quarter.&quot;,
+   :url
+   &quot;https://www.wsj.com/finance/investing/blackrocks-assets-hit-record-13-5-trillion-after-market-rally-dealmaking-spree-b0cce2ca&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/WqWRvOzv3.77NdAWRcN6ZQ--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/02f4096e7c1a7f14a5bd6f33590e1670&quot;,
+   :publishedAt &quot;2025-10-14T20:14:00Z&quot;,
+   :content
+   &quot;BlackRocks fee growth was driven by investors insatiable appetite for exchange-traded funds. - Bing Guan/Bloomberg News\r\nThe worlds biggest money manager just shattered its own record.\r\nBlackRock end… [+3025 chars]&quot;}
+  {:source
+   {:id &quot;the-wall-street-journal&quot;, :name &quot;The Wall Street Journal&quot;},
+   :author &quot;Jonathan Weil&quot;,
+   :title
+   &quot;Nasdaq Has Become the Market of Choice for Dubious Penny-Stock IPOs&quot;,
+   :description
+   &quot;Such listings surged starting last year. Now Nasdaq says it wants to tighten its standards.&quot;,
+   :url
+   &quot;https://www.wsj.com/finance/stocks/nasdaq-has-become-the-market-of-choice-for-dubious-penny-stock-ipos-a01cae19&quot;,
+   :urlToImage
+   &quot;https://s.yimg.com/ny/api/res/1.2/mAViuq6WUiRmuS8RcImfSg--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD02MDA-/https://media.zenfs.com/en/the_wall_street_journal_hosted_996/a2fa81b0f00130cdcf053220a6bc6260&quot;,
+   :publishedAt &quot;2025-10-06T11:00:00Z&quot;,
+   :content
+   &quot;Final approval for Nasdaqs tightened listing standards could be months away. - Jimin Kim/ZUMA Press\r\nNasdaq is known as the markets home for tech stocks, in particular giants like Nvidia, Apple and M… [+4427 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Jaguar Land Rover bailout shows rising cost of cybercrime&quot;,
+   :description
+   &quot;The disruption, which has likely cost the company hundreds of millions of dollars, has spread throughout its supply chain, threatening thousands of jobs&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-07/jaguar-land-rover-cyber-attack-why-uk-bailout-is-high-risk-move&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/lon64s/article70108570.ece/alternates/LANDSCAPE_1200/2025-06-16T042310Z_874849539_RC2JPDAZRT1D_RTRMADP_3_TATA-MOTORS-JLR-FORECAST.JPG&quot;,
+   :publishedAt &quot;2025-10-07T06:58:24Z&quot;,
+   :content
+   &quot;Navarro Jordan ordered his Land Rover Defender in August. On Aug. 15, Jordan, who lives in Los Angeles, got a notification that it had been assembled, and soon after, that it was ready and waiting to… [+13288 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Asia’s youth struggle to find good jobs, warns World Bank&quot;,
+   :description
+   &quot;Young people across Asia are struggling to find good jobs, with many stuck in low-productivity work that the World Bank warns could strain social stability as frustrations fuel a global wave of youth-led protests.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-07/asia-s-youth-struggle-to-find-good-jobs-world-bank-warns&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/twskqq/article70134152.ece/alternates/LANDSCAPE_1200/2025-09-01T111131Z_1566632842_RC2U4GAUS7G4_RTRMADP_3_MEXICO-TARIFFS-LAYOFFS.JPG&quot;,
+   :publishedAt &quot;2025-10-07T06:52:44Z&quot;,
+   :content
+   &quot;Young people across Asia are struggling to find good jobs, with many stuck in low-productivity work that the World Bank warns could strain social stability as frustrations fuel a global wave of youth… [+2387 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Elon Musk settles lawsuit by former Twitter CEO over denied severance pay&quot;,
+   :description
+   &quot;Elon Musk settles $128 million lawsuit with former Twitter executives over denied severance payments, terms undisclosed.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-08/musk-settles-suit-by-ex-twitter-ceo-over-denied-severance-pay&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/1y3xpd/article70147026.ece/alternates/LANDSCAPE_1200/2022-10-30T043547Z_465668540_RC2EAX9DCRVW_RTRMADP_3_TWITTER-M-A-MUSK-FIRING.JPG&quot;,
+   :publishedAt &quot;2025-10-10T06:15:20Z&quot;,
+   :content
+   &quot;Elon Musk and the company formerly known as Twitter have agreed to resolve a $128 million lawsuit filed last year by former Chief Executive Officer Parag Agrawal and three other top officials who sai… [+2021 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Etihad adds used single-aisle jets amid global plane shortage&quot;,
+   :description
+   &quot;The International Air Transport Association said Monday that the worldwide commercial aircraft backlog reached a record 17,000 units in 2024, up from an annual average of 13,000 between 2010 and 2019&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-15/etihad-adds-used-single-aisle-jets-amid-global-plane-shortage&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/a6tk5e/article70166583.ece/alternates/LANDSCAPE_1200/2017-08-01T043811Z_1614449050_RC15D74EFBD0_RTRMADP_3_AUSTRALIA-SECURITY-ETIHAD.JPG&quot;,
+   :publishedAt &quot;2025-10-15T10:04:05Z&quot;,
+   :content
+   &quot;Etihad Airways PJSC is adding single-aisle planes from the secondary market to navigate a historic global aircraft backlog and persistent supply chain disruptions, Chief Executive Officer Antonoaldo … [+2531 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;RBI sees rupee under speculative attack, will intervene further&quot;,
+   :description
+   &quot;On Wednesday, the rupee surged almost 1% after the RBI intervened, before paring its gain to trade at 88.31 per dollar&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-15/rbi-sees-rupee-under-speculative-attack-will-intervene-further&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/4ssefp/article70166642.ece/alternates/LANDSCAPE_1200/2025-10-15T034640Z_456407666_RC2IJBAW6TGY_RTRMADP_3_INDIA-MARKETS-RUPEE.JPG&quot;,
+   :publishedAt &quot;2025-10-15T10:20:07Z&quot;,
+   :content
+   &quot;The central bank considers recent weakness in the rupee as driven by speculative attacks and is prepared to continue its market intervention until the currency settles at a stronger level, a person f… [+2938 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;IPOs in India could raise up to $20 billion over next year: Citigroup&quot;,
+   :description
+   &quot;India is likely to be the world’s most active ECM market along with Hong Kong over the next year,” said Harish Raman, Citi’s head of equity capital markets execution and solutions for Asia Pacific&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-10/citigroup-expects-up-to-20-billion-in-india-ipos-over-next-year&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/xtirzb/article70138538.ece/alternates/LANDSCAPE_1200/CCI_UDHindu_KSL_UAO5L6EGS_R1553866961_3_95ede577-6e08-4e03-9eb5-a678f20b8e4e.jpg&quot;,
+   :publishedAt &quot;2025-10-10T04:06:24Z&quot;,
+   :content
+   &quot;Initial public offerings in India could raise as much as $20 billion over the next 12 months, helping the country to cement its position as one of the worlds busiest listings markets, according to Ci… [+1551 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Instagram mulls dedicated TV app in push for video&quot;,
+   :description
+   &quot;Instagram is considering a TV app to expand video reach, competing with YouTube for viewership. CEO Adam Mosseri confirms plans.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-09/instagram-is-exploring-a-dedicated-tv-app-in-video-push&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/imn3rm/article70146788.ece/alternates/LANDSCAPE_1200/2017-08-31T061626Z_1910772080_RC1EA262AFC0_RTRMADP_3_INSTAGRAM-CYBER.JPG&quot;,
+   :publishedAt &quot;2025-10-10T04:36:23Z&quot;,
+   :content
+   &quot;Instagram is exploring building a dedicated TV app as part of a deeper push into video, a move that could get Instagram videos in front of more viewers and also provide more competition for YouTube, … [+1879 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;SoftBank-owned Graphcore to invest $1.3 billion in India, set up AI research hub in Bengaluru&quot;,
+   :description
+   &quot;SoftBank-owned Graphcore to invest £1 billion in India, launch an AI research hub in Bengaluru, and hire 500 people over the next five years.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-08/softbank-s-graphcore-plans-1-billion-chip-investment-in-india&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/t6buvh/article70141395.ece/alternates/LANDSCAPE_1200/graphcore1.jpg&quot;,
+   :publishedAt &quot;2025-10-08T23:20:21Z&quot;,
+   :content
+   &quot;Graphcore, the British chip designer owned by SoftBank Group Corp., is planning to announce a £1 billion ($1.3 billion) investment package in India that includes a new research hub.\r\nThe announcement… [+2652 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Macron seeks last-ditch talks to salvage France’s government&quot;,
+   :description
+   &quot;Lawmakers in the lower house forced the resignation of both the previous premiers — Michel Barnier and Francois Bayrou — over budget plans, and were preparing to do the same to Lecornu as soon as this week&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/macron-asks-lecornu-to-negotiate-plan-to-bring-stability&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/usnld5/article70134536.ece/alternates/LANDSCAPE_1200/2025-10-03T125706Z_1747668317_RC2C4HALBTQ9_RTRMADP_3_GERMANY-POLITICS-UNIFICATION-DAY.JPG&quot;,
+   :publishedAt &quot;2025-10-07T09:01:51Z&quot;,
+   :content
+   &quot;President Emmanuel Macron gave his outgoing prime minister, Sebastien Lecornu, 48 hours to negotiate with Frances political parties in a last-ditch effort to prevent the country from falling deeper i… [+2457 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Bitcoin hovers near record after topping $125,000 on sunday&quot;,
+   :description
+   &quot;The largest digital-asset climbed to $125,689 over the weekend and remained in touching distance of its all-time high on Monday morning in Singapore at about $124,000, according to data compiled by Bloomberg&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/bitcoin-bitcoin-hovers-near-record-after-topping-125-000-on-sunday&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/n4w073/article70127404.ece/alternates/LANDSCAPE_1200/IMG_BL13_Brand_Lead_Coin_2_1_NK99GIF7.jpg&quot;,
+   :publishedAt &quot;2025-10-06T03:55:10Z&quot;,
+   :content
+   &quot;Bitcoin set a fresh record on Sunday for the first time since mid-August, as the US government shutdown drove investors to safe-haven assets in a migration dubbed the debasement trade. \r\nThe largest … [+1235 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;OpenAI announcements make waves in stock market it has shunned&quot;,
+   :description
+   &quot;Then a blog post detailing new features the company is using internally sent a fresh wave of jitters through software stocks like Atlassian Corp., already reeling from fears about AI disruption&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/openai-is-fast-becoming-a-whale-in-stock-market-it-has-shunned&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/murojt/article70124581.ece/alternates/LANDSCAPE_1200/2025-09-01T055818Z_199270814_RC2UMCAEZ91K_RTRMADP_3_OPENAI-INDIA.JPG&quot;,
+   :publishedAt &quot;2025-10-06T09:41:29Z&quot;,
+   :content
+   &quot;OpenAI may not be publicly traded, but the worlds most valuable startup is increasingly making waves in the stock market.\r\nJust last week, OpenAI sent shares of e-commerce companies Shopify Inc. and … [+4416 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Renault considering cutting up to 3,000 jobs, l’Informe reports&quot;,
+   :description
+   &quot;“Given the uncertainties in the automotive market and the extremely competitive environment, we confirm that we are considering ways to simplify, speed up execution, and optimise our fixed costs”&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-04/renault-considering-cutting-up-to-3-000-jobs-l-informe-reports&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/dtapdh/article70124527.ece/alternates/LANDSCAPE_1200/439890302.jpg&quot;,
+   :publishedAt &quot;2025-10-04T10:05:12Z&quot;,
+   :content
+   &quot;French carmaker Renault SA is considering job cuts that could affect as many as 3,000 positions worldwide, the French news site lInforme reported.\r\nThe plan would reduce jobs in support services, inc… [+541 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Trump’s $100,000 H-1B fee draws rare rebuke from US business&quot;,
+   :description
+   &quot;In a letter sent Friday to Trump, roughly a dozen industry organizations representing chipmakers, software companies and retailers said the new fee threatens to crimp a crucial talent pipeline of foreign skilled workers and leave critical jobs unfilled&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-03/trump-s-100-000-h-1b-fee-draws-rare-rebuke-from-business-groups&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/g5ku3u/article70097094.ece/alternates/LANDSCAPE_1200/2025-09-23T192201Z_762309994_RC26XGAKTNUE_RTRMADP_3_HEALTH-USA-VISAS.JPG&quot;,
+   :publishedAt &quot;2025-10-04T04:40:00Z&quot;,
+   :content
+   &quot;A coalition of business groups warned President Donald Trump that a newly announced $100,000 fee for H-1B visa applications risks harming the US economy and urged the administration to avoid changes … [+3768 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;SEBI senior official and ex-trader leading Jane Street probe ends term&quot;,
+   :description
+   &quot;Ananth Narayan was thrust into spotlight in July after signing an order that accused Jane Street of manipulating India’s stock and derivatives markets&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-09/ex-trader-investigating-jane-street-ends-term-at-india-regulator&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/2m0i9/article70142272.ece/alternates/LANDSCAPE_1200/418674030.jpg&quot;,
+   :publishedAt &quot;2025-10-09T04:09:38Z&quot;,
+   :content
+   &quot;Ananth Narayan, who led a high-profile probe into Jane Street Group LLC as a senior official at Indias securities regulator, will hand over the investigation as his three-year term ends on Thursday.\r… [+2941 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Indian refiners may take more Russian crude as discounts deepen&quot;,
+   :description
+   &quot;Indian refiners are expected to boost oil imports from Russia in the coming months, as trade talks with Washington drag on and discounts widen amid ample supplies.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-08/indian-refiners-may-take-more-russian-crude-as-discounts-deepen&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/kohlyf/article70138586.ece/alternates/LANDSCAPE_1200/2025-09-19T133549Z_2034236134_RC2JZ6ASZI1H_RTRMADP_3_USA-RUSSIA-CHINA-LNG-SENATE.JPG&quot;,
+   :publishedAt &quot;2025-10-08T07:38:56Z&quot;,
+   :content
+   &quot;Indian refiners are expected to boost oil imports from Russia in the coming months, as trade talks with Washington drag on and discounts widen amid ample supplies.\r\nDiscounts on Urals crude loading i… [+1334 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Kingsoft shares surge as Chinese govt replaces MS Word for major announcement&quot;,
+   :description
+   &quot;The authorities’ move strengthened hope that companies such Kingsoft will increasingly benefit from a push for the country’s self-reliance in technology&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-13/china-software-firm-s-stock-surges-on-government-use-of-product&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/q3avoc/article70157931.ece/alternates/LANDSCAPE_1200/2024-11-28T013632Z_836317756_RC26T6AKYPFO_RTRMADP_3_TECH-ANTIRUST-MICROSOFT.JPG&quot;,
+   :publishedAt &quot;2025-10-13T09:07:02Z&quot;,
+   :content
+   &quot;Beijing Kingsoft Office Software Inc.s shares surged after the Chinese government used the companys product for a major policy announcement, reflecting optimism about future demand.\r\nThe firms Shangh… [+1433 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;UK witness 50% spike in cyberattacks as top firms targeted&quot;,
+   :description
+   &quot;UK faces increasing cyberattacks from criminals and hostile states, impacting major companies and national security, warns cyber security agency.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-13/uk-sees-50-spike-in-major-cyberattacks-as-top-firms-targeted&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/awh6cm/article70161362.ece/alternates/LANDSCAPE_1200/440996548.jpg&quot;,
+   :publishedAt &quot;2025-10-14T05:11:25Z&quot;,
+   :content
+   &quot;The UK has seen a significant increase in major cyberattacks by criminals and hostile states over the last year, the countrys cyber security agency said, following a spate of high-profile incidents t… [+2786 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Europe fights for AI independence to avoid becoming tech ‘Colony’&quot;,
+   :description
+   &quot;Europe’s push mirrors efforts around the world, from Canada to South Korea to the Middle East, where governments are frantically marshalling resources to avoid ceding too much of the AI market to the US and China&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-14/europe-aims-for-ai-independence-to-avoid-reliance-on-us-and-china&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/frbw6s/article70161308.ece/alternates/LANDSCAPE_1200/BL03_AI_generate.jpg&quot;,
+   :publishedAt &quot;2025-10-14T04:43:54Z&quot;,
+   :content
+   &quot;In June, French president Emmanuel Macron held an exclusive dinner at the Élysée Palace with a special guest: Nvidias Jensen Huang. Wine glasses clinked in honor of a deal his company had just unveil… [+11973 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;LG India’s $1.3 billion IPO subscribed fivefold on strong bids&quot;,
+   :description
+   &quot;The subscription levels stood at 2.7 times for qualified institutional investors, 2.5 times for retail investors and 5.3 times for employees&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-09/lg-india-s-1-3-billion-ipo-subscribed-fivefold-on-strong-bids&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/s3ja9o/article70142708.ece/alternates/LANDSCAPE_1200/2025-10-06T173227Z_704690429_RC2V2HAA0ZXK_RTRMADP_3_LG-ELECTRONICS-INDIA-IPO.JPG&quot;,
+   :publishedAt &quot;2025-10-09T07:08:29Z&quot;,
+   :content
+   &quot;LG Electronics Inc.s $1.3 billion initial public offering of its Indian unit was five times subscribed with hours still left in the bookbuilding process, driven by strong demand from institutional an… [+2580 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Froth risks are bubbling up across high-momentum markets&quot;,
+   :description
+   &quot;The scope of the risk was brought home Friday as markets absorbed their biggest jolt yet amid a six-month run in credit, crypto and equities&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-10/froth-risks-are-bubbling-up-across-high-momentum-markets&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/cc5rf4/article70147251.ece/alternates/LANDSCAPE_1200/BL12_Think_percent2.jpg&quot;,
+   :publishedAt &quot;2025-10-11T15:12:00Z&quot;,
+   :content
+   &quot;Bill Harnisch is no permabear. His hedge fund is up 580 per cent since 2020 thanks to a honed portfolio of bets that this year alone has tripled the S&amp;amp;P 500s return.\r\nBut right now the Wall Stree… [+5715 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;EQT-backed Credila Financial is said to reassess IPO plans on US visa rules&quot;,
+   :description
+   &quot;Get exclusive content on billionaires, businesses, and markets from Bloomberg India on WhatsApp, including updates on Credila&apos;s IPO plans.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-08/eqt-backed-credila-financial-is-said-to-reassess-ipo-plans-on-us-visa-rules&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/26mm42/article70138538.ece/alternates/LANDSCAPE_1200/CCI_UDHindu_KSL_UAO5L6EGS_R1553866961_3_95ede577-6e08-4e03-9eb5-a678f20b8e4e.jpg&quot;,
+   :publishedAt &quot;2025-10-08T07:17:22Z&quot;,
+   :content
+   &quot;Credila Financial Services Ltd is slowing down its plans for an initial public offering in Mumbai as the company seeks to update its latest financials after new US rules on visas came into effect, ac… [+1720 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Sunil Mittal’s Bharti Telecom mulls record ₹15,000 crore bond deal&quot;,
+   :description
+   &quot;Billionaire Sunil Mittal’s Bharti Telecom Ltd is considering to offer about ₹15,000 crore ($1.7 billion) of bonds as early as next week, according to people familiar with the matter.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/billionaire-s-bharti-telecom-mulls-record-1-7-billion-bond-deal&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/llv76q/article70131058.ece/alternates/LANDSCAPE_1200/16_INDIA_MOBILE_CONGRESS_27_10_DELHI.JPG&quot;,
+   :publishedAt &quot;2025-10-06T11:18:39Z&quot;,
+   :content
+   &quot;Billionaire Sunil Mittals Bharti Telecom Ltd is considering to offer about 15,000 crore ($1.7 billion) of bonds as early as next week, according to people familiar with the matter. \r\nPreliminary disc… [+1200 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Bose angers customers by ending cloud streaming for old speakers&quot;,
+   :description
+   &quot;Bose said it would discontinue cloud infrastructure for its ‘SoundTouch’ line of audio speakers in February, rendering the devices unable to directly stream music from services such as Spotify, Pandora, Amazon Music and others&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-10/bose-angers-customers-by-ending-cloud-streaming-for-old-speakers&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/moav90/article70150894.ece/alternates/LANDSCAPE_1200/CCI_UDHindu_BusinessLine_U4N2D3Q2M_R1299943223_0_143.jpg&quot;,
+   :publishedAt &quot;2025-10-11T03:52:10Z&quot;,
+   :content
+   &quot;Bose Corp. announced this week that it will discontinue the cloud infrastructure for its SoundTouch line of audio speakers in February, rendering the devices unable to directly stream music from serv… [+3534 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Gold climbs to record on US-China tensions and fed rate-cut bets&quot;,
+   :description
+   &quot;Bullion has risen more than 5% so far this week and touched a peak above $4,242 an ounce on Thursday, as a breakneck rally underway since mid-August extended&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-15/gold-holds-near-record-high-on-us-china-clash-fed-rate-cut-bets&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/m8aru2/article70170052.ece/alternates/LANDSCAPE_1200/PO19_Gold_stock.jpg&quot;,
+   :publishedAt &quot;2025-10-16T05:31:01Z&quot;,
+   :content
+   &quot;Gold rose to a record as heightened US-China frictions and bets the Federal Reserve will press on with monetary easing through the end of the year supported demand.\r\nBullion has risen more than 5 per… [+2456 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Oil rises as Trump says India will stop buying Russian supply&quot;,
+   :description
+   &quot;Brent traded above $62 a barrel after sliding 2.2% over the previous two sessions, while West Texas Intermediate was near $59&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-15/latest-oil-market-news-and-analysis-for-oct-16&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/11pfc9/article70169929.ece/alternates/LANDSCAPE_1200/2025-10-16T013949Z_2133432929_RC26MFA5BYF7_RTRMADP_3_USA-TRUMP-MODI.JPG&quot;,
+   :publishedAt &quot;2025-10-16T04:22:16Z&quot;,
+   :content
+   &quot;Oil rose from a five-month low after US President Donald Trump said Indian Prime Minister Narendra Modi had vowed to halt purchases of Russian barrels, a move that could squeeze global supply. \r\nBren… [+2241 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Blackstone, Abu Dhabi’s Lunate team up on $5 billion logistics platform&quot;,
+   :description
+   &quot;Blackstone partners with Abu Dhabi&apos;s Lunate for $5 billion investment platform targeting logistics assets in the GCC region.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/blackstone-abu-dhabi-s-lunate-team-up-on-5-billion-logistics-platform&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/ukjmb3/article70131056.ece/alternates/LANDSCAPE_1200/2025-09-09T052750Z_1048739928_RC2BWFATX4PR_RTRMADP_3_PROPERTY-FINDER-M-A.JPG&quot;,
+   :publishedAt &quot;2025-10-06T11:16:07Z&quot;,
+   :content
+   &quot;Blackstone Inc. is partnering with Abu Dhabis Lunate on a new platform that will target investments worth $5 billion across the wider region, as the US private equity giant looks to build on its port… [+2212 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Boeing said to prepare for 737 rate hike as soon as October&quot;,
+   :description
+   &quot;Boeing’s monthly rate was capped at 38 last year following a near-catastrophic accident that led to a wholesale switch of senior leadership&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/boeing-said-to-prepare-for-737-rate-hike-as-soon-as-october&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/ccrx51/article69960077.ece/alternates/LANDSCAPE_1200/2025-08-21T111417Z_547996661_RC2E6FAOTWPO_RTRMADP_3_BOEING-CHINA-ORDERS.JPG&quot;,
+   :publishedAt &quot;2025-10-06T05:04:07Z&quot;,
+   :content
+   &quot;Boeing Co. is guiding suppliers that 737 Max output could reach a 42-jet monthly tempo as early as October, according to people familiar with its plans, highlighting growing optimism at the planemake… [+4651 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Tata Capital Ltd and LG Electronics debut to test strength of IPO market&quot;,
+   :description
+   &quot;The two listings underscore India’s growing status as a global fundraising hub, powered by deep domestic liquidity and an expanding retail investor base&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-12/two-billion-dollar-debuts-test-strength-of-hot-india-ipo-market&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/hvi4od/article70154397.ece/alternates/LANDSCAPE_1200/IMG_IPO__initial_public__2_1_96E05MTA.jpg&quot;,
+   :publishedAt &quot;2025-10-12T04:51:00Z&quot;,
+   :content
+   &quot;Tata Capital Ltd. and LG Electronics India Ltd. will begin trading in Mumbai over the next couple of days after they concluded two of the nations biggest initial public offerings this year, with thei… [+5401 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;IPO market poised for record $5 billion deals in October 2025&quot;,
+   :description
+   &quot;Investor response to the Tata Capital and LG offerings will help set the tone for a slew of other deals this month.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-05/indian-ipo-market-set-for-record-month-with-5-billion-in-deals&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/6ptlbf/article70127274.ece/alternates/LANDSCAPE_1200/IMG_IMG_th17_BU_IPO_2_1__2_1_RS9DFF6M.jpg&quot;,
+   :publishedAt &quot;2025-10-05T03:54:02Z&quot;,
+   :content
+   &quot;Indias bustling market for new equity listings is entering a crucial period, with proceeds from initial public offerings in October expected to cross a record $5 billion.\r\nTwo billion-dollar-plus IPO… [+4168 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Stretched AI valuations, Fed credibility concerns raise risk of market correction: BoE&quot;,
+   :description
+   &quot;In its quarterly Financial Stability Report, the UK central bank noted that asset valuations have continued to rise despite global economic uncertainties.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-08/soaring-ai-valuations-spur-market-correction-risk-boe-says&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/xqx9wc/article70140872.ece/alternates/LANDSCAPE_1200/2025-10-04T181726Z_1892769214_RC2C0GALIQCS_RTRMADP_3_BRITAIN-BONDS-INVESTORS.JPG&quot;,
+   :publishedAt &quot;2025-10-08T16:20:36Z&quot;,
+   :content
+   &quot;Stretched valuations for artificial intelligence companies and challenges to the Federal Reserves independence have fueled the risks of a sharp market correction, the Bank of England said on Wednesda… [+4136 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Brookfield-backed Clean Max plans ₹5,200 crore IPO in November&quot;,
+   :description
+   &quot;The IPO will comprise as much as ₹1,500 crore of new shares and a secondary offering of ₹3,700 crore from existing investors, including US-based Augment Infrastructure Partners, according to the IPO prospectus&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-07/brookfield-backed-clean-max-plans-586-million-ipo-in-november&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/6u94kh/article70134586.ece/alternates/LANDSCAPE_1200/BL23_IPO_ahead_sign.jpg&quot;,
+   :publishedAt &quot;2025-10-07T09:15:58Z&quot;,
+   :content
+   &quot;Brookfield-backed Clean Max Enviro Energy Solutions Ltd. is planning to launch its 5,200 crore initial public offering as early as November, according to people familiar with the matter. \r\nThe commer… [+1394 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Silver surges to near record high as gold recedes&quot;,
+   :description
+   &quot;Gold retreats below $4,000 as silver nears 1980 high, driven by inflation fears and debasement trade.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-09/gold-and-silver-retreat-from-highs-as-investors-lock-in-gains&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/h13rg0/article70150978.ece/alternates/LANDSCAPE_1200/CCI_UDHindu_KSL_UBJ7OGQ6U_R1599746586_2_5de0a712-7801-46e0-80ec-c243728af5c8.jpg&quot;,
+   :publishedAt &quot;2025-10-11T04:58:18Z&quot;,
+   :content
+   &quot;Gold retreated further below $4,000 an ounce on signs a breakneck rally that took it to a record high may have been overdone, while silver rose to near the highest since 1980.\r\nBullion traded near $3… [+3589 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Muted market reaction to TCS results; traders brace for calm earnings season&quot;,
+   :description
+   &quot;TCS Q2 profit miss fails to shake markets as traders bet on a calm earnings season; Nifty options signal lowest implied volatility since 2016&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-10/traders-see-calmest-india-earnings-season-as-they-look-past-tcs&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/2kfz21/article70131784.ece/alternates/LANDSCAPE_1200/PO27_Stock_market.jpg&quot;,
+   :publishedAt &quot;2025-10-10T10:21:09Z&quot;,
+   :content
+   &quot;Tata Consultancy Services Ltd.s earnings disappointment has failed to spook the market as traders bet on subdued moves among companies in Indias main equity index this reporting season.\r\nOn the eve o… [+1486 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;RBI ramps up offshore currency market interventions to shield rupee&quot;,
+   :description
+   &quot;India&apos;s central bank increases offshore currency market interventions to support rupee, using non-deliverable forwards to stabilize currency.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-09/indian-central-bank-steps-up-offshore-fx-defense-to-shield-rupee&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/i2zx92/article70142215.ece/alternates/LANDSCAPE_1200/BL03_Think_Digital_rupee.jpg&quot;,
+   :publishedAt &quot;2025-10-09T03:23:51Z&quot;,
+   :content
+   &quot;Indias central bank has stepped up its interventions in offshore currency markets to defend the beleaguered rupee, according to people familiar with the development. \r\nThe Reserve Bank of India has b… [+2092 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Gold moves closer to $4,000 on US shutdown and French crisis&quot;,
+   :description
+   &quot;Gold hits record high near $4,000/ounce amid US government shutdown and political turmoil in France and Japan.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/gold-heads-closer-to-4-000-as-us-shutdown-bolsters-haven-demand&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/2iczgn/article70133901.ece/alternates/LANDSCAPE_1200/IMG_Gold_bars__wealth_an_2_1_36DT3NB3.jpg&quot;,
+   :publishedAt &quot;2025-10-07T04:44:52Z&quot;,
+   :content
+   &quot;Gold clinched a fresh record pushing closer to $4,000 an ounce as the US government shutdown and a political crisis in France injected more uncertainty into financial markets.\r\nBullion rose to $3,977… [+2328 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Jefferies plans entry into India’s fast-growing mutual fund market&quot;,
+   :description
+   &quot;Jefferies signs up Milind Barve, former head of HDFC Asset Management Co, as adviser to shape its strategy and steer regulatory approvals&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/jefferies-enlists-barve-for-india-mutual-fund-foray-as-global-giants-pile-in&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/em690w/article70131401.ece/alternates/LANDSCAPE_1200/2025-09-29T214010Z_2132235205_RC2IAR92I8JB_RTRMADP_3_JEFFERIES-RESULTS.JPG&quot;,
+   :publishedAt &quot;2025-10-06T12:33:43Z&quot;,
+   :content
+   &quot;Jefferies Financial Group Inc is gearing up to enter Indias $900 billion asset-management industry, according to people familiar with the matter, joining a growing list of global financial giants see… [+2143 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Shell signals energy trading rebound in boost for profit&quot;,
+   :description
+   &quot;The chemicals unit has been a drag on Shell’s performance for some time, and the company has said it’s exploring partnerships in the US and selective closures in Europe&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-07/shell-signals-oil-and-gas-trading-rebound-in-boost-for-earnings&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/3sdw9w/article70127794.ece/alternates/LANDSCAPE_1200/2025-09-19T150630Z_1382281794_RC2YUGAXCG69_RTRMADP_3_INDONESIA-FUELOIL.JPG&quot;,
+   :publishedAt &quot;2025-10-07T08:42:30Z&quot;,
+   :content
+   &quot;Shell Plc said the performance of its oil and gas trading operation recovered, after struggling with geopolitical volatility in the second quarter. \r\nThe divisions performance was significantly highe… [+1876 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Adani green gets $250 Million in first offshore loan since probe&quot;,
+   :description
+   &quot;Follow Bloomberg India on WhatsApp for exclusive billionaire, business, and market analysis; Adani Green Energy secures $250M loan.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-06/adani-green-gets-250-million-in-first-offshore-loan-since-probe&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/9vfqx7/article70132493.ece/alternates/LANDSCAPE_1200/2025-05-02T091405Z_1040841356_RC282Y971UEE_RTRMADP_3_ADANI-POWER-BANGLADESH-POWER.JPG&quot;,
+   :publishedAt &quot;2025-10-06T15:44:34Z&quot;,
+   :content
+   &quot;Adani Green Energy Ltd, controlled by Gautam Adani, signed a deal to raise around $250 million from a group of global lenders, according to people familiar with the matter, in what would be the units… [+1530 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Nestlé plans 16,000 job cuts worldwide; new CEO aims ₹34,000 crore cost savings by 2027&quot;,
+   :description
+   &quot;he Swiss food giant, which makes KitKat and Nespresso, aims to save 3 billion Swiss francs by 2027 while improving efficiency and governance after a recent leadership reshuffle&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-16/nestle-reports-sales-growth-on-higher-prices-and-volumes&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/cscn6h/article70170308.ece/alternates/LANDSCAPE_1200/2025-09-02T083511Z_350420826_RC2KJGAB8ZYE_RTRMADP_3_NESTLE-CEO.JPG&quot;,
+   :publishedAt &quot;2025-10-16T06:52:05Z&quot;,
+   :content
+   &quot;Nestlé SA plans to cut 16,000 jobs as new Chief Executive Officer Philipp Navratil seeks to accelerate a turnaround at the Swiss foodmaker.\r\nThe reductions, which would amount to about 6% of the work… [+1442 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;ArcelorMittal M&amp;A Head holds talks in South Africa over unit sale&quot;,
+   :description
+   &quot;The executive’s presence in the country is a sign that the discussions between the Luxembourg-based steelmaker and the Industrial Development Corp. have accelerated&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-14/arcelormittal-m-a-head-holds-talks-in-south-africa-over-unit-sale&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/9l2gm6/article70162407.ece/alternates/LANDSCAPE_1200/1517001990087.jpg&quot;,
+   :publishedAt &quot;2025-10-14T11:07:53Z&quot;,
+   :content
+   &quot;ArcelorMittal SAs head of mergers and acquisitions, Ondra Otradovec, is holding talks in South Africa with the nations top development-finance institution and trade department about the sale of the s… [+2409 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Jaguar Land Rover readies $674 million supplier loan, Times Says&quot;,
+   :description
+   &quot;The loan is being privately arranged and is separate to a £1.5 billion state-backed guarantee unveiled by government ministers last Saturday&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-04/jaguar-land-rover-readies-500-million-supplier-loan-times-says&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/y0v2ev/article70125704.ece/alternates/LANDSCAPE_1200/2025-09-25T080746Z_718904546_RC296Y9EIM44_RTRMADP_3_JAGUAR-LAND-ROVER-CYBERSECURITY.JPG&quot;,
+   :publishedAt &quot;2025-10-04T15:38:52Z&quot;,
+   :content
+   &quot;Jaguar Land Rover Automotive Plc is preparing a loan of as much as £500 million ($674 million) to support its suppliers after a cyber attack at the start of September brought the carmakers production… [+1368 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Nayara energy revives fuel sales to Brazil and Turkey&quot;,
+   :description
+   &quot;Nayara — part-owned by Russia’s Rosneft PJSC — was hit with EU sanctions in July as the bloc stepped up efforts to restrict Moscow’s bid to profit from sales of crude amid its war in Ukraine&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-07/sanctions-hit-nayara-energy-revives-fuel-sales-to-brazil-turkey&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/idlqrr/article70134995.ece/alternates/LANDSCAPE_1200/2025-08-07T060017Z_453165402_RC2OMX9UV62R_RTRMADP_3_USA-INDIA-ENERGY-MAGUIRE.JPG&quot;,
+   :publishedAt &quot;2025-10-07T11:10:31Z&quot;,
+   :content
+   &quot;Indian refiner Nayara Energy Ltd. a target of European Union sanctions aimed at hobbling flows of Russian crude has broadened efforts to sidestep the curbs by restoring sales to distant markets, incl… [+1933 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Warner Bros. is said to rebuff Paramount takeover approach&quot;,
+   :description
+   &quot;Warner Bros. rejected Paramount’s offer of around $20 per share in recent weeks, the people said, asking not to be identified because the matter is private&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-12/warner-bros-is-said-to-rebuff-paramount-takeover-approach&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/gbjsaz/article70154752.ece/alternates/LANDSCAPE_1200/2025-10-12T055738Z_2099455110_RC24AHAHV1MC_RTRMADP_3_WARNER-BROS-DIS-M-A-PARAMOUNT-SKYDAN.JPG&quot;,
+   :publishedAt &quot;2025-10-12T10:17:05Z&quot;,
+   :content
+   &quot;Warner Bros Discovery Inc. has rebuffed Paramount Skydance Corp.s initial takeover approach for being too low, according to people familiar with the matter.\r\nWarner Bros. rejected Paramounts offer of… [+1905 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;Tension in Norway ahead of Nobel Peace Prize verdict&quot;,
+   :description
+   &quot;Trump’s campaign has thrust Oslo into an uncomfortable spotlight, with media and observers worrying about the diplomatic and economic fallout should the Norwegian Nobel Committee snub him&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-09/norway-on-edge-over-trump-ahead-of-nobel-peace-prize-verdict&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/3chjle/article69786118.ece/alternates/LANDSCAPE_1200/435974176.jpg&quot;,
+   :publishedAt &quot;2025-10-09T13:01:21Z&quot;,
+   :content
+   &quot;(Norway is bracing for the aftermath of the Nobel Peace Prize announcement on Friday as the Nordic nation has faced increasing pressure from Donald Trump and his administration to award it to the US … [+1890 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title &quot;World Bank cuts South Asia’s growth outlook sharply&quot;,
+   :description
+   &quot;Exclusive analysis on South Asia&apos;s economic growth, US tariffs impact, and regional outlook by World Bank.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-07/world-bank-cuts-south-asia-outlook-on-trump-tariffs-to-india&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/qe505l/article70137976.ece/alternates/LANDSCAPE_1200/2023-06-06T133038Z_1363640432_RC2OD1AGY8CO_RTRMADP_3_WORLDBANK-OUTLOOK.JPG&quot;,
+   :publishedAt &quot;2025-10-08T03:49:16Z&quot;,
+   :content
+   &quot;The World Bank cut its forecast for South Asias economic growth by nearly a percentage point, in part because of punishing US tariffs on India.\r\nIn its Tuesday report, the Washington-based institutio… [+2512 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Shipping faces ‘sizeable disruption’ as US, China spar on fees&quot;,
+   :description
+   &quot;Nearly 16% of tankers that carry refined products and 13% of those that transport crude oil could be charged hefty fees under Beijing’s latest plan, the Wall Street bank wrote in a note&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-13/shipping-faces-sizeable-disruption-as-us-china-spar-on-fees&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/pjeezj/article70158094.ece/alternates/LANDSCAPE_1200/2025-10-07T131252Z_983845914_RC2RXDAOE9U3_RTRMADP_3_CANADA-ECONOMY.JPG&quot;,
+   :publishedAt &quot;2025-10-13T10:14:35Z&quot;,
+   :content
+   &quot;Oil tankers and container ships will be among the hardest hit should Chinas port fees targeting US vessels take effect on Tuesday, according to Jefferies LLC.\r\nNearly 16 per cent of tankers that carr… [+2217 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Indonesia revokes TikTok license suspension after data is submitted&quot;,
+   :description
+   &quot;The decision followed TikTok’s refusal to provide complete data on user activity during protests held between Aug. 25-30, which flared after the death of a delivery driver&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-05/indonesia-revokes-tiktok-license-suspension-after-data-submitted&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/dzhn8n/article70127278.ece/alternates/LANDSCAPE_1200/IMG_FILE_PHOTO__FILE_PHO_2_1_EUE0BFO9.jpg&quot;,
+   :publishedAt &quot;2025-10-05T03:51:48Z&quot;,
+   :content
+   &quot;Indonesia revoked a suspension on TikToks local operating license after the social media platform shared data requested by the government.\r\nThe company provided data related to TikTok Live traffic es… [+1828 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Green stocks are quietly beating the world’s biggest trades&quot;,
+   :description
+   &quot;Investors have turned more positive on green stocks as the energy needed to power AI can’t be delivered without renewables&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-08/green-stocks-are-quietly-beating-the-world-s-biggest-trades&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/o6cft0/article70138721.ece/alternates/LANDSCAPE_1200/BL25_Think_green_industry.jpg&quot;,
+   :publishedAt &quot;2025-10-08T08:35:18Z&quot;,
+   :content
+   &quot;A global benchmark of clean energy stocks is outperforming major equity indexes and even gold, as investors respond to soaring demand for renewables needed to power the boom in artificial intelligenc… [+2453 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Sohee Kim&quot;,
+   :title
+   &quot;AI brings Korea’s struggling film industry hopes and anxiety&quot;,
+   :description
+   &quot;Jang Seong-ho’s King of Kings earned US$60m in the US, topping Parasite.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-12/ai-brings-korea-s-struggling-film-industry-hopes-and-anxiety?embedded-checkout=true&quot;,
+   :urlToImage
+   &quot;https://www.nzherald.co.nz/resizer/v2/AR5VK6VQHZGI3AQLAAANC7S2II.jpg?auth=a1edb6a3815ca81495f72afe16167947f08a7d673ee2666bce2cba7fbbada392&amp;width=1200&amp;height=675&amp;quality=70&amp;focal=967%2C550&amp;smart=false&quot;,
+   :publishedAt &quot;2025-10-14T23:35:53Z&quot;,
+   :content
+   &quot;He is betting AI can help halve production time and slash costs, enabling the studio to deliver a feature film and a series every year.\r\nThe question we should be asked is, Where did you use AI? Jang… [+2317 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Washington Post&quot;,
+   :title
+   &quot;Boston trial installs window heat pumps to cut emissions, cool elderly homes&quot;,
+   :description
+   &quot;Window heat pumps offer a faster, cheaper way to decarbonise the public housing sector.&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-08/boston-public-housing-upgrades-units-with-window-heat-pumps&quot;,
+   :urlToImage
+   &quot;https://www.nzherald.co.nz/resizer/v2/VEZXI364IFHH7GMNCX34M7NIHU.jpg?auth=7a95b063ea47a364beddfd56bd167e4d59a517311b0ad5091acaa6bf62c0bbbd&amp;width=1200&amp;height=675&amp;quality=70&amp;smart=true&quot;,
+   :publishedAt &quot;2025-10-08T21:45:56Z&quot;,
+   :content
+   &quot;Most importantly, it allows us to deliver in-unit cooling to our residents for the first time as soon as possible, she said. We cant treat heat as this one-off emergency.\r\nBoston is the latest city t… [+3517 chars]&quot;}
+  {:source {:id &quot;bloomberg&quot;, :name &quot;Bloomberg&quot;},
+   :author &quot;Bloomberg&quot;,
+   :title
+   &quot;Rupee’s calm fuels speculation of RBI returning to old playbook&quot;,
+   :description
+   &quot;The Reserve Bank of India has built up short dollar positions of at least $15 billion in the non-deliverable forwards market over the past two to three weeks to defend the rupee&quot;,
+   :url
+   &quot;https://www.bloomberg.com/news/articles/2025-10-13/rupee-s-calm-fuels-speculation-of-rbi-returning-to-old-playbook&quot;,
+   :urlToImage
+   &quot;https://bl-i.thgim.com/public/incoming/cgvz7i/article70158017.ece/alternates/LANDSCAPE_1200/IMG_bl18-Think2-DCu_GMNE_2_1_V4EU07AR.jpg&quot;,
+   :publishedAt &quot;2025-10-13T09:39:21Z&quot;,
+   :content
+   &quot;Indias rupee has barely budged over the past three weeks, prompting some traders to speculate that the central bank is once again tightening its grip on the currency.\r\nThe one-month volatility in the… [+1856 chars]&quot;}]}
+</code></pre></div></div><div style="margin:15px;"><div><p>RAG Example (for demonstration)</p><p>(def enhanced-response (ask-chatbot "According to the WSJ, Stocks closed the week at record highs, propelled by investor optimism that the Federal Reserve will keep cutting interest rates—and keep the market rally going. All three major indexes posted weekly gains of more than 1%. The Fed cut the benchmark borrowing rate by 0.25% on Wednesday, and traders are now anticipating additional rate reductions in October and December. The median projection of the Fed’s interest-rate setting committee also penciled in two additional cuts in 2025.</p><pre class="viewer-code not-prose">                                            The S&P 500 rose 0.5% on Friday, while the tech-heavy Nasdaq gained 0.7%. The Dow Jones Industrial Average added 0.4%, or 173 points.
+
+                                            Based on this information, can you tell me the current market conditions that may affect one's portfolio?"))
+</pre><p>;; Enhanced Response (->> (enhanced-response :message) (wrap-text 10))</p></div></div><div style="margin:15px;"><div style="background-color:grey;height:2px;width:100%;"></div></div><div style="margin:15px;"><div><pre><small><small>source: src/cim_portfolio/httpclient.clj</small></small></pre></div></div></div></div></div></div></div><script type="text/javascript">/*!
   Highlight.js v11.9.0 (git: b7ec4bfafc)
   (c) 2006-2023 undefined and other contributors
   License: BSD-3-Clause
