@@ -6,30 +6,24 @@
          :hide-ui-header true}}
 
 (ns cim_portfolio.portfolio
-  (:require [scicloj.kindly.v4.kind :as kind]
-            [cim_portfolio.util :as util]
+  (:require [cim_portfolio.util :as util]
             [cim_portfolio.yfinanceclient :as client]
-            [cim_portfolio.plot :as plot] 
+            [cim_portfolio.plot :as plot]
             [clojure.math :as math]
             [clojure.pprint :refer [pprint]]
             [clojure.string :as string]
             [cim_portfolio.regression :as reg]
             [cim_portfolio.portfoliofunctions :as portfolio]
-            ))
+            [nextjournal.clerk :as clerk]))
 
 ;;; ### Program Configuration
 
-(def portfolio-options {
-                        :starting-cash 200000
-                       }
-)
+(def portfolio-options {:starting-cash 200000})
 
-(def view-options {
-                   :show-individual-stock-performance-by-day true
+(def view-options {:show-individual-stock-performance-by-day true
                    :show-cumulative-portfolio-return-by-day true
                    :show-portfolio-value-by-day true
-                   :show-alpha-beta-regression-by-day true}
-)
+                   :show-alpha-beta-regression-by-day true})
 
 ;; Please enter the relative paths of 1 or more CSV files (in a list) containing your trades below:
 
@@ -47,53 +41,43 @@
       cumulative-portfolio-return (portfolio/calculate-portfolio-return cash-invested stock-performance)
       returns-by-date 			(zipmap (map #(first %) cash-invested-by-date) (mapv #(portfolio/calculate-portfolio-return-for-given-date (second %) stock-performance (first %)) cash-invested-by-dates))
       volatility 				(portfolio/volatility (map second sorted-portfolio-value))]
-  
+
   ;; Bad practice but better than storing all of the above vars as global
   (def portfolio-value-by-day sorted-portfolio-value)
-  (def returns-by-date returns-by-date)
-  (def stock-performance stock-performance)
 
   ;; Portfolio Basic Performance
-  (kind/md
-      (str "Current Portfolio Value: \\$" (format "%.2f" current-portfolio-value) " \n\n"
-           "Cash: \\$" (format "%.2f" (+ (:starting-cash portfolio-options) cash)) "\n\n"
-           "Stocks: \\$" (format "%.2f" (- current-portfolio-value (+ (:starting-cash portfolio-options) cash))) "\n\n"
-           
-           "Annualized Return of portfolio: " (format "%.2f" (* annualized-return 100)) "%\n\n"
-           
-           "Volatility of portfolio: " (format "%.4f" volatility) "%\n\n"
-           "Annualized volatility of portfolio: " (format "%.4f" (* (Math/sqrt 252) volatility)) "%\n\n"
-           
-           "Portfolio (units held/shorted of each stock): " (pr-str portfolio) "\n\n"
-           "Cash invested in each stock: " (pr-str cash-invested) "\n\n"
-           "Cumulative Portfolio Return: " (pr-str cumulative-portfolio-return) "\n\n")))
-
-;; #### Porfolio Returns by Date
-(if (:show-cumulative-portfolio-return-by-day view-options)
-  (kind/table
-   {:column-names ["Date" "Portfolio Return"]
-    :row-maps (map (fn [[date ret]]
-                     {"Date" date
-                      "Portfolio Return" ret})
-                   returns-by-date)})
-  "Omitting...")
-
-;; #### Portfolio Value Day-by-Day
-
-(if (:show-portfolio-value-by-day view-options)
-  (kind/table
-   {:column-names ["Date" "Portfolio Value"]
-    :row-vectors
-    (let [n (count portfolio-value-by-day)
-          step (int (/ n 10))]
-      (map #(nth portfolio-value-by-day %) (range 0 n step)))})
-  "Omitting...")
-
-;; #### Individual Stock Performance
-
-(if (:show-individual-stock-performance-by-day view-options)
-  (portfolio/layout-tables stock-performance)
-  "Omitting...")
+  (str "Current Portfolio Value: $" (format "%.2f" current-portfolio-value)
+        " [Cash: ~$" (format "%.2f" (+ (:starting-cash portfolio-options) cash))
+        "| Stocks: ~$" (format "%.2f" (- current-portfolio-value (+ (:starting-cash portfolio-options) cash))) "] \n\n"
+  
+        "Annualized Return of portfolio: " (format "%.2f" (* annualized-return 100)) "%\n\n"
+  
+        "Volatility of portfolio: " (format "%.4f" volatility) "%\n\n"
+        "Annualized volatility of portfolio: " (format "%.4f" (* (Math/sqrt 252) volatility)) "%\n\n"
+  
+        "Portfolio (units held/shorted of each stock): " (pr-str portfolio) "\n\n"
+        "Cash invested in each stock: " (pr-str cash-invested) "\n\n"
+        "Cumulative Portfolio Return: " (pr-str cumulative-portfolio-return) "\n\n"
+  
+        "----------------------------------\n"
+        (if (:show-cumulative-portfolio-return-by-day view-options)
+          (str "Portfolio Return by date: \n" (pr-str returns-by-date) "\n")
+          "")
+        "----------------------------------\n\n"
+  
+        "----------------------------------\n"
+        "Portfolio Value Day-by-Day: \n"
+        (if (:show-portfolio-value-by-day view-options)
+          (str (clojure.string/join "\n" (map #(str (first %) " " (format "%.2f" (second %))) sorted-portfolio-value)) "\n")
+          "Omitting...\n")
+        "----------------------------------\n\n"
+  
+        "----------------------------------\n"
+        "Individual Stock Performance: \n"
+        (if (:show-individual-stock-performance-by-day view-options)
+          (with-out-str (clojure.pprint/pprint stock-performance))
+          "Omitting...\n")
+        "----------------------------------\n"))
 
 ;; ### Visualization
 ;; #### Portfolio Value
@@ -115,11 +99,11 @@
                            (recur (rest data)
                                   (let [[date action amount ticker] (first data)]
                                     (-> complete-tickers
-                                        (conj ticker))))))] 
+                                        (conj ticker))))))]
     (loop [tickers unique-tickers
            plotly-data []]
       (if (empty? tickers)
-        
+
         ;; Graphing
         (let [n (count plotly-data)
               cols 1 ;; Edit number of columns here
@@ -138,10 +122,10 @@
                       :margin {:l 70 :r 20 :b 70 :t 20} ; Further increase left and bottom margins
                       :paper_bgcolor "transparent"
                       :plot_bgcolor "transparent"}]
-          (kind/plotly {:data traces :layout layout 
-                        :config {:displayModeBar false
-                                 :displayLogo false}}))
-        
+          (clerk/plotly {:data traces :layout layout
+                         :config {:displayModeBar false
+                                  :displayLogo false}}))
+
         ;; Getting the data for Plotly
         (let [ticker (first tickers)
               stock-data (client/get-ticker-price-with-end ticker "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Note that the date is start date
@@ -160,5 +144,5 @@
                             :y (map second beta-data)
                             :type "scatter"
                             :mode "lines"
-                            :name (str ticker " β")}))))))) 
-  "Omitting...")
+                            :name (str ticker " β")})))))))
+  "")
