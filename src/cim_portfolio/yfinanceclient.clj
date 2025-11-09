@@ -7,6 +7,8 @@
   )
 )
 
+(py/initialize! :python-executable "/home/edward/miniconda3/envs/cim-portfolio/bin/python")
+
 ;; (require-python '[yfinance :as yf]
 ;;                 '[datetime :as dt])
 
@@ -23,7 +25,7 @@ def get_ticker_price_all(ticker, date):
     count = 0
     while True:
         count += 1
-        data = yf.download(ticker, start=date, progress=False, auto_adjust=False)
+        data = yf.download(ticker, start=date, progress=False, auto_adjust=False) # This might only be 1 month
         if len(data) > 0:
             break
         if count >= 10:
@@ -46,7 +48,7 @@ def get_ticker_price_with_end(ticker, start_date, end_date):
     count = 0
     while True:
         count += 1
-        data = yf.download(ticker, start=start_date, end=end_date, progress=False, auto_adjust=False)
+        data = yf.download(ticker, start=start_date, end=end_date, progress=False, auto_adjust=True) # Note that this is adjusted for dividends!
         if len(data) > 0:
             break
         if count >= 10:

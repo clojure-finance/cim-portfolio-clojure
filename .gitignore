@@ -3,3 +3,4 @@ temp/
 .clerk/
 config.edn
 **/.calva
+.lsp/
