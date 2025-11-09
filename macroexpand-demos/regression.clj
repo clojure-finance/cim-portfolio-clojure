@@ -1,11 +1,12 @@
 (ns cim_portfolio.regression
     (:require [cim_portfolio.plot :as plot]
               [cim_portfolio.portfoliofunctions :as portfolio]
-              [fastmath.ml.regression :as reg]
-              [libpython-clj2.require :refer [require-python]]
+              [fastmath.ml.regression :as reg] 
               [libpython-clj2.python :refer [py. py.. py.-] :as py]
               [clojure.data.json :as json]
     ))
+
+(py/initialize! :python-executable "/home/edward/miniconda3/envs/cim-portfolio/bin/python")
 
 (defn calculate-regression [stock-returns market-returns] ;; both returns are 1D sequences
     (reg/lm
@@ -118,4 +119,4 @@ market_data = snp_data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
 ;; Beta
 
 (plot/list-plot (map vector (:plotted-dates regression-dataset) (:plotted-beta regression-dataset))
-                :x-title "Time" :y-title "α (NVDA)")
+                :x-title "Time" :y-title "β (NVDA)")

@@ -2,6 +2,8 @@
 ;;; karanvs@connect.hku.hk Karanveer Singh  
 ;;; edwardaw@connect.hku.hk Edward Widjaja
 ;;; ### Required packages
+^{:clay {:hide-info-line true
+         :hide-ui-header true}}
 
 (ns cim_portfolio.portfolio
   (:require [scicloj.kindly.v4.kind :as kind]
@@ -120,7 +122,7 @@
         
         ;; Graphing
         (let [n (count plotly-data)
-              cols 2
+              cols 1 ;; Edit number of columns here
               rows (int (Math/ceil (/ n cols)))
               traces (map-indexed
                       (fn [i trace]
@@ -136,12 +138,14 @@
                       :margin {:l 70 :r 20 :b 70 :t 20} ; Further increase left and bottom margins
                       :paper_bgcolor "transparent"
                       :plot_bgcolor "transparent"}]
-          (kind/plotly {:data traces :layout layout}))
+          (kind/plotly {:data traces :layout layout 
+                        :config {:displayModeBar false
+                                 :displayLogo false}}))
         
         ;; Getting the data for Plotly
         (let [ticker (first tickers)
               stock-data (client/get-ticker-price-with-end ticker "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Note that the date is start date
-              market-data (client/get-ticker-price-with-end "^GSPC" "2022-09-01" (.toString (java.time.LocalDate/now)))
+              market-data (client/get-ticker-price-with-end "^GSPC" "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Switch the Market Index here
               model-data (reg/get-alpha-beta stock-data market-data)
               alpha-data (map vector (:plotted-dates model-data) (:plotted-alpha model-data))
               beta-data (map vector (:plotted-dates model-data) (:plotted-beta model-data))]
@@ -157,4 +161,4 @@
                             :type "scatter"
                             :mode "lines"
                             :name (str ticker " β")}))))))) 
-  "Omitting...\n\n")
+  "Omitting...")
