@@ -1,9 +1,10 @@
-;;; # CIM Portfolio
+;;; # CIM Portfolio 
 ;;; karanvs@connect.hku.hk Karanveer Singh  
 ;;; edwardaw@connect.hku.hk Edward Widjaja
+
+;;; This is the main program to be run on Clerk/Clay
+
 ;;; ### Required packages
-^{:clay {:hide-info-line true
-         :hide-ui-header true}}
 
 (ns cim_portfolio.portfolio
   (:require [cim_portfolio.util :as util]
@@ -32,7 +33,7 @@
 ;; ### Portfolio Performance
 
 (let [data (util/read-multiple-csv input-files)
-      [cash portfolio portfolio-value current-value cash-invested cash-invested-by-date stock-performance] (portfolio/analyze-portfolio data)
+      [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date stock-performance] (portfolio/analyze-portfolio data)
       sorted-portfolio-value 	(map #(vector (first %) (+ (:starting-cash portfolio-options) (second %)))
                                    (util/sort-map-by-date portfolio-value))
       cash-invested-by-dates 	(into [] cash-invested-by-date)
