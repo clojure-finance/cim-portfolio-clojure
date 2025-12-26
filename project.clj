@@ -16,7 +16,13 @@
                  [org.slf4j/slf4j-simple "2.0.9"]
                  [generateme/fastmath "3.0.0-alpha3"]
                  [datalevin "0.9.22"]
+                 [ring/ring-core "1.15.3"]
+                 [ring/ring-jetty-adapter "1.15.3"]
+                 [ring/ring-codec "1.3.0"]
+                 [hiccup "2.0.0"]
                  ]     ; Add this line for SLF4J Simple Logger
+  :ring {:handler portfolio-web.controllers/app}
+  :plugins [[lein-ring "0.12.6"]]
   :main ^:skip-aot cim-portfolio.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
