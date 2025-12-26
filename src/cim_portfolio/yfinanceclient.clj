@@ -20,12 +20,36 @@
 import yfinance as yf
 from currency_converter import CurrencyConverter
 
-def get_ticker_price_all(ticker, date):
+def get_ticker_price_all_deprecated(ticker, date): # This function should fetch all prices in trading dates from the trade date to T+30 (30 days after the trade date) only (function is deprecated)
+    # DEPRECATED FUNCTION
     date = (datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
     count = 0
     while True:
         count += 1
-        data = yf.download(ticker, start=date, progress=False, auto_adjust=False) # This might only be 1 month
+        data = yf.download(ticker, start=date, progress=False, auto_adjust=False) # Prices are not adjusted for dividends.
+        if len(data) > 0:
+            break
+        if count >= 10:
+            return 'ERROR'
+    data.reset_index(inplace=True)
+    data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')
+    stock = yf.Ticker(ticker)
+
+    if 'currency' in stock.info and stock.info['currency'] != 'USD':
+        c = CurrencyConverter()
+        fx_to_usd = c.convert(1, stock.info['currency'], 'USD')
+    else:
+        fx_to_usd = 1
+    data['Open'] = data['Open'] * fx_to_usd
+    data['Close'] = data['Close'] * fx_to_usd
+    return data[['Date', 'Open', 'Close']].to_json(orient = 'values')
+
+def get_ticker_price_all(ticker, date): # This function should fetch all prices in all trading dates from the trade date to today.
+    date = (datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d') # Trade date is at least one day after the order date
+    count = 0
+    while True:
+        count += 1
+        data = yf.download(ticker, start=date, end=datetime.today().date(), progress=False, auto_adjust=True) # Prices are adjusted for dividends.
         if len(data) > 0:
             break
         if count >= 10:
