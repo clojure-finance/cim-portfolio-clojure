@@ -61,7 +61,7 @@
         final-arithmetic-cumulative-return (- (Math/exp added-log-returns) 1)]
     final-arithmetic-cumulative-return))
 
-;; DEPRECATED
+;; DEPRECATED (will replace all use of this function with set-of-portfolio-log-returns-and-weights soon)
 ;; This function calculates the cumulative portfolio return for a static portfolio (no change in the underlying stocks or quantity)
 (defn calculate-portfolio-return-and-weights-for-given-date [portfolio start-date end-date] 
   ;; portfolio: The previous portfolio composition before the latest buy/sell order {"NVDA" 10000, "MSFT" 5000, "B" -12500, ...}
@@ -110,7 +110,6 @@
 
 ;; This function calculates the cumulative portfolio return using log returns for a fixed portfolio, returning information about the portfolio
 ;; Multiple variables are returned to prevent the need to fetch to yfinance multiple times, which causes increased computation time and risks rate limiting
-
 (defn portfolio-log-and-cumulative-returns [portfolio start-date end-date]
   (let [;; Get prices of ticker from start-date (executed date) to end-date
         prices-until-end-date (into {}
@@ -140,16 +139,20 @@
                                             [d (into {} ;; Date is set as key
                                                      (map (fn [[ticker prices]]
                                                             [ticker ;; Ticker is inner map's key
-                                                             (* (last (get prices d)) (get portfolio ticker))]) ;; Multiply ending price of stock at trade date by the amount in portfolio to get holding value
+                                                             (if (= d start-date) 
+                                                               (* (first (get prices d)) (get portfolio ticker)) ;; Multiply opening price of stock at trade date by the amount in portfolio to get holding value
+                                                               (* (last (get prices d)) (get portfolio ticker))) ;; Multiply closing price of stock at trade date by the amount in portfolio to get holding value
+                                                             ])
                                                           prices-until-end-date-enhanced) ;; For each ticker, get date-prices key-value pair
                                                      )])
                                           all-trade-dates)) ;; For each trade date 
 
         ;; Get total portfolio value by date
-        portfolio-value-by-date (into {}
+        portfolio-value-by-date (util/sort-map-by-date 
+                                 (into {}
                                        (map (fn [[d holdings]]
                                               [d (reduce + (vals holdings))])
-                                            holding-values-by-date))
+                                            holding-values-by-date)))
 
         ;; Get portfolio weights by date
         ;; Returns the following format: {"2025-01-10" {"NVDA" 20% "MSFT" 100% "TSLA" -20% ...}, 
@@ -164,11 +167,129 @@
         
         portfolio-returns-with-date (calculate-returns-with-corresponding-date (vals portfolio-value-by-date) (keys portfolio-value-by-date)) ;; When using this function, arguments have to be ordered by time
         ]
-    portfolio-returns-with-date))
+    {:stock-weights portfolio-weights-by-date
+     :portfolio-returns portfolio-returns-with-date ;; Contains arithmetic and log returns and cumulative returns
+     :all-ticker-prices prices-until-end-date-enhanced}))
 
-(calculate-portfolio-return-and-weights-for-given-date {"NVDA" 70
-                             "GOOG" 50
-                             "TSLA" -30} "2025-01-10" "2025-12-14")
+
+;; This function calculates the log returns for a set of portfolios over time (portfolio-composition-by-date), returning information about each portfolio while they existed
+;; Multiple variables are returned to prevent the need to fetch to yfinance multiple times, which causes increased computation time and risks rate limiting
+
+(defn set-of-portfolio-log-returns-and-weights [portfolio-composition-by-date start-date end-date]
+  (let [;; Date Parser
+        date-formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd")
+        date-parser (fn [d] (java.time.LocalDate/parse d date-formatter))
+
+        ;; Get latest order execution date
+        latest-execution-date (.toString
+                               (reduce #(if (> (.compareTo %1 %2) 0) %1 %2) ;; .compareTo returns a positive integer if %1 is greater than %0, zero if they are equal, otherwise negative integer
+                                       (map date-parser
+                                            (keys portfolio-composition-by-date))))
+
+        ;; Get prices of all past and current tickers from start-date (executed date) to end-date 
+        prices-until-end-date (into {}
+                                    (map (fn [[ticker amount]]
+                                           [ticker (client/get-ticker-price-with-end ticker start-date end-date)])
+                                         (get portfolio-composition-by-date latest-execution-date))) ;; Newest Portfolio should contain all past and current tickers
+
+        ;; Make dates the keys, and opening and closing prices the values
+        prices-until-end-date-enhanced (into {}
+                                             (map (fn [[ticker prices]]
+                                                    [ticker (into {}
+                                                                  (map (fn [[date opening-price closing-price]]
+                                                                         [date [opening-price closing-price]])
+                                                                       prices))])
+                                                  prices-until-end-date))
+
+        ;; Get all trade dates between start-date and end-date
+        ;; Returns a collection of date Strings (i.e. "yyyy-MM-dd")
+        all-trade-dates (map #(first %) ;; Get all trade dates from the data
+                             (get prices-until-end-date ;; Get Prices for any one of the tickers from the portfolio
+                                  (first (keys (get portfolio-composition-by-date latest-execution-date))))) ;; Get any one of the tickers from the newest portfolio
+
+        ;; Get all portfolio-composition-by-date execution dates (already converted into java.time.LocalDate)
+        all-trade-execution-dates (map date-parser (keys portfolio-composition-by-date)) ;; Take All Order Execution Dates
+
+
+        ;; Function to get the latest order execution date relative to an input date (input-date is a String, not java.time.LocalDate)
+        ;; If there are no order execution dates earlier than the input date, then return earliest order execution date
+        get-nearest-execution-date (fn [input-date]
+                                     (.toString ;; Result will be a java.time.LocalDate, so convert to String
+                                      (if
+                                       (nil? (reduce (fn [best d] ;; Get the latest order execution date relative to input-date
+                                                       (if (and (or (.isBefore d (date-parser input-date)) (.isEqual d (date-parser input-date)))
+                                                                (or (nil? best) (.isAfter d best)))
+                                                         d
+                                                         best))
+                                                     nil all-trade-execution-dates)) ;; if reduce returns "nil", then no order exists before each start date 
+                                        ;; If there are no execution dates earlier than input-date, then return earliest execution date
+                                        (reduce #(if (neg? (.compareTo %1 %2)) %1 %2)
+                                                (map date-parser (keys portfolio-composition-by-date)))
+                                        ;; Otherwise return the latest order execution date relative to input-date
+                                        (reduce (fn [best d]
+                                                  (if (and (or (.isBefore d (date-parser input-date)) (.isEqual d (date-parser input-date)))
+                                                           (or (nil? best) (.isAfter d best)))
+                                                    d
+                                                    best))
+                                                nil all-trade-execution-dates))))
+
+        ;; Get the values of each holding on each trade date based on the existing portfolio on that date
+        ;; Returns the following format: {"2025-01-10" {"NVDA" ($100 * 25 units) "MSFT" ($100 * 25 units) ...}, 
+        ;;                                "2025-01-13" {"NVDA" ($101 * 25 units) "MSFT" ($99 * 25 units) ...}, ...}
+        holding-values-by-date (into {}
+                                     (map (fn [d]
+                                            [d (into {} ;; Date is set as key
+                                                     (map (fn [[ticker prices]]
+                                                            [ticker ;; Ticker is inner map's key
+                                                             (if (= d start-date)
+                                                               ;; Multiply price of stock at trade date by the amount in existing portfolio to get holding value
+                                                               ;; Use opening price only if trade date is the execution date, otherwise always use closing price
+                                                               (* (first (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0)) ;; Notice that if ticker is not in existing portfolio, amount is 0
+                                                               (* (last (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0))) ;; Notice that if ticker is not in existing portfolio, amount is 0
+                                                             ])
+                                                          prices-until-end-date-enhanced) ;; For each ticker, get date-prices key-value pair
+                                                     )])
+                                          all-trade-dates)) ; For each trade date 
+
+        ;; Get total portfolio value by date (using the existing portfolio on that date), sorted by date
+        portfolio-value-by-date (util/sort-map-by-date
+                                 (into {}
+                                       (map (fn [[d holdings]]
+                                              [d (reduce + (vals holdings))])
+                                            holding-values-by-date)))
+
+        ;; Get portfolio weights by date
+        ;; Returns the following format: {"2025-01-10" {"NVDA" 20% "MSFT" 100% "TSLA" -20% ...}, 
+        ;;                                "2025-01-13" {"NVDA" 10% "MSFT" 100% "TSLA" -10% ...}, ...}
+        portfolio-weights-by-date (into {}
+                                        (map (fn [[d portfolio-value]]
+                                               [d (into {}
+                                                        (map (fn [ticker]
+                                                               [ticker (/ (get (get holding-values-by-date d) ticker) portfolio-value)]) ;; Divides the stock holdings on date "d", by the total portfolio value on date "d"
+                                                             (keys (get portfolio-composition-by-date latest-execution-date))))]) ;; Newest Portfolio should contain all past and current tickers
+                                             portfolio-value-by-date))
+
+        ;; This variable holds all of the time-series log returns of the portfolio
+        ;; On the trade date when a new order execution happens, we need to replace return with 0 because the portfolio changes. There is no return on these dates since there is a change in the portfolio composition.
+        portfolio-log-returns-by-date (reduce 
+                                     (fn [m d]
+                                       (assoc m d 0))
+                                     (:log-returns (calculate-returns-with-corresponding-date (vals portfolio-value-by-date) (keys portfolio-value-by-date))) ;; When using this function, arguments have to be ordered by time
+                                     (keys portfolio-composition-by-date)) 
+        ]
+
+    {:stock-weights portfolio-weights-by-date
+     :portfolio-log-returns portfolio-log-returns-by-date
+     :all-ticker-prices prices-until-end-date-enhanced}
+    ))
+
+;; (calculate-portfolio-return-and-weights-for-given-date {"NVDA" 70
+;;                              "GOOG" 50
+;;                              "TSLA" -30} "2025-01-10" "2025-12-14")
+;; (set-of-portfolio-log-returns-and-weights 
+;;  {"2024-10-16" {"NVDA" 100.0}, "2024-11-26" {"NVDA" 100.0, "GOOG" 50.0}, "2024-12-23" {"NVDA" 100.0, "GOOG" 50.0, "TSLA" -30.0}, "2025-01-10" {"NVDA" 70.0, "GOOG" 50.0, "TSLA" -30.0}}
+;;  "2024-10-16"
+;;  (.toString (java.time.LocalDate/now)))
 
 
 ;; Calculates cumulative return UP TILL a given date
