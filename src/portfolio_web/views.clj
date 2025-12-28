@@ -7,7 +7,7 @@
 
 ;; Test Page
 (defn test-page [data]
-  (str (data :one-week-ago-return)))
+  (str (data :test-data)))
 
 ;; Set Dollar Value Display Settings
 (def currency-formatter
@@ -20,18 +20,51 @@
   [:body 
    [:header
     [:h1 "CIM Portfolio Analysis Tool"]]
-   [:div.container
-    ;; [:h2 "Upload Your Trades"] 
-    ;; [:input {:type "file" :accept ".csv, .txt"}]
-    [:h2 "Enter Your Trades"]
-    [:form {:method "post" :action "/analyze-portfolio"}
-     [:textarea {:name "trades" :rows "5" :placeholder "YYYY-MM-DD,action,amount,ticker"}]
-     [:label.label-h3 {:for "starting-cash"} "Starting Cash"]
-     [:input {:type "number"
-              :name "starting-cash"
-              :value "50000000"}]
-     [:button {:type "submit"} "Analyze Portfolio"]]
-    ]]
+    [:div.container
+      [:h2 "Provide Your Trades"]
+
+      ;; Radio buttons to choose input mode
+      [:div.input-choice
+      [:label
+        [:input.input-radio-button {:type "radio" :name "input-mode" :value "manual" :checked true}]
+        "Enter manually"]
+      [:label
+        [:input.input-radio-button {:type "radio" :name "input-mode" :value "file"}]
+        "Upload CSV"]]
+
+      ;; Form with both inputs available (multipart for file uploads)
+      [:form {:method "post" :action "/analyze-portfolio" :enctype "multipart/form-data"}
+      ;; Manual entry textarea
+      [:div.manual-input
+        [:textarea {:name "trades" :rows "5"
+                    :placeholder "YYYY-MM-DD,action,amount,ticker"}]]
+
+      ;; File upload input (Accepts .csv or .txt)
+      [:div.file-input
+        [:input {:type "file" :name "trades-file" :accept ".csv,.txt"}]]
+
+      ;; Starting cash
+      [:label.label-h3 {:for "starting-cash"} "Starting Cash"]
+      [:input {:type "number" :name "starting-cash" :value "50000000"}]
+
+      [:button {:type "submit"} "Analyze Portfolio"]]
+      
+      [:script {:src "/js/home_page.js"}]
+     ]]
+        
+
+  ;;  [:div.container
+  ;;   ;; [:h2 "Upload Your Trades"] 
+  ;;   ;; [:input {:type "file" :accept ".csv, .txt"}]
+  ;;   [:h2 "Enter Your Trades"]
+  ;;   [:form {:method "post" :action "/analyze-portfolio"}
+  ;;    [:textarea {:name "trades" :rows "5" :placeholder "YYYY-MM-DD,action,amount,ticker"}]
+  ;;    [:label.label-h3 {:for "starting-cash"} "Starting Cash"]
+  ;;    [:input {:type "number"
+  ;;             :name "starting-cash"
+  ;;             :value "50000000"}]
+  ;;    [:button {:type "submit"} "Analyze Portfolio"]]
+  ;;   ]]
   )
 
 ;; The default page
@@ -79,7 +112,8 @@
              [:div.metric
               [:span "Annualized Volatility of Portfolio:"] [:span#annualVolatility (format "%.2f%%" (data :annualized-portfolio-volatility))]]
              [:div.metric
-              [:span "Cumulative Portfolio Return:"] [:span#cumulativeReturn (format "%.2f%%" (data :cumulative-portfolio-return))]]]]
+              [:span "1-Year Cumulative Portfolio Return:"] [:span#cumulativeReturn (format "%.2f%%" 
+                                                                                     (* 100 (:one-year-cumulative-return-from-today (data :past-five-weeks-1y-cumulative-return))))]]]]
 
            ;; Cash Invested by Stock
            [:div.card
@@ -91,12 +125,23 @@
                          (format " (%.2f%%)" (* 100 (get (:weights (data :current-stock-holdings)) ticker))))])]]
            
            [:div.card
-            [:h2 "Cumulative Portfolio Return (Since Last Trade Date)"]
-            [:ul#returnByDay
-             (for [[date value] (data :portfolio-returns-by-date)]
-               [:li (str date ": " (format "%.2f%%" (* 100 (value :portfolio-cumulative-return))) 
-                         " | Beginning Value: " (.format currency-formatter (value :initial-portfolio-value))
-                         " | Ending Value: " (.format currency-formatter (value :current-portfolio-value)))])]]
+            [:h2 "1-Year Cumulative Portfolio Return"]
+            [:ul#returnByWeek
+            ;;  (for [[date value] (data :portfolio-returns-by-date)]
+            ;;    [:li (str date ": " (format "%.2f%%" (* 100 (value :portfolio-cumulative-return))) 
+            ;;              " | Beginning Value: " (.format currency-formatter (value :initial-portfolio-value))
+            ;;              " | Ending Value: " (.format currency-formatter (value :current-portfolio-value)))]) 
+             [:li (str (:one-week-ago (data :past-five-weeks-1y-cumulative-return)) ": " 
+                       (format "%.2f%%" (* 100 (:one-year-cumulative-return-from-one-week-ago (data :past-five-weeks-1y-cumulative-return)))))]
+             [:li (str (:two-weeks-ago (data :past-five-weeks-1y-cumulative-return)) ": " 
+                       (format "%.2f%%" (* 100 (:one-year-cumulative-return-from-two-weeks-ago (data :past-five-weeks-1y-cumulative-return)))))]
+             [:li (str (:three-weeks-ago (data :past-five-weeks-1y-cumulative-return)) ": " 
+                       (format "%.2f%%" (* 100 (:one-year-cumulative-return-from-three-weeks-ago (data :past-five-weeks-1y-cumulative-return)))))]
+             [:li (str (:four-weeks-ago (data :past-five-weeks-1y-cumulative-return)) ": " 
+                       (format "%.2f%%" (* 100 (:one-year-cumulative-return-from-four-weeks-ago (data :past-five-weeks-1y-cumulative-return)))))]
+             [:li (str (:five-weeks-ago (data :past-five-weeks-1y-cumulative-return)) ": " 
+                       (format "%.2f%%" (* 100 (:one-year-cumulative-return-from-five-weeks-ago (data :past-five-weeks-1y-cumulative-return)))))]
+             ]]
            
            ;; Old Alpha & Beta Design
            ;;  [:div.card
@@ -149,7 +194,21 @@
                 [:summary [:strong ticker]]
                 [:div.graphRow
                  [:div.graph
-                  [:h4.log-returns-header "Log Returns Over Time"]]
+                  [:h4.stock-performance-header "Stock Performance (Log(1+x) scale)"]
+                  [:div {:id (str ticker "-performance") :class "performanceChart"
+                         :data-plot (json/write-str (get (data :stock-performances-graphs) ticker))}]]
+                 ;; Wait for Tanvi's research for this part
+                ;;  [:div.stockMetrics
+                ;;   [:h4.stock-performance-header "Key Metrics"]
+                ;;   [:ul#stockMetricList
+                ;;    ;; Will have to replace the following with real data, if we can get them consistently somewhere (ask Dr. B)
+                ;;    [:li#EPS (str "EPS: 1.0")]
+                ;;    [:li#PERatio (str "P/E: 1.0")]
+                ;;    [:li#Sharpe (str "Sharpe: 1.0")]
+                ;;    ;;  [:tr [:td "EPS"]    [:td (get (data :eps) ticker)]]
+                ;;    ;;  [:tr [:td "P/E"]    [:td (get (data :pe) ticker)]]
+                ;;    ;;  [:tr [:td "Sharpe"] [:td (get (data :sharpe) ticker)]] 
+                ;;    ]]
                  ]])]]
            ]
           [:script
