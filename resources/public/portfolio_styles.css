@@ -78,6 +78,6 @@ canvas {
     grid-column: 1 / -1;
 }
 
-.rolling-alpha-header, .rolling-beta-header {
+.rolling-alpha-header, .rolling-beta-header, .stock-performance-header {
     margin-left: 1rem
 }

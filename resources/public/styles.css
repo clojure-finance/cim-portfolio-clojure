@@ -59,3 +59,60 @@ textarea {
   margin-top: 1em;       /* spacing above */
   margin-bottom: 0.5em;  /* spacing below */
 }
+
+.input-choice {
+  display: flex;
+  justify-content: space-around;
+  margin: 1rem 0;
+}
+
+.input-choice label {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.input-choice input[type="radio"] {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  width: auto;
+  flex-shrink: 0;
+}
+
+/* Manual and file input containers */
+.manual-input,
+.file-input {
+  margin: 1rem 0;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Metrics container using flexbox for 3 columns */
+.metrics-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.metric {
+  flex: 1 0 30%;        /* roughly 3 per row */
+  background: #ecf0f1;  /* light gray background */
+  padding: 0.75rem;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.metric-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.1em;
+  color: #2c3e50;
+}
