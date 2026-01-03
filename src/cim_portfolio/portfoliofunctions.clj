@@ -201,6 +201,17 @@
                                                                        prices))])
                                                   prices-until-end-date))
 
+        ;; Sort all the price data
+        sorted-prices-until-end-date-enhanced (loop
+                                      [tickers (keys prices-until-end-date-enhanced)
+                                       sorted-prices {}]
+                                       (if (empty? tickers)
+                                         sorted-prices
+                                         (recur
+                                          (rest tickers)
+                                          (assoc sorted-prices (first tickers)
+                                                 (util/sort-map-by-date (get prices-until-end-date-enhanced (first tickers)))))))
+
         ;; Get all trade dates between start-date and end-date
         ;; Returns a collection of date Strings (i.e. "yyyy-MM-dd")
         all-trade-dates (map #(first %) ;; Get all trade dates from the data
@@ -223,9 +234,9 @@
                                                          best))
                                                      nil all-trade-execution-dates)) ;; if reduce returns "nil", then no order exists before each start date 
                                         ;; If there are no execution dates earlier than input-date, then return earliest execution date
-                                        (reduce #(if (neg? (.compareTo %1 %2)) %1 %2)
+                                        (reduce #(if (neg? (.compareTo %1 %2)) %1 %2) ;; Get minimum date in portfolio-composition-by-date
                                                 (map date-parser (keys portfolio-composition-by-date)))
-                                        ;; Otherwise return the latest order execution date relative to input-date
+                                        ;; Otherwise return the latest order execution date relative to input-date (same expression as condition)
                                         (reduce (fn [best d]
                                                   (if (and (or (.isBefore d (date-parser input-date)) (.isEqual d (date-parser input-date)))
                                                            (or (nil? best) (.isAfter d best)))
@@ -247,7 +258,7 @@
                                                                (* (first (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0)) ;; Notice that if ticker is not in existing portfolio, amount is 0
                                                                (* (last (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0))) ;; Notice that if ticker is not in existing portfolio, amount is 0
                                                              ])
-                                                          prices-until-end-date-enhanced) ;; For each ticker, get date-prices key-value pair
+                                                          sorted-prices-until-end-date-enhanced) ;; For each ticker, get date-prices key-value pair
                                                      )])
                                           all-trade-dates)) ; For each trade date 
 
@@ -271,17 +282,16 @@
 
         ;; This variable holds all of the time-series log returns of the portfolio
         ;; On the trade date when a new order execution happens, we need to replace return with 0 because the portfolio changes. There is no return on these dates since there is a change in the portfolio composition.
-        portfolio-log-returns-by-date (reduce 
-                                     (fn [m d]
-                                       (assoc m d 0))
-                                     (:log-returns (calculate-returns-with-corresponding-date (vals portfolio-value-by-date) (keys portfolio-value-by-date))) ;; When using this function, arguments have to be ordered by time
-                                     (keys portfolio-composition-by-date)) 
-        ]
+        portfolio-log-returns-by-date (reduce
+                                       (fn [m d]
+                                         (assoc m d 0)) ;; This essentially makes it so that execution dates are given 0 log return.
+                                       (:log-returns (calculate-returns-with-corresponding-date (vals portfolio-value-by-date) (keys portfolio-value-by-date))) ;; When using this function, arguments have to be ordered by time
+                                       (keys portfolio-composition-by-date))]
 
     {:stock-weights portfolio-weights-by-date
      :portfolio-log-returns portfolio-log-returns-by-date
-     :all-ticker-prices prices-until-end-date-enhanced}
-    ))
+     :all-ticker-prices sorted-prices-until-end-date-enhanced
+     :portfolio-value portfolio-value-by-date}))
 
 ;; (calculate-portfolio-return-and-weights-for-given-date {"NVDA" 70
 ;;                              "GOOG" 50
@@ -329,7 +339,7 @@
   )
 )
 
-; Calculates the annualized volatility for a given sliding window-size
+; Calculates the annualized volatility for a given sliding window-size (using the historical standard deviation method)
 (defn rolling-annualized-volatility [prices window-size]
   (let [returns (:arithmetic-returns (calculate-returns prices))
         scaling-factor (Math/sqrt 252)
@@ -341,6 +351,72 @@
     )
   )
 )
+
+;; Calculates the Rolling EWMA volatility (standard deviation) for a given sliding window-size
+;; Prices here are the Portfolio values by date (I assume is already sorted), and follow the following structure:
+;; (10000, 10001.21, 10011.8, ...)
+;; In the future, user may input the alpha parameter.
+
+(defn ewma-rolling-volatility [prices window-size]
+  (let [returns (:arithmetic-returns (calculate-returns prices))
+        returns-squared (map #(* % %) returns)
+        alpha 0.94 ;; Riskmetrics, a financial risk management company, uses this as their alpha
+
+        ;; Calculate the weights that will be applied to each squared return in a window
+        ;; The size of vector "weights" will be the same as the size of the window 
+        applied-weights (loop
+                         [i (- window-size 1)
+                          weights [(- 1 alpha)]]
+
+                          (if (= i 0)
+
+                            weights
+
+                            (recur
+                             (- i 1) ;; Decrement i
+                             (conj weights ;; Add to "weights" vector
+                                   (* (peek weights) (- 1 alpha)))) ;; Multiply previous weight by (1 - alpha)
+                            ))
+
+        ;; Reverses the applied weights
+        reversed-applied-weights (rseq applied-weights)
+
+        ;; Apply Sliding Window
+        rolling-returns-squared (partition window-size 1 returns-squared)
+
+        ;; Rolling EWMA Variance
+        ;; Structure: [0.12, 3, 2.11, ...]
+
+        ;; Calculate the rolling ewma variance with the below steps:
+        ;; 1. Multiply each element in each window with the applied weights in reverse order
+        ;; 2. Sum all the calculated figures in each window
+
+        rolling-ewma-variance
+
+        (loop
+         [sliding-window rolling-returns-squared
+          ewma-rolling-portfolio-volatility []]
+
+          (if (empty? sliding-window)
+
+            ewma-rolling-portfolio-volatility
+
+            (recur
+             (rest sliding-window) ;; Remove first window
+             (conj ewma-rolling-portfolio-volatility
+                   (reduce + ;; Sum all products in each window
+                                 (map * (first sliding-window) reversed-applied-weights)) ;; Multiply each element in first window, with the corresponding weight
+                   )
+             ))) 
+        
+        ;; Rolling EWMA Standard Deviation (just square root the previous variable)
+        rolling-ewma-sd (map #(Math/sqrt %) rolling-ewma-variance)
+        
+        ]
+        
+        (vec rolling-ewma-sd)
+        
+        ))
 
 (def test-prices [100 105 110 103 108 115])
 

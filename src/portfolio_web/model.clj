@@ -81,8 +81,8 @@
 
               ;; Complete data related to portfolio-composition-by-date from oldest date to today
               set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights portfolio-composition-by-date
-                                                                                                    (.toString one-year-from-five-weeks-ago)
-                                                                                                    (.toString today))
+                                                                                                 (.toString one-year-from-five-weeks-ago)
+                                                                                                 (.toString today))
               ;; Complete Log Returns Time-Series from oldest date to today
               portfolio-log-returns (:portfolio-log-returns set-of-portfolio-complete-data)
 
@@ -133,7 +133,9 @@
 
            ;; For use in other variables
            :complete-ticker-prices (:all-ticker-prices set-of-portfolio-complete-data)
-           })
+
+           ;; Testing purposes only
+           :portfolio-value-by-date (:portfolio-value set-of-portfolio-complete-data)})
 
         ;; Contains usage of deprecated function, will replace with set-of-portfolio-log-returns-and-weights soon
         current-stock-holdings {:values (:current-stock-holdings (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))
@@ -142,6 +144,7 @@
         volatility (portfolio/volatility (map second sorted-portfolio-value))
         portfolio-value-by-day sorted-portfolio-value
         rolling-annualized-volatility (portfolio/rolling-annualized-volatility (map second portfolio-value-by-day) 21)
+        rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 21)
 
         ;; Graphs
 
@@ -186,41 +189,57 @@
           "")
 
         ;; Stock Performance (Log Returns based on Closing Price)
-        set-of-stock-performances
-        (let [
-              ;; The following is a map where keys are the complete tickers from the very creation of the first portfolio
+        one-dollar-invested-at-time-zero
+        (let [;; The following is a map where keys are the complete tickers from the creation of the first portfolio to current portfolio
               ;; The values are also maps where the keys are the trade dates from one-year-from-five-weeks-ago to today, and values are vectors containing the opening price and closing price
+              ;; Data is already sorted by time.
               ;; The following is the form of the data: {"NVDA" {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...}, 
               ;;                                         "MSFT" {"2025-01-31" [$172 $180], "2025-02-01" [$177 $175], ...}, ...}
-              prices-until-end-date (:complete-ticker-prices one-year-cumulative-returns-past-five-weeks) 
-              
-              ;; The following will return each stock and their log returns over time in the following format.
-              ;; {"NVDA" {"2025-01-31" 0.012, "2025-02-01" 0.006, ...}, 
-              ;;  "MSFT" {"2025-01-31" 0.06, "2025-02-01" -0.0255, ...}, ...}
-              all-stock-log-returns (loop 
-                                     [tickers (keys prices-until-end-date)
-                                      stock-log-returns {}]
-                                      (if (empty? tickers)
+              prices-until-end-date (:complete-ticker-prices one-year-cumulative-returns-past-five-weeks)
 
-                                        stock-log-returns
+              ;; The following will return each stock and their logged dollar performance over time in the following format.
+              ;; {"NVDA" {"2025-01-31" 0, "2025-02-01" 0.006, ...}, 
+              ;;  "MSFT" {"2025-01-31" 0, "2025-02-01" -0.0255, ...}, ...}
 
-                                        (recur
-                                         (rest tickers) ;; Remove first ticker in collection
+              log-dollar-performance (loop
+                                      [tickers (keys prices-until-end-date)
+                                       one-dollar-performance {} ;; Dollar Performance but not logged 
+                                       log-one-dollar-performance {}]
+                                       (if (empty? tickers)
 
-                                         ;; Add new ticker with its log returns to variable stock-log-returns
-                                         ;; It will have the tickers as the key, and values which are maps with keys being the trade dates, and values being the log return
-                                         ;; e.g. {"NVDA" {"2025-01-31" 0.012, "2025-02-01" 0.006, ...}, 
-              ;;                                  "MSFT" {"2025-01-31" 0.06, "2025-02-01" -0.0255, ...}, ...}
-                                         (assoc stock-log-returns (first tickers)
-                                                (:log-returns ;; This returns the ordered map of the form: {"2025-01-31" 0.012, "2025-02-01" -0.006, ...}
-                                                 (portfolio/calculate-returns-with-corresponding-date ;; Done to calculate log returns
-                                                  (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion)
-                                                       (vals
-                                                        (get prices-until-end-date (first tickers)))) ;; Get the price data for the first ticker in collection
-                                                  (keys
-                                                   (get prices-until-end-date (first tickers))) ;; Get the dates for the price data
-                                                  ))))))
-              
+                                         log-one-dollar-performance
+
+                                         (recur
+                                          (rest tickers) ;; Remove first ticker in collection
+
+                                          ;; Add new ticker with its dollar performance to variable one-dollar-performance
+                                          ;; It will have the tickers as the key, and values which are maps with keys being the trade dates, and values being the dollar performance
+                                          ;; e.g. {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.16, ...}, 
+                                          ;;       "MSFT" {"2025-01-31" 1, "2025-02-01" 0.98, ...}, ...}
+
+                                          (assoc one-dollar-performance (first tickers)
+                                                 (util/sort-map-by-date
+                                                  (zipmap
+                                                   (keys
+                                                    (get prices-until-end-date (first tickers))) ;; Get the dates for the price data 
+                                                   (map #(/ % (second (first (vals (get prices-until-end-date (first tickers)))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance 
+                                                        (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
+                                                             (vals
+                                                              (get prices-until-end-date (first tickers)))) ;; Get the price data for the first ticker in collection)
+                                                        ))))
+
+                                          ;; Now, just do the same things as the above, but take the natural logarithm 
+                                          (assoc log-one-dollar-performance (first tickers)
+                                                 (util/sort-map-by-date
+                                                  (zipmap
+                                                   (keys
+                                                    (util/sort-map-by-date (get prices-until-end-date (first tickers)))) ;; Get the dates for the price data 
+                                                   (map #(Math/log (/ % (second (first (vals (get prices-until-end-date (first tickers))))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance, and take the natural logarithm 
+                                                        (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
+                                                             (vals
+                                                              (util/sort-map-by-date (get prices-until-end-date (first tickers))))) ;; Get the price data for the first ticker in collection) 
+                                                        )))))))
+
               ;; This will hold a map of all tickers currently and previously existing in the portfolio, and the graphs of its log returns
               ;; The data format will be the following:
               ;; {"NVDA" {:x ["2025-01-01" "2025-01-02" ...]
@@ -231,26 +250,22 @@
               ;;  "MSFT" {...},}
 
               plotly-data (loop
-                           [tickers (keys all-stock-log-returns)
+                           [tickers (keys log-dollar-performance)
                             plotly-data {}]
-                            
+
                             (if (empty? tickers)
-                              
+
                               plotly-data
-                              
-                              (recur ;; Remove first ticker in collection
-                               (rest tickers)
+
+                              (recur
+                               (rest tickers) ;; Remove first ticker in collection
                                (assoc plotly-data (first tickers)
-                                      {:x (keys (get all-stock-log-returns (first tickers))) ;; Already ordered
-                                       :y (vals (get all-stock-log-returns (first tickers))) ;; Already ordered
+                                      {:x (keys (get log-dollar-performance (first tickers))) ;; Already ordered
+                                       :y (vals (get log-dollar-performance (first tickers))) ;; Already ordered
                                        :type "scatter"
                                        :mode "lines"
-                                       :name (str (first tickers) " Performance")} 
-                                      ))))
-              
-              ]
-          plotly-data
-          )
+                                       :name (str (first tickers) " Performance")}))))]
+          plotly-data)
 
         ;; Portfolio Value by Day
         portfolio-value-figs
@@ -261,14 +276,27 @@
          :mode "lines"
          :name "Portfolio Value by Day"}
 
+        ;; 30-Day Rolling Annualized Volatility of Portfolio (Historical Standard Deviation)
         rolling-annualized-volatility-figs
-
-        ;; 30-Day Rolling Annualized Volatility of Portfolio
+        
         {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
          :y rolling-annualized-volatility
          :type "scatter"
          :mode "lines"
-         :name "30-Day Rolling Annualized Volatility of Portfolio"}]
+         :name "30-Day Rolling Annualized Volatility of Portfolio"}
+        
+        ;; 30-Day EWMA Rolling Volatility of Portfolio
+        rolling-ewma-volatility-figs
+
+        {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
+         :y rolling-ewma-volatility
+         :type "scatter"
+         :mode "lines"
+         :name "30-Day EWMA Rolling Volatility of Portfolio"}
+
+        ]
+
+
 
 
 
@@ -297,10 +325,10 @@
      ;; Plotly Graphs
 
      :alpha-beta-figs alpha-beta-figs
-     :stock-performances-graphs set-of-stock-performances
+     :stock-performances-graphs one-dollar-invested-at-time-zero
      :portfolio-value-figs portfolio-value-figs
      :rolling-annualized-volatility-figs rolling-annualized-volatility-figs
+     :rolling-ewma-volatility-figs rolling-ewma-volatility-figs
 
      ;; Test Data (will delete later)
-     :test-data set-of-stock-performances
-     }))
+     :test-data rolling-ewma-volatility}))
