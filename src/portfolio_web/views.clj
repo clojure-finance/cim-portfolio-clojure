@@ -161,10 +161,10 @@
             ]
 
            [:div.card
-            [:h2 "30-Day Rolling Annualized Volatility of Portfolio"]
+            [:h2 "30-Day EWMA Rolling Volatility of Portfolio"]
             [:div.graph
-             [:div {:id "rolling-annualized-volatility" :class "miscChart"
-                    :data-plot (json/write-str (data :rolling-annualized-volatility-figs))}]]]
+             [:div {:id "rolling-ewma-volatility" :class "miscChart"
+                    :data-plot (json/write-str (data :rolling-ewma-volatility-figs))}]]]
 
            ;; Alpha & Beta Graphs
            [:div.card.full-width
@@ -194,7 +194,7 @@
                 [:summary [:strong ticker]]
                 [:div.graphRow
                  [:div.graph
-                  [:h4.stock-performance-header "Stock Performance (Log(1+x) scale)"]
+                  [:h4.stock-performance-header "One Dollar Invested at Time Zero (Log(x) scale)"]
                   [:div {:id (str ticker "-performance") :class "performanceChart"
                          :data-plot (json/write-str (get (data :stock-performances-graphs) ticker))}]]
                  ;; Wait for Tanvi's research for this part
