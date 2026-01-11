@@ -1,0 +1,1 @@
+web: java -jar cim_portfolio-0.1.1-standalone.jar $PORT
