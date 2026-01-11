@@ -1,5 +1,6 @@
 (ns cim_portfolio.regression
-    (:require [cim_portfolio.plot :as plot]
+    (:require 
+    ;;  [cim_portfolio.plot :as plot]
               [cim_portfolio.portfoliofunctions :as portfolio]
               [fastmath.ml.regression :as reg] 
               [libpython-clj2.python :refer [py. py.. py.-] :as py]
@@ -81,13 +82,13 @@ market_data = snp_data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
 (def plotted-dates (subvec (vec stock-dates) 252))
 (def plotted-alphas (vec (model :alpha)))
 
-(plot/list-plot (map vector plotted-dates plotted-alphas) :x-title "Time" :y-title "α (NVDA)")
+;; (plot/list-plot (map vector plotted-dates plotted-alphas) :x-title "Time" :y-title "α (NVDA)")
 
 ;; Plotting Betas
 
 (def plotted-betas (vec (map first (model :beta))))
 
-(plot/list-plot (map vector plotted-dates plotted-betas) :x-title "Time" :y-title "β (NVDA)")
+;; (plot/list-plot (map vector plotted-dates plotted-betas) :x-title "Time" :y-title "β (NVDA)")
 
 ;; Creating a function to return alphas and betas
 
@@ -113,10 +114,10 @@ market_data = snp_data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
 
 ;; Alpha
 
-(plot/list-plot (map vector (:plotted-dates regression-dataset) (:plotted-alpha regression-dataset)) 
-                :x-title "Time" :y-title "α (NVDA)")
+;; (plot/list-plot (map vector (:plotted-dates regression-dataset) (:plotted-alpha regression-dataset)) 
+                ;; :x-title "Time" :y-title "α (NVDA)")
 
 ;; Beta
 
-(plot/list-plot (map vector (:plotted-dates regression-dataset) (:plotted-beta regression-dataset))
-                :x-title "Time" :y-title "β (NVDA)")
+;; (plot/list-plot (map vector (:plotted-dates regression-dataset) (:plotted-beta regression-dataset))
+;;                 :x-title "Time" :y-title "β (NVDA)")

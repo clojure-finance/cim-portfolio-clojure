@@ -1,7 +1,6 @@
 (ns cim_portfolio.portfoliofunctions
   (:require [cim_portfolio.util :as util]
             [cim_portfolio.yfinanceclient :as client]
-            [cim_portfolio.plot :as plot]
             [clojure.math :as math]
             [clojure.pprint :refer [pprint]]
             [clojure.string :as string]))

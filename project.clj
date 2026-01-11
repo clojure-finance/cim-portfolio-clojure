@@ -10,7 +10,6 @@
                  [clj-http "3.13.1"]
                  [cheshire "5.12.0"] 
                  [clj-python/libpython-clj "2.025"]
-                 [io.github.nextjournal/clerk "0.18.1150"]
                  [nrepl "1.0.0"]
                  [org.slf4j/slf4j-api "2.0.9"]         ; Add this line for SLF4J API
                  [org.slf4j/slf4j-simple "2.0.9"]
@@ -23,7 +22,8 @@
                  ]     ; Add this line for SLF4J Simple Logger
   :ring {:handler portfolio-web.controllers/app}
   :plugins [[lein-ring "0.12.6"]]
-  :main ^:skip-aot cim-portfolio.core
+  :main cim-portfolio.core
+  :aot [cim-portfolio.core]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
