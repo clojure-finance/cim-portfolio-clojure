@@ -161,10 +161,13 @@
             ]
 
            [:div.card
-            [:h2 "30-Day EWMA Rolling Volatility of Portfolio"]
+            [:h2 "30-Day Annualized EWMA Rolling Volatility of Portfolio (λ = 0.94)"]
             [:div.graph
              [:div {:id "rolling-ewma-volatility" :class "miscChart"
-                    :data-plot (json/write-str (data :rolling-ewma-volatility-figs))}]]]
+                    :data-plot (json/write-str (data :default-rolling-ewma-volatility-figs))
+                    :data-alt-plot (json/write-str (data :alternative-rolling-ewma-volatility-figs))}]]
+            [:button {:id "lambdaSwitch"} "Switch to λ = 0.97"]] ;; This button is a temporary feature (before user input) to change lambda to 0.97 (via Javascript)
+
 
            ;; Alpha & Beta Graphs
            [:div.card.full-width

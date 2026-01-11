@@ -352,16 +352,15 @@
   )
 )
 
-;; Calculates the Rolling EWMA volatility (standard deviation) for a given sliding window-size
+;; Calculates the "Annualized" Rolling EWMA volatility (standard deviation) for a given sliding window-size
 ;; Prices here are the Portfolio values by date (I assume is already sorted), and follow the following structure:
 ;; (10000, 10001.21, 10011.8, ...)
-;; In the future, user may input the alpha parameter.
+;; In the future, user may input the alpha parameter in the dashboard. Might also have to make sure that when portfolio is changed, the return is 0.
 
-(defn ewma-rolling-volatility [prices window-size]
+(defn ewma-rolling-volatility [prices window-size alpha]
   (let [returns (:arithmetic-returns (calculate-returns prices))
         returns-squared (map #(* % %) returns)
-        alpha 0.94 ;; Riskmetrics, a financial risk management company, uses this as their alpha
-
+    
         ;; Calculate the weights that will be applied to each squared return in a window
         ;; The size of vector "weights" will be the same as the size of the window 
         applied-weights (loop
@@ -411,10 +410,12 @@
         
         ;; Rolling EWMA Standard Deviation (just square root the previous variable)
         rolling-ewma-sd (map #(Math/sqrt %) rolling-ewma-variance)
-        
+
+        ;; Annualized EWMA Standard Deviation (just multiply by sqrt 252)
+        annualized-rolling-ewma-sd (map #(* (Math/sqrt 252) %) rolling-ewma-sd)
         ]
         
-        (vec rolling-ewma-sd)
+        (vec annualized-rolling-ewma-sd)
         
         ))
 
