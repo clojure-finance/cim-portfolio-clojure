@@ -81,3 +81,31 @@ canvas {
 .rolling-alpha-header, .rolling-beta-header, .stock-performance-header {
     margin-left: 1rem
 }
+
+.card button {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #ffffff;       /* white background */
+  color: #333;                     /* dark text */
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #ccc;          /* subtle border */
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.card button:hover {
+  background-color: #f0f0f0;       /* light gray hover */
+  color: #000;                     /* darker text */
+  transform: translateY(-1px);     /* subtle lift */
+}
+
+.card button:active {
+  background-color: #e0e0e0;       /* darker gray when clicked */
+  color: #000;
+  transform: translateY(0);
+}
+
+

@@ -93,7 +93,7 @@
                                              start-date-enhanced (if (.isBefore (date-parser start-date) earliest-trade-execution-date) (.toString earliest-trade-execution-date) start-date)
 
                                              ;; Additional info: if end-date is greater than current date (today), then dates after current date are not considered in the calculation
-
+                                             
                                              ;; Get all log returns where date is greater or equal to enhanced-start-date and less than end-date
                                              log-returns-filtered-by-date (into {}
                                                                                 (filter
@@ -133,6 +133,7 @@
 
            ;; For use in other variables
            :complete-ticker-prices (:all-ticker-prices set-of-portfolio-complete-data)
+           :one-year-from-five-weeks-ago (.toString one-year-from-five-weeks-ago)
 
            ;; Testing purposes only
            :portfolio-value-by-date (:portfolio-value set-of-portfolio-complete-data)})
@@ -144,7 +145,10 @@
         volatility (portfolio/volatility (map second sorted-portfolio-value))
         portfolio-value-by-day sorted-portfolio-value
         rolling-annualized-volatility (portfolio/rolling-annualized-volatility (map second portfolio-value-by-day) 21)
-        rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 21)
+
+        ;; Calculates the annualized rolling ewma volatility
+        default-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 21 0.06) ;; Lambda = 1 - alpha = 0.94
+        alternative-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 21 0.03) ;; Lambda = 1 - alpha = 0.97
 
         ;; Graphs
 
@@ -169,6 +173,21 @@
 
                 ;; Getting the data for Plotly
                 (let [ticker (first tickers)
+
+                      ;; The following commented code is used to replace "stock-data" and "market-data" and is optional, 
+                      ;; as it shows the data from only "One year from five weeks ago", but uses recycled data so less calls to yfinance
+
+                      ;; Recycle Data from previous computation and change the structure from
+                      ;; {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...} to
+                      ;; [["2025-01-31" $250 $251], ["2025-02-01" $251.25 $249.27], ...]
+                      ;; stock-data (mapv 
+                      ;;             (fn [[k v]]
+                      ;;               (into [k] v)) ;; Flatten the data to the new structure
+                      ;;             (get (:complete-ticker-prices one-year-cumulative-returns-past-five-weeks) ticker)) ;; Recycle Data
+
+                      ;; market-data (client/get-ticker-price-with-end "^GSPC" (:one-year-from-five-weeks-ago one-year-cumulative-returns-past-five-weeks)
+                      ;;                                               (.toString (java.time.LocalDate/now))) ;; Switch the Market Index here
+                      
                       stock-data (client/get-ticker-price-with-end ticker "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Note that the date is start date
                       market-data (client/get-ticker-price-with-end "^GSPC" "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Switch the Market Index here
                       model-data (reg/get-alpha-beta stock-data market-data)
@@ -278,23 +297,30 @@
 
         ;; 30-Day Rolling Annualized Volatility of Portfolio (Historical Standard Deviation)
         rolling-annualized-volatility-figs
-        
+
         {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
          :y rolling-annualized-volatility
          :type "scatter"
          :mode "lines"
          :name "30-Day Rolling Annualized Volatility of Portfolio"}
-        
-        ;; 30-Day EWMA Rolling Volatility of Portfolio
-        rolling-ewma-volatility-figs
+
+        ;; 30-Day EWMA Rolling Volatility of Portfolio (Default is lambda = 0.94)
+        default-rolling-ewma-volatility-figs
 
         {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
-         :y rolling-ewma-volatility
+         :y default-rolling-ewma-volatility
          :type "scatter"
          :mode "lines"
-         :name "30-Day EWMA Rolling Volatility of Portfolio"}
+         :name "30-Day EWMA Rolling Volatility of Portfolio (λ = 0.94)"}
 
-        ]
+        ;; 30-Day EWMA Rolling Volatility of Portfolio (Alternative is lambda = 0.97)
+        alternative-rolling-ewma-volatility-figs
+
+        {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
+         :y alternative-rolling-ewma-volatility
+         :type "scatter"
+         :mode "lines"
+         :name "30-Day EWMA Rolling Volatility of Portfolio (λ = 0.97)"}]
 
 
 
@@ -328,7 +354,8 @@
      :stock-performances-graphs one-dollar-invested-at-time-zero
      :portfolio-value-figs portfolio-value-figs
      :rolling-annualized-volatility-figs rolling-annualized-volatility-figs
-     :rolling-ewma-volatility-figs rolling-ewma-volatility-figs
+     :default-rolling-ewma-volatility-figs default-rolling-ewma-volatility-figs
+     :alternative-rolling-ewma-volatility-figs alternative-rolling-ewma-volatility-figs
 
      ;; Test Data (will delete later)
-     :test-data rolling-ewma-volatility}))
+     :test-data default-rolling-ewma-volatility}))
