@@ -1,1 +1,0 @@
-["^ ","~:members",["^ ","parquetMetadata",["~#set",[["^ ","~:flags",["^2",["~:method","~:public","~:static"]]]]],"parquetToDataset",["^2",[["^ ","^3",["^2",["^4","^5","^6"]]]]],"parquetToDatasetSeq",["^2",[["^ ","^3",["^2",["^4","^5","^6"]]]]],"datasetToParquet",["^2",[["^ ","^3",["^2",["^4","^5","^6"]]]]],"datasetSeqToParquet",["^2",[["^ ","^3",["^2",["^4","^5","^6"]]]]]]]

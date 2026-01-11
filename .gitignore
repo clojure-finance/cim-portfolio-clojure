@@ -5,5 +5,3 @@ config.edn
 **/.calva
 .lsp/
 .clj-kondo/
-target/
-lein_deps_output.txt

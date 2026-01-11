@@ -1,1 +1,0 @@
-["^ ","~:members",["^ ","getStateTransitionMatrix",["~#set",[["^ ","~:flags",["^2",["~:method","~:public"]]]]],"getControlMatrix",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getProcessNoise",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getInitialStateEstimate",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getInitialErrorCovariance",["^2",[["^ ","^3",["^2",["^4","^5"]]]]]]]

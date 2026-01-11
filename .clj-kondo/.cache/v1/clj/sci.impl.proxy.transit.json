@@ -1,1 +1,0 @@
-["^ ","~$proxy",["^ ","~:row",5,"~:col",1,"~:varargs-min-arity",5,"~:name","^0","~:ns","~$sci.impl.proxy","~:top-ns","^6","~:type","~:fn"],"~$proxy*",["^ ","^1",24,"^2",1,"~:fixed-arities",["~#set",[5]],"^4","^:","^5","^6","^7","^6","^8","^9"],"~:filename","/home/edward/.m2/repository/org/babashka/sci/0.9.44/sci-0.9.44.jar:sci/impl/proxy.clj"]

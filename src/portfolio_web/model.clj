@@ -6,13 +6,11 @@
 (ns portfolio-web.model 
   (:require [cim_portfolio.util :as util]
             [cim_portfolio.yfinanceclient :as client]
-            [cim_portfolio.plot :as plot]
             [clojure.math :as math]
             [clojure.pprint :refer [pprint]]
             [clojure.string :as string]
             [cim_portfolio.regression :as reg]
             [cim_portfolio.portfoliofunctions :as portfolio]
-            [nextjournal.clerk :as clerk]
             [clojure.data.json :as json]))
 
 ;; (def portfolio-options {:starting-cash 200000}) ;; Make this dynamic later on 

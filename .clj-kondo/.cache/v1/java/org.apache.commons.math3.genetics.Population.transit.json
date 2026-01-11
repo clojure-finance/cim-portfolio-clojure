@@ -1,1 +1,0 @@
-["^ ","~:members",["^ ","getPopulationSize",["~#set",[["^ ","~:flags",["^2",["~:method","~:public"]]]]],"getPopulationLimit",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"nextGeneration",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"addChromosome",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getFittestChromosome",["^2",[["^ ","^3",["^2",["^4","^5"]]]]]]]
