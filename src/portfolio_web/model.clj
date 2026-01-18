@@ -305,8 +305,8 @@
         ;; 30-Day EWMA Rolling Volatility of Portfolio (Default is lambda = 0.94)
         default-rolling-ewma-volatility-figs
 
-        {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
-         :y default-rolling-ewma-volatility
+        {:x (map #(first %) portfolio-value-by-day)
+         :y (concat (repeat 21 nil) default-rolling-ewma-volatility) ;; The first 30 days (21 trading days) will have no value because not enough data to compute volatility
          :type "scatter"
          :mode "lines"
          :name "30-Day EWMA Rolling Volatility of Portfolio (λ = 0.94)"}
@@ -314,16 +314,14 @@
         ;; 30-Day EWMA Rolling Volatility of Portfolio (Alternative is lambda = 0.97)
         alternative-rolling-ewma-volatility-figs
 
-        {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
-         :y alternative-rolling-ewma-volatility
+        {:x (map #(first %) portfolio-value-by-day)
+         :y (concat (repeat 21 nil) alternative-rolling-ewma-volatility) ;; The first 30 days (21 trading days) will have no value because not enough data to compute volatility
          :type "scatter"
          :mode "lines"
          :name "30-Day EWMA Rolling Volatility of Portfolio (λ = 0.97)"}]
-
-
-
-
-
+    
+    
+    
     {:current-portfolio-value current-portfolio-value
      :cash (+ starting-cash cash)
      :stocks (- current-portfolio-value (+ starting-cash cash))
