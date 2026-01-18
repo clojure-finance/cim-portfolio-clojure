@@ -153,14 +153,14 @@
            
            ;; Other Graphs  
            
-           [:div.card
+           [:div.card.full-width
             [:h2 "Portfolio Value by Day"]
             [:div.graph 
              [:div {:id "portfolio-value-by-day" :class "miscChart"
                     :data-plot (json/write-str (data :portfolio-value-figs))}]]
             ]
 
-           [:div.card
+           [:div.card.full-width
             [:h2 "30-Day Annualized EWMA Rolling Volatility of Portfolio (λ = 0.94)"]
             [:div.graph
              [:div {:id "rolling-ewma-volatility" :class "miscChart"
