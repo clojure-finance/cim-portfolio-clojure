@@ -449,7 +449,7 @@
     (if (empty? data)
       [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date stock-performance] ;; When no more rows, return final values
       (let [[date action amount ticker] (first data)
-            ticker-prices (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for a month for only one of the tickers since the trade date, will change to take prices in all trading dates until today
+            ticker-prices (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for only one of the tickers since the trade date until today
             executed-date (first (first ticker-prices))				; gets the date the buy/sell order is executed
             ]
         (cond
