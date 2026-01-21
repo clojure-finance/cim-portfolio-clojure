@@ -17,6 +17,7 @@ header {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     padding: 2rem;
+    padding-bottom: 0rem;
 }
 
 .card {
@@ -108,4 +109,38 @@ canvas {
   transform: translateY(0);
 }
 
+.return-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.return-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.return-column h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.return-column ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+.return-column li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+#one-year-cumulative-return {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
 
