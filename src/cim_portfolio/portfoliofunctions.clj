@@ -9,7 +9,10 @@
 
 ;; Computes arithmetic, log, and cumulative log return for a given list of prices
 (defn calculate-returns [prices]
-  (let [price-changes (map #(double (/ (second %) (first %))) (partition 2 1 prices))
+  (let [price-changes (map #(if (zero? (first %)) ;; Edge case if price is 0 at some point
+                              1 
+                              (double (/ (second %) (first %)))) 
+                           (partition 2 1 prices))
         arithmetic-returns (mapv #(- % 1.0) price-changes)
         log-returns (mapv #(Math/log %) price-changes)
         cumulative-log-return (reduce + log-returns)
@@ -23,7 +26,9 @@
 
 ;; Variation of the above function - additionally associates the returns with their corresponding date
 (defn calculate-returns-with-corresponding-date [prices dates]
-  (let [price-changes (map #(double (/ (second %) (first %))) ;; Next Day (or next date in data) price divided by Current Day Price
+  (let [price-changes (map #(if (zero? (first %)) ;; Edge case which can happen when at some point, portfolio is empty
+                               1
+                               (double (/ (second %) (first %)))) ;; Next Day (or next date in data) price divided by Current Day Price
                            (partition 2 1 prices));; This transforms a 1D array to a 2D array with a sliding window of size=2 and increment=1
         arithmetic-returns (mapv #(- % 1.0) price-changes) ;; Calculate arithmetic returns from day x to day x+1, day x+1 to day x+2, ...
         log-returns (mapv #(Math/log %) price-changes)
@@ -87,17 +92,26 @@
                                            [ticker (* amount (last (last (get prices-until-end-date ticker))))]) ;; Make sure to get closing price, not opening price
                                          portfolio))
 
-        ;; Current portfolio value (should be the same as the initial cash invested into the portfolio)
+        ;; Current portfolio value
         current-portfolio-value (reduce + (vals current-market-values))
         
         ;; Get the current stock weights
-        stock-weights (into {}
-                            (map (fn [[ticker value]]
-                                   [ticker (/ value current-portfolio-value)])
-                                 current-market-values))
+        stock-weights (if 
+                       (zero? current-portfolio-value) ;; Take care of edge case when there are no stocks in portfolio 
+                        (into {} 
+                              (map (fn [[ticker value]] 
+                                     [ticker (double 0)]) 
+                                   current-market-values)) 
+                        (into {} 
+                              (map (fn [[ticker value]] 
+                                     [ticker (/ value current-portfolio-value)]) 
+                                   current-market-values))) 
+        
         
         ;; Get the portfolio cumulative return
-        portfolio-cumulative-return (- (/ current-portfolio-value initial-portfolio-value) 1)]
+        portfolio-cumulative-return (if (zero? initial-portfolio-value) ;; edge case where portfolio value is 0
+                                      0 ;; undefined
+                                      (- (/ current-portfolio-value initial-portfolio-value) 1))]
         
         {:portfolio-cumulative-return portfolio-cumulative-return 
          :stock-weights stock-weights
@@ -273,13 +287,20 @@
         ;; Get portfolio weights by date
         ;; Returns the following format: {"2025-01-10" {"NVDA" 20% "MSFT" 100% "TSLA" -20% ...}, 
         ;;                                "2025-01-13" {"NVDA" 10% "MSFT" 100% "TSLA" -10% ...}, ...}
-        portfolio-weights-by-date (into {}
-                                        (map (fn [[d portfolio-value]]
-                                               [d (into {}
-                                                        (map (fn [ticker]
-                                                               [ticker (/ (get (get holding-values-by-date d) ticker) portfolio-value)]) ;; Divides the stock holdings on date "d", by the total portfolio value on date "d"
-                                                             (keys (get portfolio-composition-by-date latest-execution-date))))]) ;; Newest Portfolio should contain all past and current tickers
-                                             portfolio-value-by-date))
+        portfolio-weights-by-date (util/sort-map-by-date 
+                                   (into {} ;; This is unsorted, becareful 
+                                         (map (fn [[d portfolio-value]] 
+                                                [d (if (zero? portfolio-value) ;; Take care of edge case when portfolio value is 0 (no stocks held in portfolio)  
+                                                     (into {}
+                                                           (map (fn [ticker]
+                                                                  [ticker (double 0)])
+                                                                (keys (get portfolio-composition-by-date latest-execution-date))))
+                                                     (into {}
+                                                           (map (fn [ticker]
+                                                                  [ticker (/ (get (get holding-values-by-date d) ticker) portfolio-value)]) ;; Divides the stock holdings on date "d", by the total portfolio value on date "d"
+                                                                (keys (get portfolio-composition-by-date latest-execution-date)))))]) ;; Newest Portfolio should contain all past and current tickers
+                                              portfolio-value-by-date)))
+        
 
         ;; This variable holds all of the time-series log returns of the portfolio
         ;; On the trade date when a new order execution happens, we need to replace return with 0 because the portfolio changes. There is no return on these dates since there is a change in the portfolio composition.
