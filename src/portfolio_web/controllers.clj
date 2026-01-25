@@ -35,24 +35,27 @@
 ;; Portfolio Analysis Page
 ;; Below is updated function (used to handle form-data encoded in multipart/form-data to accept file inputs)
 (defn analysis-handler [request]
-  (res/content-type (res/response 
+  (res/content-type (res/response
                      (let [params (:params request)
                            
                            ;; Parse the raw request into the desired format (format is shown in validator.clj)
                            parsed-trades 
                            (if (= (get params "trades") "") ;; If the "trades" key has an empty string as a value, then it is not a manual input  
                              ;; File Input
-                             ;;  (str (str/split (slurp (:tempfile (get params "trades-file"))) #"\n" 2))
                              (validator/parse-file-input
                               {:trades (slurp (:tempfile (get params "trades-file")))
                                ;; The above variable (:trades) looks like the following: 
                                ;; "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker\r\n2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG\r\n2024-12-22,sell,30,TSLA\r\n2025-01-08,sell,30,NVDA"
-                               :starting-cash (get params "starting-cash")})
+                               :starting-cash (get params "starting-cash")
+                               :show-capm-metrics (get params "show-capm-metrics" "false")
+                               :show-stock-performances (get params "show-stock-performances" "false")})
                              
                              ;; Manual Input 
                              (validator/parse-manual-input
                               {:trades (get params "trades")
-                               :starting-cash (get params "starting-cash")}))
+                               :starting-cash (get params "starting-cash")
+                               :show-capm-metrics (get params "show-capm-metrics" "false")
+                               :show-stock-performances (get params "show-stock-performances" "false")}))
                            ]
                        (-> parsed-trades
                            
@@ -63,7 +66,8 @@
                            ;;  (views/test-page)
                             (views/portfolio-page)
                            )
-                       ))
+                       )
+                       )
                     "text/html")) 
 
 ;; GPT-generated code for sample (code is too convoluted)

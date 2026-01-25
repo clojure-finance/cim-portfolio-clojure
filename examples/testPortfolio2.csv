@@ -1,0 +1,32 @@
+Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker
+2024-12-02,buy,450000,MRK
+2025-01-07,buy,20,MRK
+2025-04-03,buy,100,MRK
+2025-04-07,buy,100,MRK
+2025-04-08,buy,100,MRK
+2025-04-09,sell,20,MRK
+2025-04-24,buy,382,MRK
+2025-06-10,sell,1000,MRK
+2025-06-16,sell,1000,MRK
+2025-07-08,sell,1000,MRK
+2025-07-09,buy,50637,MRK
+2025-07-14,sell,100,MRK
+2025-07-21,sell,800,MRK
+2025-07-23,buy,100,MRK
+2025-07-24,sell,700,MRK
+2025-07-28,buy,50,MRK
+2025-08-06,buy,100,MRK
+2025-08-15,sell,200,MRK
+2025-08-24,sell,5000,MRK
+2025-09-08,sell,5000,MRK
+2025-09-10,sell,199000,MRK
+2025-09-11,buy,5836,MRK
+2025-09-13,sell,18833,MRK
+2025-09-17,buy,5000,MRK
+2025-10-10,sell,766,MRK
+2025-10-29,sell,55000,MRK
+2025-10-31,buy,113481,MRK
+
+~20 Seconds of processing
+~50 Seconds of processing when included BIL and TMO without adding more transactions
+~70 Seconds of processing when included HCA, BIL, and TMO without adding more transactions

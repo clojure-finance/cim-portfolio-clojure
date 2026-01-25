@@ -80,6 +80,25 @@ textarea {
   flex-shrink: 0;
 }
 
+/* Checkbox container */
+.checkbox-container {
+  margin: 1rem 0;
+}
+
+.checkbox-container label {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  width: auto;
+  flex-shrink: 0;
+}
+
 /* Manual and file input containers */
 .manual-input,
 .file-input {
