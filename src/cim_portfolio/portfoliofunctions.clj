@@ -237,7 +237,7 @@
         all-trade-execution-dates (map date-parser (keys portfolio-composition-by-date)) ;; Take All Order Execution Dates
 
 
-        ;; Function to get the latest order execution date relative to an input date (input-date is a String, not java.time.LocalDate)
+        ;; Function to get the latest order execution date before an input date (input-date is a String, not java.time.LocalDate)
         ;; If there are no order execution dates earlier than the input date, then return earliest order execution date
         get-nearest-execution-date (fn [input-date]
                                      (.toString ;; Result will be a java.time.LocalDate, so convert to String
@@ -315,7 +315,9 @@
      :portfolio-log-returns portfolio-log-returns-by-date
      :all-ticker-prices sorted-prices-until-end-date-enhanced
      :portfolio-value portfolio-value-by-date
-     :portfolio-holdings-by-date holding-values-by-date ;; For testing purposes
+
+     ;; For testing purposes
+    ;;  :portfolio-holdings-by-date holding-values-by-date
      }))
 
 ;; Same function as above but include cash in the portfolio!!!
@@ -473,7 +475,7 @@
          portfolio-composition-by-date (array-map) ;; Even if array-maps sort the data by key, they have a limit of sorting up to 8 items, so please use util/sort-map-by-date
          portfolio-value {}
          current-value 0.0
-         stock-performance {}
+        ;;  stock-performance {} ;; In the future, may use the commented stock-performance code here and in the below to get the log-returns from trade date.
          cash-invested {}
          cash-invested-by-date (array-map)
          change-in-cash-by-date (array-map) ;; This gets the change in the starting cash by date
@@ -485,7 +487,7 @@
          complete-stock-prices {}
          data (rest data)]
     (if (empty? data)
-      [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) portfolio-value current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) stock-performance complete-stock-prices] ;; When no more rows, return final values
+      [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) portfolio-value current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices] ;; When no more rows, return final values
       (let [[date action amount ticker] (first data)
             
             ;; Java Datetime related functions
@@ -499,7 +501,7 @@
                             ;; Obtain stock price data (Please check if vector is ordered by date) 
                            (if (= (get complete-stock-prices ticker "") "") ;; Check if we have fetched this ticker previously 
                              (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for only one of the tickers from the trade date until today 
-                             (get complete-stock-prices ticker 0)) ;; If already previously fetched, then no need to re-fetch )
+                             (get complete-stock-prices ticker 0)) ;; If already previously fetched, then no need to re-fetch
                            )
             executed-date (first (first ticker-prices))				; gets the date the buy/sell order is executed
             ]
@@ -510,7 +512,7 @@
                   currPrice (nth (last ticker-prices) 2)				; Gets adj close price of latest day
                   prices (mapv #(nth % 2) ticker-prices)       			; Extracts the prices from ticker-prices (trade date to today)
                   amounts (repeatedly (count prices) #(Double. amount))	; Repeats amount for num of trading days (trade date to today)
-                  trading-dates (mapv #(first %) ticker-prices) ;; List of trading dates
+                  ;; trading-dates (mapv #(first %) ticker-prices) ;; List of trading dates
                   ]
               (recur (- cash (* (Double. amount) price)) ;; Cash spent to buy stocks = - (Amount of stocks * Market price of stock when traded)
                      (assoc portfolio ticker (+ (get portfolio ticker 0) (Double. amount))) ;; Updates the current quantity of the stock in the portfolio
@@ -522,7 +524,7 @@
                      ; Updates portfolio-value with the calculated values
                      (+ current-value (* (Double. amount) currPrice)) ;; Current (Latest) market value of stocks
                      
-                     (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates)) ;; Returns the day to day arithmetic and log returns; Also the cumulative log returns.; Which trading dates depend on data received from client/get-ticker-price-all
+                    ;;  (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates)) ;; Returns the day to day arithmetic and log returns; Also the cumulative log returns.; Which trading dates depend on data received from client/get-ticker-price-all
                      ;; The above may have problem, especially with the cumulative log return, since it only takes into account the next 30 days only after a trade, will change to up until today 
                      (assoc cash-invested ticker (+ (get cash-invested ticker 0) (* (Double. amount) price))) ;; Updates the amount of cash spent on the trade date so far for each ticker
                      (assoc cash-invested-by-date executed-date (assoc cash-invested ticker (+ (get cash-invested ticker 0) (* (Double. amount) price)))) ;; Same like above but with the trade date
@@ -546,14 +548,14 @@
                        (assoc complete-stock-prices ticker ticker-prices)
                        complete-stock-prices) ;; Keep previously fetched stock price data
                      (rest data)))
-            (recur cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date stock-performance change-in-cash-by-date complete-stock-prices (rest data))) ;; If negative amount, ignore
+            (recur cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices (rest data))) ;; If negative amount, ignore
           
           (= (clojure.string/lower-case action) "sell")
           (let [price (second (first ticker-prices))
                 currPrice (nth (last ticker-prices) 2)
                 prices (map second ticker-prices)
                 amounts (repeatedly (count prices) #(Double. amount))
-                trading-dates (mapv #(first %) ticker-prices)
+                ;; trading-dates (mapv #(first %) ticker-prices)
                 ]
             (recur (+ cash (* (Double. amount) price))
                    (assoc portfolio ticker (- (get portfolio ticker 0) (Double. amount)))
@@ -562,7 +564,7 @@
                                                          (map #(- (* (Double. amount) price) %) (map * prices amounts)))) ;; PnL for each trading day relative to trade date (short) = Market value of the holdings on the trade date - Market value of each holding for trading days after the trade date 
                    (- current-value (* (Double. amount) currPrice))
                    
-                   (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates))
+                  ;;  (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates))
                    (assoc cash-invested ticker (- (get cash-invested ticker 0) (* (Double. amount) price)))
                    (assoc cash-invested-by-date executed-date (assoc cash-invested ticker (- (get cash-invested ticker 0) (* (Double. amount) price)))) 
                    ;; Be careful of signage, sell orders should "increase" cash 

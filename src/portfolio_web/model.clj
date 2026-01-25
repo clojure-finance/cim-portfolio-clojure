@@ -27,7 +27,7 @@
         starting-cash (:starting-cash raw-data)
 
         ;; Processed Variables
-        [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date stock-performance complete-stock-prices] (portfolio/analyze-portfolio trades)
+        [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices] (portfolio/analyze-portfolio trades)
         unique-tickers (keys portfolio)
         sorted-portfolio-value (map #(vector (first %) (+ starting-cash (second %)))
                                     (util/sort-map-by-date portfolio-value))
@@ -49,14 +49,13 @@
                                                 (second (first %)) ;; This is the portfolio 
                                                 (first (first %)) ;; This is the start date 
                                                 (first (second %)) ;; This is the end date
-                                                ) 
+                                                )
                                               (partition 2 1 (seq ;; This line creates a sliding window with window size = 2, and increment = 1,
-                                                                ;; ensuring that the iterator (the map function) is able to see entry at index "i+1" when iterating at index "i" 
-                                                                ;; The seq function will guarantee insertion order of entries in map as we are using "array-map" 
+                                                              ;; ensuring that the iterator (the map function) is able to see entry at index "i+1" when iterating at index "i" 
+                                                              ;; The seq function will guarantee insertion order of entries in map as we are using "array-map" 
                                                               (assoc portfolio-composition-by-date ;; Adds the new line into the historical portfolio compositions 
                                                                      (.toString (java.time.LocalDate/now)) {}) ;; This line provides the current date with an empty portfolio
-                                                              )))
-                                        )
+                                                              ))))
 
         cumulative-portfolio-return (portfolio/calculate-portfolio-cumulative-return (map #(:portfolio-cumulative-return %) (vals complete-portfolio-return-data)))
 
@@ -126,6 +125,7 @@
            :three-weeks-ago (.toString three-weeks-ago)
            :four-weeks-ago (.toString four-weeks-ago)
            :five-weeks-ago (.toString five-weeks-ago)
+           :one-year-ago (.toString one-year-ago)
            :one-year-from-one-week-ago (.toString one-year-from-one-week-ago)
            :one-year-from-two-weeks-ago (.toString one-year-from-two-weeks-ago)
            :one-year-from-three-weeks-ago (.toString one-year-from-three-weeks-ago)
@@ -142,9 +142,11 @@
            :complete-ticker-prices (:all-ticker-prices set-of-portfolio-complete-data)
 
            ;; Testing purposes only
-           :portfolio-value-by-date (:portfolio-value set-of-portfolio-complete-data)
-           :portfolio-holdings-by-date (:portfolio-holdings-by-date set-of-portfolio-complete-data)
-           :portfolio-custom-cumulative-return (get-cumulative-returns portfolio-log-returns "2025-02-04" "2025-12-01")})
+           
+          ;;  :portfolio-value-by-date (:portfolio-value set-of-portfolio-complete-data)
+          ;;  :portfolio-holdings-by-date (:portfolio-holdings-by-date set-of-portfolio-complete-data)
+          ;;  :portfolio-custom-cumulative-return (get-cumulative-returns portfolio-log-returns "2025-02-04" "2025-12-01")
+           })
 
         ;; The following variable holds the cumulative portfolio return for the past 1 year, ending at the past 5 weeks from the current date, and ending at the current date 
         ;; This variable includes cash in the portfolio
@@ -211,6 +213,7 @@
            :three-weeks-ago (.toString three-weeks-ago)
            :four-weeks-ago (.toString four-weeks-ago)
            :five-weeks-ago (.toString five-weeks-ago)
+           :one-year-ago (.toString one-year-ago)
            :one-year-from-one-week-ago (.toString one-year-from-one-week-ago)
            :one-year-from-two-weeks-ago (.toString one-year-from-two-weeks-ago)
            :one-year-from-three-weeks-ago (.toString one-year-from-three-weeks-ago)
@@ -224,8 +227,7 @@
            :one-year-cumulative-return-from-five-weeks-ago cumulative-return-five-weeks-ago
 
            ;; Testing purposes only
-           :portfolio-log-returns portfolio-log-returns
-           })
+           :portfolio-log-returns portfolio-log-returns})
 
 
 
@@ -245,7 +247,9 @@
         ;; Alpha and Beta Rolling Regression (Sept 2022 to Present)
         alpha-beta-figs
 
-        (if :show-alpha-beta-regression-by-day
+        (if (raw-data :show-capm-metrics)
+          
+          ;; :show-capm-metrics = true
           (let [unique-tickers (loop [data (rest trades)
                                       complete-tickers #{}]
                                  (if (empty? data)
@@ -253,7 +257,9 @@
                                    (recur (rest data)
                                           (let [[date action amount ticker] (first data)]
                                             (-> complete-tickers
-                                                (conj ticker))))))]
+                                                (conj ticker))))))
+                market-data (client/get-ticker-price-with-end "^GSPC" "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Switch the Market Index here
+                ]
             (loop [tickers unique-tickers
                    plotly-data []]
               (if (empty? tickers)
@@ -279,7 +285,6 @@
                       ;;                                               (.toString (java.time.LocalDate/now))) ;; Switch the Market Index here
 
                       stock-data (client/get-ticker-price-with-end ticker "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Note that the date is start date
-                      market-data (client/get-ticker-price-with-end "^GSPC" "2022-09-01" (.toString (java.time.LocalDate/now))) ;; Switch the Market Index here
                       model-data (reg/get-alpha-beta stock-data market-data)
                       alpha-data (map vector (:plotted-dates model-data) (:plotted-alpha model-data))
                       beta-data (map vector (:plotted-dates model-data) (:plotted-beta model-data))]
@@ -295,101 +300,109 @@
                                     :type "scatter"
                                     :mode "lines"
                                     :name (str ticker " β")})))))))
+          
+          ;; :show-capm-metrics = false
           "")
 
         ;; Stock Performance (Log Returns based on Closing Price)
         one-dollar-invested-at-time-zero
-        (let [;; The following is a map where keys are the complete tickers from the creation of the first portfolio to the current portfolio
-              ;; The values are also maps where the keys are the trade dates from the first trade date in which the stock appears in the portfolio to today, 
-              ;; and values are vectors containing the opening price and closing price
-              ;; Data is already sorted by time.
-              ;; The following is the form of the data: {"NVDA" {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...}, 
-              ;;                                         "MSFT" {"2025-01-31" [$172 $180], "2025-02-01" [$177 $175], ...}, ...}
-              prices-until-end-date (into {}
-                                          (map (fn [[ticker prices]]
-                                                 [ticker (util/sort-map-by-date ;; Sort by date
-                                                          (into {} ;; this makes everything (the dates) unsorted 
-                                                                (map (fn [[date opening-price closing-price]]
-                                                                       [date [opening-price closing-price]])
-                                                                     prices)))])
-                                               complete-stock-prices))
+        (if (raw-data :show-stock-performances)
+          
+          ;; :show-stock-performances = true
+          (let [;; The following is a map where keys are the complete tickers from the creation of the first portfolio to the current portfolio
+                ;; The values are also maps where the keys are the trade dates from the first trade date in which the stock appears in the portfolio to today, 
+                ;; and values are vectors containing the opening price and closing price
+                ;; Data is already sorted by time.
+                ;; The following is the form of the data: {"NVDA" {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...}, 
+                ;;                                         "MSFT" {"2025-01-31" [$172 $180], "2025-02-01" [$177 $175], ...}, ...}
+                prices-until-end-date (into {}
+                                            (map (fn [[ticker prices]]
+                                                   [ticker (util/sort-map-by-date ;; Sort by date
+                                                            (into {} ;; this makes everything (the dates) unsorted 
+                                                                  (map (fn [[date opening-price closing-price]]
+                                                                         [date [opening-price closing-price]])
+                                                                       prices)))])
+                                                 complete-stock-prices))
 
-              ;; The following will return each stock and their logged dollar performance over time in the following format.
-              ;; {"NVDA" {"2025-01-31" 0, "2025-02-01" 0.006, ...}, 
-              ;;  "MSFT" {"2025-01-31" 0, "2025-02-01" -0.0255, ...}, ...}
+                ;; The following will return each stock and their logged dollar performance over time in the following format.
+                ;; {"NVDA" {"2025-01-31" 0, "2025-02-01" 0.006, ...}, 
+                ;;  "MSFT" {"2025-01-31" 0, "2025-02-01" -0.0255, ...}, ...}
 
-              log-dollar-performance (loop
-                                      [tickers (keys prices-until-end-date)
-                                       one-dollar-performance {} ;; Dollar Performance but not logged 
-                                       log-one-dollar-performance {}]
-                                       (if (empty? tickers)
+                log-dollar-performance (loop
+                                        [tickers (keys prices-until-end-date)
+                                         one-dollar-performance {} ;; Dollar Performance but not logged 
+                                         log-one-dollar-performance {}]
+                                         (if (empty? tickers)
 
-                                         log-one-dollar-performance ;; Ignore one-dollar-performance for now
+                                           log-one-dollar-performance ;; Ignore one-dollar-performance for now
 
-                                         (recur
-                                          (rest tickers) ;; Remove first ticker in collection
+                                           (recur
+                                            (rest tickers) ;; Remove first ticker in collection
 
-                                          ;; Add new ticker with its dollar performance to variable one-dollar-performance
-                                          ;; It will have the tickers as the key, and values which are maps with keys being the trade dates, and values being the dollar performance
-                                          ;; e.g. {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.16, ...}, 
-                                          ;;       "MSFT" {"2025-01-31" 1, "2025-02-01" 0.98, ...}, ...}
+                                            ;; Add new ticker with its dollar performance to variable one-dollar-performance
+                                            ;; It will have the tickers as the key, and values which are maps with keys being the trade dates, and values being the dollar performance
+                                            ;; e.g. {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.16, ...}, 
+                                            ;;       "MSFT" {"2025-01-31" 1, "2025-02-01" 0.98, ...}, ...}
 
-                                          (assoc one-dollar-performance (first tickers)
-                                                 (util/sort-map-by-date
-                                                  (zipmap
-                                                   (keys
-                                                    (get prices-until-end-date (first tickers))) ;; Get the dates for the price data 
-                                                   (map #(/ % (second (first (vals (get prices-until-end-date (first tickers)))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance 
-                                                        (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
-                                                             (vals
-                                                              (get prices-until-end-date (first tickers)))) ;; Get the price data for the first ticker in collection)
-                                                        ))))
+                                            (assoc one-dollar-performance (first tickers)
+                                                   (util/sort-map-by-date
+                                                    (zipmap
+                                                     (keys
+                                                      (get prices-until-end-date (first tickers))) ;; Get the dates for the price data 
+                                                     (map #(/ % (second (first (vals (get prices-until-end-date (first tickers)))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance 
+                                                          (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
+                                                               (vals
+                                                                (get prices-until-end-date (first tickers)))) ;; Get the price data for the first ticker in collection)
+                                                          ))))
 
-                                          ;; Now, just do the same things as the above, but take the natural logarithm 
-                                          (assoc log-one-dollar-performance (first tickers)
-                                                 (util/sort-map-by-date
-                                                  (zipmap
-                                                   (keys
-                                                    (util/sort-map-by-date (get prices-until-end-date (first tickers)))) ;; Get the dates for the price data 
-                                                   (map #(Math/log (/ % (second (first (vals (get prices-until-end-date (first tickers))))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance, and take the natural logarithm 
-                                                        (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
-                                                             (vals
-                                                              (util/sort-map-by-date (get prices-until-end-date (first tickers))))) ;; Get the price data for the first ticker in collection) 
-                                                        )))))))
+                                            ;; Now, just do the same things as the above, but take the natural logarithm 
+                                            (assoc log-one-dollar-performance (first tickers)
+                                                   (util/sort-map-by-date
+                                                    (zipmap
+                                                     (keys
+                                                      (util/sort-map-by-date (get prices-until-end-date (first tickers)))) ;; Get the dates for the price data 
+                                                     (map #(Math/log (/ % (second (first (vals (get prices-until-end-date (first tickers))))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance, and take the natural logarithm 
+                                                          (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
+                                                               (vals
+                                                                (util/sort-map-by-date (get prices-until-end-date (first tickers))))) ;; Get the price data for the first ticker in collection) 
+                                                          )))))))
 
-              ;; This will hold a map of all tickers currently and previously existing in the portfolio, and the graphs of its log dollar performance
-              ;; The data format will be the following:
-              ;; {"NVDA" {:x ["2025-01-01" "2025-01-02" ...]
-              ;;          :y [0.123 -0.234 ...]
-              ;;          :type "scatter"
-              ;;          :mode "lines"
-              ;;          :name "NVDA Performance")},
-              ;;  "MSFT" {...},}
+                ;; This will hold a map of all tickers currently and previously existing in the portfolio, and the graphs of its log dollar performance
+                ;; The data format will be the following:
+                ;; {"NVDA" {:x ["2025-01-01" "2025-01-02" ...]
+                ;;          :y [0.123 -0.234 ...]
+                ;;          :type "scatter"
+                ;;          :mode "lines"
+                ;;          :name "NVDA Performance")},
+                ;;  "MSFT" {...},}
 
-              plotly-data (loop
-                           [tickers (keys log-dollar-performance)
-                            plotly-data {}]
+                plotly-data (loop
+                             [tickers (keys log-dollar-performance)
+                              plotly-data {}]
 
-                            (if (empty? tickers)
+                              (if (empty? tickers)
 
-                              plotly-data
+                                plotly-data
 
-                              (recur
-                               (rest tickers) ;; Remove first ticker in collection
-                               (assoc plotly-data (first tickers)
-                                      {:x (map #(first %) portfolio-value-by-day) ;; Already ordered
-                                       :y (concat
-                                           ;; Find the number of trade dates between first trade date of a stock and first trade date of the portfolio
-                                           (repeat (count (filter
-                                                           (fn [d]
-                                                             (.isBefore (date-parser d) (date-parser (first (keys (get log-dollar-performance (first tickers)))))))
-                                                           (map #(first %) portfolio-value-by-day)))
-                                                   nil)
-                                           (vals (get log-dollar-performance (first tickers)))) ;; Already ordered
-                                       :type "scatter"
-                                       :mode "lines"
-                                       :name (str (first tickers) " Performance")}))))]
-          plotly-data)
+                                (recur
+                                 (rest tickers) ;; Remove first ticker in collection
+                                 (assoc plotly-data (first tickers)
+                                        {:x (map #(first %) portfolio-value-by-day) ;; Already ordered
+                                         :y (concat
+                                             ;; Find the number of trade dates between first trade date of a stock and first trade date of the portfolio
+                                             (repeat (count (filter
+                                                             (fn [d]
+                                                               (.isBefore (date-parser d) (date-parser (first (keys (get log-dollar-performance (first tickers)))))))
+                                                             (map #(first %) portfolio-value-by-day)))
+                                                     nil)
+                                             (vals (get log-dollar-performance (first tickers)))) ;; Already ordered
+                                         :type "scatter"
+                                         :mode "lines"
+                                         :name (str (first tickers) " Performance")}))))]
+            plotly-data)
+          
+          ;; :show-stock-performances = false
+          "")
 
         ;; Portfolio Value by Day
         portfolio-value-figs
@@ -445,7 +458,6 @@
 
      :portfolio-returns-by-date complete-portfolio-return-data ;; This gives the final portfolio returns and values before a new trade is executed, which changes the composition of the portfolio
      :portfolio-value-by-day portfolio-value-by-day ;; This gives the final portfolio values, only takes into account values after change in portfolio composition, and includes cash
-     :individual-stock-performance-by-day stock-performance
 
      :past-five-weeks-1y-cumulative-return-excl-cash one-year-cumulative-returns-past-five-weeks-without-cash
      :past-five-weeks-1y-cumulative-return-incl-cash one-year-cumulative-returns-past-five-weeks-with-cash
@@ -462,5 +474,5 @@
      :alternative-rolling-ewma-volatility-figs alternative-rolling-ewma-volatility-figs
 
      ;; Test Data (will delete later)
-     :test-data (:portfolio-log-returns one-year-cumulative-returns-past-five-weeks-with-cash)
+    ;;  :test-data (:portfolio-log-returns one-year-cumulative-returns-past-five-weeks-with-cash)
      }))
