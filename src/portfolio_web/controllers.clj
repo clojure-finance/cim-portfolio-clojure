@@ -41,27 +41,27 @@
                            ;; Parse the raw request into the desired format (format is shown in validator.clj)
                            parsed-trades 
                            (if (= (get params "trades") "") ;; If the "trades" key has an empty string as a value, then it is not a manual input  
-                              ;; File Input
-                              ;;  (str (str/split (slurp (:tempfile (get params "trades-file"))) #"\n" 2))
-                              (validator/parse-file-input
+                             ;; File Input
+                             ;;  (str (str/split (slurp (:tempfile (get params "trades-file"))) #"\n" 2))
+                             (validator/parse-file-input
                               {:trades (slurp (:tempfile (get params "trades-file")))
-                                ;; The above variable (:trades) looks like the following: 
-                                ;; "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker\r\n2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG\r\n2024-12-22,sell,30,TSLA\r\n2025-01-08,sell,30,NVDA"
-                                :starting-cash (get params "starting-cash")})
-                            
-                              ;; Manual Input 
-                              (validator/parse-manual-input
+                               ;; The above variable (:trades) looks like the following: 
+                               ;; "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker\r\n2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG\r\n2024-12-22,sell,30,TSLA\r\n2025-01-08,sell,30,NVDA"
+                               :starting-cash (get params "starting-cash")})
+                             
+                             ;; Manual Input 
+                             (validator/parse-manual-input
                               {:trades (get params "trades")
-                                :starting-cash (get params "starting-cash")}))
+                               :starting-cash (get params "starting-cash")}))
                            ]
                        (-> parsed-trades
                            
                            ; Send result to the model to be processed
-                           (model/process-trades)
-
+                            (model/process-trades)
+                           
                            ; Send processed data to view to display
-                          ;;  (views/test-page)
-                           (views/portfolio-page)
+                           ;;  (views/test-page)
+                            (views/portfolio-page)
                            )
                        ))
                     "text/html")) 

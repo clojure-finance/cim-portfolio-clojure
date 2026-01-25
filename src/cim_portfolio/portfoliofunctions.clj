@@ -470,7 +470,7 @@
 (defn analyze-portfolio [data]
   (loop [cash 0.0 ;; This is the cash spent by buying or obtained by selling so far
          portfolio {}
-         portfolio-composition-by-date (array-map) ;; Preserves insertion order
+         portfolio-composition-by-date (array-map) ;; Even if array-maps sort the data by key, they have a limit of sorting up to 8 items, so please use util/sort-map-by-date
          portfolio-value {}
          current-value 0.0
          stock-performance {}
@@ -485,7 +485,7 @@
          complete-stock-prices {}
          data (rest data)]
     (if (empty? data)
-      [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date stock-performance complete-stock-prices] ;; When no more rows, return final values
+      [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) portfolio-value current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) stock-performance complete-stock-prices] ;; When no more rows, return final values
       (let [[date action amount ticker] (first data)
             
             ;; Java Datetime related functions

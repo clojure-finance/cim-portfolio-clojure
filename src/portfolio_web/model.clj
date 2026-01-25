@@ -41,21 +41,22 @@
         ;; Read from bottom to top for this variable to understand it (Deprecated)
         ;; The reason why I incorporated a lot of different data in this one variable is so that we don't have to fetch from yfinance multiple times (preventing rate limits)
         complete-portfolio-return-data (zipmap
-                                        (concat (map #(first %) (rest cash-invested-by-date)) ;; Gets the remaining dates
-                                                [(.toString (java.time.LocalDate/now))]) ;; Add the current date as the last entry
+                                        (concat (map #(first %) (rest cash-invested-by-date)) ;; Gets all execution dates except first execution date, also add current date
+                                                [(.toString (java.time.LocalDate/now))])
 
                                         ;; (concat 0 ;; Returns this message for the first date of portfolio construction
-                                        (mapv #(portfolio/calculate-portfolio-return-and-weights-for-given-date ;; It will have the returns, weights, initial and final portfolio values
-                                                (second (first %)) ;; This is the portfolio
-                                                (first (first %)) ;; This is the start date
+                                        (mapv #(portfolio/calculate-portfolio-return-and-weights-for-given-date ;; It will have the returns, weights, initial and final portfolio values 
+                                                (second (first %)) ;; This is the portfolio 
+                                                (first (first %)) ;; This is the start date 
                                                 (first (second %)) ;; This is the end date
-                                                )
+                                                ) 
                                               (partition 2 1 (seq ;; This line creates a sliding window with window size = 2, and increment = 1,
-                                                              ;; ensuring that the iterator (the map function) is able to see entry at index "i+1" when iterating at index "i" 
-                                                              ;; The seq function will guarantee insertion order of entries in map as we are using "array-map"
-                                                              (assoc portfolio-composition-by-date ;; Adds the new line into the historical portfolio compositions
+                                                                ;; ensuring that the iterator (the map function) is able to see entry at index "i+1" when iterating at index "i" 
+                                                                ;; The seq function will guarantee insertion order of entries in map as we are using "array-map" 
+                                                              (assoc portfolio-composition-by-date ;; Adds the new line into the historical portfolio compositions 
                                                                      (.toString (java.time.LocalDate/now)) {}) ;; This line provides the current date with an empty portfolio
-                                                              ))))
+                                                              )))
+                                        )
 
         cumulative-portfolio-return (portfolio/calculate-portfolio-cumulative-return (map #(:portfolio-cumulative-return %) (vals complete-portfolio-return-data)))
 
