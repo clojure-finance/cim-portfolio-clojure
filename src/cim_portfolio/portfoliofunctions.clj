@@ -262,21 +262,22 @@
         ;; Get the values of each holding on each trade date based on the existing portfolio on that date
         ;; Returns the following format: {"2025-01-10" {"NVDA" ($100 * 25 units) "MSFT" ($100 * 25 units) ...}, 
         ;;                                "2025-01-13" {"NVDA" ($101 * 25 units) "MSFT" ($99 * 25 units) ...}, ...}
-        holding-values-by-date (into {}
-                                     (map (fn [d]
-                                            [d (into {} ;; Date is set as key
-                                                     (map (fn [[ticker prices]]
-                                                            [ticker ;; Ticker is inner map's key
+        holding-values-by-date (util/sort-map-by-date 
+                                (into {} 
+                                      (map (fn [d] 
+                                             [d (into {} ;; Date is set as key
+                                                      (map (fn [[ticker prices]] 
+                                                             [ticker ;; Ticker is inner map's key
                                                              (if (= d start-date)
                                                                ;; Multiply price of stock at trade date by the amount in existing portfolio to get holding value
                                                                ;; Use opening price only if trade date is the execution date, otherwise always use closing price
                                                                (* (first (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0)) ;; Notice that if ticker is not in existing portfolio, amount is 0
                                                                (* (last (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0))) ;; Notice that if ticker is not in existing portfolio, amount is 0
-                                                             ])
-                                                          sorted-prices-until-end-date-enhanced) ;; For each ticker, get date-prices key-value pair
-                                                     )])
-                                          all-trade-dates)) ; For each trade date 
-
+                                                             ]) 
+                                                           sorted-prices-until-end-date-enhanced) ;; For each ticker, get date-prices key-value pair
+                                                      )]) 
+                                           all-trade-dates)) ; For each trade date 
+                                )
         ;; Get total portfolio value by date (using the existing portfolio on that date), sorted by date
         portfolio-value-by-date (util/sort-map-by-date
                                  (into {}
@@ -312,6 +313,7 @@
         ]
 
     {:stock-weights portfolio-weights-by-date
+     :current-stock-holdings holding-values-by-date
      :portfolio-log-returns portfolio-log-returns-by-date
      :all-ticker-prices sorted-prices-until-end-date-enhanced
      :portfolio-value portfolio-value-by-date

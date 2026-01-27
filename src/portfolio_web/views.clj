@@ -118,9 +118,9 @@
     [:h2 "Portfolio Allocation"]
     [:ul#cashByStock
      (for [ticker (data :unique-tickers)]
-       [:li (str (format "%s: " ticker) (if (neg? (get (:values (data :current-stock-holdings)) ticker)) "-" "")
-                 (.format currency-formatter (abs (get (:values (data :current-stock-holdings)) ticker)))
-                 (format " (%.2f%%)" (* 100 (get (:weights (data :current-stock-holdings)) ticker))))])]]
+       [:li (str (format "%s: " ticker) (if (neg? (get (:values (data :current-stock-holdings-and-weights)) ticker)) "-" "")
+                 (.format currency-formatter (abs (get (:values (data :current-stock-holdings-and-weights)) ticker)))
+                 (format " (%.2f%%)" (* 100 (get (:weights (data :current-stock-holdings-and-weights)) ticker))))])]]
    
    [:div.card.return-comparison-card
     [:h2 "1-Year Cumulative Portfolio Return"]
