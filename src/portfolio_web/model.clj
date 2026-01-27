@@ -31,8 +31,9 @@
         unique-tickers (keys portfolio)
         sorted-portfolio-value (map #(vector (first %) (+ starting-cash (second %)))
                                     (util/sort-map-by-date portfolio-value))
-        ;; Starting Cash + Each Portfolio Value, by Date (It is correct to use the original starting cash constantly 
+        ;; ^^^ Starting Cash + Each Portfolio Value, by Date (It is correct to use the original starting cash constantly 
         ;; because we add the PnL of each trading day to original starting cash.)
+
         cash-invested-by-dates (into [] cash-invested-by-date)
         current-portfolio-value (+ starting-cash (+ cash current-value))
         annualized-return (portfolio/calculate-annualized-return starting-cash current-portfolio-value (first (first sorted-portfolio-value))
@@ -40,24 +41,24 @@
 
         ;; Read from bottom to top for this variable to understand it (Deprecated)
         ;; The reason why I incorporated a lot of different data in this one variable is so that we don't have to fetch from yfinance multiple times (preventing rate limits)
-        complete-portfolio-return-data (zipmap
-                                        (concat (map #(first %) (rest cash-invested-by-date)) ;; Gets all execution dates except first execution date, also add current date
-                                                [(.toString (java.time.LocalDate/now))])
+        ;; complete-portfolio-return-data (zipmap
+        ;;                                 (concat (map #(first %) (rest cash-invested-by-date)) ;; Gets all execution dates except first execution date, also add current date
+        ;;                                         [(.toString (java.time.LocalDate/now))])
 
-                                        ;; (concat 0 ;; Returns this message for the first date of portfolio construction
-                                        (mapv #(portfolio/calculate-portfolio-return-and-weights-for-given-date ;; It will have the returns, weights, initial and final portfolio values 
-                                                (second (first %)) ;; This is the portfolio 
-                                                (first (first %)) ;; This is the start date 
-                                                (first (second %)) ;; This is the end date
-                                                )
-                                              (partition 2 1 (seq ;; This line creates a sliding window with window size = 2, and increment = 1,
-                                                              ;; ensuring that the iterator (the map function) is able to see entry at index "i+1" when iterating at index "i" 
-                                                              ;; The seq function will guarantee insertion order of entries in map as we are using "array-map" 
-                                                              (assoc portfolio-composition-by-date ;; Adds the new line into the historical portfolio compositions 
-                                                                     (.toString (java.time.LocalDate/now)) {}) ;; This line provides the current date with an empty portfolio
-                                                              ))))
+        ;;                                 ;; (concat 0 ;; Returns this message for the first date of portfolio construction
+        ;;                                 (mapv #(portfolio/calculate-portfolio-return-and-weights-for-given-date ;; It will have the returns, weights, initial and final portfolio values 
+        ;;                                         (second (first %)) ;; This is the portfolio 
+        ;;                                         (first (first %)) ;; This is the start date 
+        ;;                                         (first (second %)) ;; This is the end date
+        ;;                                         )
+        ;;                                       (partition 2 1 (seq ;; This line creates a sliding window with window size = 2, and increment = 1,
+        ;;                                                       ;; ensuring that the iterator (the map function) is able to see entry at index "i+1" when iterating at index "i" 
+        ;;                                                       ;; The seq function will guarantee insertion order of entries in map as we are using "array-map" 
+        ;;                                                       (assoc portfolio-composition-by-date ;; Adds the new line into the historical portfolio compositions 
+        ;;                                                              (.toString (java.time.LocalDate/now)) {}) ;; This line provides the current date with an empty portfolio
+        ;;                                                       ))))
 
-        cumulative-portfolio-return (portfolio/calculate-portfolio-cumulative-return (map #(:portfolio-cumulative-return %) (vals complete-portfolio-return-data)))
+        ;; cumulative-portfolio-return (portfolio/calculate-portfolio-cumulative-return (map #(:portfolio-cumulative-return %) (vals complete-portfolio-return-data)))
 
         portfolio-value-by-day sorted-portfolio-value
 
@@ -117,7 +118,18 @@
               cumulative-return-two-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-two-weeks-ago) (.toString two-weeks-ago))
               cumulative-return-three-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-three-weeks-ago) (.toString three-weeks-ago))
               cumulative-return-four-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString  one-year-from-four-weeks-ago) (.toString four-weeks-ago))
-              cumulative-return-five-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-five-weeks-ago) (.toString five-weeks-ago))]
+              cumulative-return-five-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-five-weeks-ago) (.toString five-weeks-ago))
+
+              ;; Other Variables
+              ;; current-portfolio-weights (get (:stock-weights set-of-portfolio-complete-data) (.toString today))
+              current-portfolio-weights (last 
+                                         ;; This will return in the following format: ["2026-01-26" {"NVDA" 0.7827169202300716, "GOOG" 1.0001859082803983, "TSLA" -0.7829028285104699}]
+                                         (last (:stock-weights set-of-portfolio-complete-data)))
+              ;; current-portfolio-holdings (get (:current-stock-holdings set-of-portfolio-complete-data) (.toString today))
+              current-portfolio-holdings (last 
+                                          ;; This will return in the following format: ["2026-01-26" {"NVDA" 13052.900085449, "GOOG" 16679.499816895, "TSLA" -13056.000366209999}]
+                                          (last (:current-stock-holdings set-of-portfolio-complete-data))) ;; This will return in the following format
+              ]
 
           {:today (.toString today)
            :one-week-ago (.toString one-week-ago)
@@ -140,12 +152,14 @@
 
            ;; For use in other variables
            :complete-ticker-prices (:all-ticker-prices set-of-portfolio-complete-data)
+           :current-portfolio-weights current-portfolio-weights
+           :current-portfolio-holdings current-portfolio-holdings
 
            ;; Testing purposes only
-           
-          ;;  :portfolio-value-by-date (:portfolio-value set-of-portfolio-complete-data)
-          ;;  :portfolio-holdings-by-date (:portfolio-holdings-by-date set-of-portfolio-complete-data)
-          ;;  :portfolio-custom-cumulative-return (get-cumulative-returns portfolio-log-returns "2025-02-04" "2025-12-01")
+
+           ;;  :portfolio-value-by-date (:portfolio-value set-of-portfolio-complete-data)
+           ;;  :portfolio-holdings-by-date (:portfolio-holdings-by-date set-of-portfolio-complete-data)
+           ;;  :portfolio-custom-cumulative-return (get-cumulative-returns portfolio-log-returns "2025-02-04" "2025-12-01")
            })
 
         ;; The following variable holds the cumulative portfolio return for the past 1 year, ending at the past 5 weeks from the current date, and ending at the current date 
@@ -232,8 +246,12 @@
 
 
         ;; Contains usage of deprecated function, will replace with set-of-portfolio-log-returns-and-weights soon
-        current-stock-holdings {:values (:current-stock-holdings (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))
-                                :weights (:stock-weights (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))}
+        ;; current-stock-holdings-and-weights {:values (:current-stock-holdings (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))
+        ;;                         :weights (:stock-weights (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))}
+
+        ;; Updated with use of set-of-portfolio-log-returns-and-weights function
+        current-stock-holdings-and-weights {:values (:current-portfolio-holdings one-year-cumulative-returns-past-five-weeks-without-cash) 
+                                            :weights (:current-portfolio-weights one-year-cumulative-returns-past-five-weeks-without-cash)}
 
         volatility (portfolio/volatility (map second sorted-portfolio-value))
         rolling-annualized-volatility (portfolio/rolling-annualized-volatility (map second portfolio-value-by-day) 21)
@@ -248,7 +266,7 @@
         alpha-beta-figs
 
         (if (raw-data :show-capm-metrics)
-          
+
           ;; :show-capm-metrics = true
           (let [unique-tickers (loop [data (rest trades)
                                       complete-tickers #{}]
@@ -300,14 +318,14 @@
                                     :type "scatter"
                                     :mode "lines"
                                     :name (str ticker " β")})))))))
-          
+
           ;; :show-capm-metrics = false
           "")
 
         ;; Stock Performance (Log Returns based on Closing Price)
         one-dollar-invested-at-time-zero
         (if (raw-data :show-stock-performances)
-          
+
           ;; :show-stock-performances = true
           (let [;; The following is a map where keys are the complete tickers from the creation of the first portfolio to the current portfolio
                 ;; The values are also maps where the keys are the trade dates from the first trade date in which the stock appears in the portfolio to today, 
@@ -400,7 +418,7 @@
                                          :mode "lines"
                                          :name (str (first tickers) " Performance")}))))]
             plotly-data)
-          
+
           ;; :show-stock-performances = false
           "")
 
@@ -453,10 +471,10 @@
 
      :stocks-held-and-shorted portfolio
      :cash-invested cash-invested
-     :cumulative-portfolio-return (* cumulative-portfolio-return 100)
-     :current-stock-holdings current-stock-holdings
+    ;;  :cumulative-portfolio-return (* cumulative-portfolio-return 100)
+     :current-stock-holdings-and-weights current-stock-holdings-and-weights
 
-     :portfolio-returns-by-date complete-portfolio-return-data ;; This gives the final portfolio returns and values before a new trade is executed, which changes the composition of the portfolio
+    ;;  :portfolio-returns-by-date complete-portfolio-return-data ;; This gives the final portfolio returns and values before a new trade is executed, which changes the composition of the portfolio
      :portfolio-value-by-day portfolio-value-by-day ;; This gives the final portfolio values, only takes into account values after change in portfolio composition, and includes cash
 
      :past-five-weeks-1y-cumulative-return-excl-cash one-year-cumulative-returns-past-five-weeks-without-cash
@@ -473,6 +491,6 @@
      :default-rolling-ewma-volatility-figs default-rolling-ewma-volatility-figs
      :alternative-rolling-ewma-volatility-figs alternative-rolling-ewma-volatility-figs
 
-     ;; Test Data (will delete later)
-    ;;  :test-data (:portfolio-log-returns one-year-cumulative-returns-past-five-weeks-with-cash)
+     ;; Test Data (will delete later) 
+     :test-data current-stock-holdings-and-weights
      }))

@@ -63,7 +63,7 @@
                             (model/process-trades)
                            
                            ; Send processed data to view to display
-                           ;;  (views/test-page)
+                            ;; (views/test-page)
                             (views/portfolio-page)
                            )
                        )
