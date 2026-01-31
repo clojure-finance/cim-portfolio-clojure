@@ -9,9 +9,61 @@ header {
     background: #2c3e50;
     color: white;
     padding: 1rem;
+    position: relative; /* allow absolute positioning of GitHub button */
     text-align: center;
 }
 
+header h1 {
+    margin: 0;
+}
+
+/* GitHub link in header */
+.github-link {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #24292e;
+    color: #fff;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    font-size: 0.95rem;
+}
+
+.github-link:hover {
+    background: #000;
+}
+
+.github-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    flex: 0 0 20px;
+}
+
+/* Accessibility focus style */
+.github-link:focus {
+    outline: 2px solid #9fd3ff;
+    outline-offset: 2px;
+}
+
+/* Responsive fallback: stack link under title on small screens */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 1.1rem;
+    }
+    .github-link {
+        position: static;
+        transform: none;
+        margin-top: 0.5rem;
+    }
+}
 .container {
     display: grid;
     grid-template-columns: 1fr 1fr;

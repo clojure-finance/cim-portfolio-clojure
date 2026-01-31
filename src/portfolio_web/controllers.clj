@@ -46,14 +46,14 @@
                               {:trades (slurp (:tempfile (get params "trades-file")))
                                ;; The above variable (:trades) looks like the following: 
                                ;; "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker\r\n2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG\r\n2024-12-22,sell,30,TSLA\r\n2025-01-08,sell,30,NVDA"
-                               :starting-cash (get params "starting-cash")
+                               :starting-cash (str/replace (get params "starting-cash") #"[$,]" "") ;; This may contain '$' and comma, remove them!
                                :show-capm-metrics (get params "show-capm-metrics" "false")
                                :show-stock-performances (get params "show-stock-performances" "false")})
                              
                              ;; Manual Input 
                              (validator/parse-manual-input
                               {:trades (get params "trades")
-                               :starting-cash (get params "starting-cash")
+                               :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
                                :show-capm-metrics (get params "show-capm-metrics" "false")
                                :show-stock-performances (get params "show-stock-performances" "false")}))
                            ]

@@ -29,8 +29,8 @@
         ;; Processed Variables
         [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices] (portfolio/analyze-portfolio trades)
         unique-tickers (keys portfolio)
-        sorted-portfolio-value (map #(vector (first %) (+ starting-cash (second %)))
-                                    (util/sort-map-by-date portfolio-value))
+        sorted-portfolio-value (map #(vector (first %) (+ starting-cash (second %))) 
+                                    portfolio-value)
         ;; ^^^ Starting Cash + Each Portfolio Value, by Date (It is correct to use the original starting cash constantly 
         ;; because we add the PnL of each trading day to original starting cash.)
 
@@ -122,11 +122,11 @@
 
               ;; Other Variables
               ;; current-portfolio-weights (get (:stock-weights set-of-portfolio-complete-data) (.toString today))
-              current-portfolio-weights (last 
+              current-portfolio-weights (last
                                          ;; This will return in the following format: ["2026-01-26" {"NVDA" 0.7827169202300716, "GOOG" 1.0001859082803983, "TSLA" -0.7829028285104699}]
                                          (last (:stock-weights set-of-portfolio-complete-data)))
               ;; current-portfolio-holdings (get (:current-stock-holdings set-of-portfolio-complete-data) (.toString today))
-              current-portfolio-holdings (last 
+              current-portfolio-holdings (last
                                           ;; This will return in the following format: ["2026-01-26" {"NVDA" 13052.900085449, "GOOG" 16679.499816895, "TSLA" -13056.000366209999}]
                                           (last (:current-stock-holdings set-of-portfolio-complete-data))) ;; This will return in the following format
               ]
@@ -250,7 +250,7 @@
         ;;                         :weights (:stock-weights (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))}
 
         ;; Updated with use of set-of-portfolio-log-returns-and-weights function
-        current-stock-holdings-and-weights {:values (:current-portfolio-holdings one-year-cumulative-returns-past-five-weeks-without-cash) 
+        current-stock-holdings-and-weights {:values (:current-portfolio-holdings one-year-cumulative-returns-past-five-weeks-without-cash)
                                             :weights (:current-portfolio-weights one-year-cumulative-returns-past-five-weeks-without-cash)}
 
         volatility (portfolio/volatility (map second sorted-portfolio-value))
@@ -322,8 +322,31 @@
           ;; :show-capm-metrics = false
           "")
 
+        ;; Portfolio Performance (One Dollar Invested in Portfolio)
+        one-dollar-invested-in-portfolio-at-time-zero
+        (let 
+         [log-dollar-performance  
+          (util/sort-map-by-date 
+           (into {} 
+                 (map 
+                  (fn [[date value]] 
+                    [date (Math/log 
+                           (/ value starting-cash))]) ;; Starting cash should be the initial portfolio value  
+                  portfolio-value-by-day)))
+          
+          plotly-data 
+          {:x (keys log-dollar-performance)
+           :y (vals log-dollar-performance)
+           :type "scatter"
+           :mode "lines"
+           :name "Portfolio Performance"}
+          ]
+          
+          plotly-data
+          )
+
         ;; Stock Performance (Log Returns based on Closing Price)
-        one-dollar-invested-at-time-zero
+        one-dollar-invested-in-stock-at-time-zero
         (if (raw-data :show-stock-performances)
 
           ;; :show-stock-performances = true
@@ -471,10 +494,10 @@
 
      :stocks-held-and-shorted portfolio
      :cash-invested cash-invested
-    ;;  :cumulative-portfolio-return (* cumulative-portfolio-return 100)
+     ;;  :cumulative-portfolio-return (* cumulative-portfolio-return 100)
      :current-stock-holdings-and-weights current-stock-holdings-and-weights
 
-    ;;  :portfolio-returns-by-date complete-portfolio-return-data ;; This gives the final portfolio returns and values before a new trade is executed, which changes the composition of the portfolio
+     ;;  :portfolio-returns-by-date complete-portfolio-return-data ;; This gives the final portfolio returns and values before a new trade is executed, which changes the composition of the portfolio
      :portfolio-value-by-day portfolio-value-by-day ;; This gives the final portfolio values, only takes into account values after change in portfolio composition, and includes cash
 
      :past-five-weeks-1y-cumulative-return-excl-cash one-year-cumulative-returns-past-five-weeks-without-cash
@@ -485,12 +508,12 @@
      ;; Plotly Graphs
 
      :alpha-beta-figs alpha-beta-figs
-     :stock-performances-graphs one-dollar-invested-at-time-zero
+     :portfolio-one-dollar-performance-graph one-dollar-invested-in-portfolio-at-time-zero
+     :stock-performances-graphs one-dollar-invested-in-stock-at-time-zero
      :portfolio-value-figs portfolio-value-figs
      :rolling-annualized-volatility-figs rolling-annualized-volatility-figs
      :default-rolling-ewma-volatility-figs default-rolling-ewma-volatility-figs
      :alternative-rolling-ewma-volatility-figs alternative-rolling-ewma-volatility-figs
 
      ;; Test Data (will delete later) 
-     :test-data current-stock-holdings-and-weights
-     }))
+     :test-data current-stock-holdings-and-weights}))
