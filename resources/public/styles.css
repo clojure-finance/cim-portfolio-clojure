@@ -8,9 +8,13 @@ header {
   background: #2c3e50;
   color: white;
   padding: 1rem;
+  position: relative;
   text-align: center;
 }
 
+header h1 {
+  margin: 0;
+} 
 .container {
   max-width: 800px; 
   margin: 2rem auto;
@@ -134,4 +138,98 @@ textarea {
 .metric-value {
   font-size: 1.1em;
   color: #2c3e50;
+}
+
+/* Example-fill button and label (updated: subtler label + compact inline button) */
+.example-controls {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.example-label {
+  font-size: 0.85em;
+  color: #6c757d; /* muted gray */
+  font-weight: normal;
+  margin-right: 0.25rem;
+}
+
+.example-button {
+  display: inline-block;
+  width: auto; /* override global button width */
+  min-width: 0;
+  background: transparent;
+  color: #3498db; /* primary color */
+  border: 1px solid #3498db;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9em;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.example-button:hover {
+  background: #3498db;
+  color: white;
+}
+
+.example-data {
+  display: none; /* hidden, read by JS */
+}
+
+/* GitHub link styling */
+.github-container {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.github-link {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #24292e; /* GitHub dark */
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  font-size: 0.95rem;
+}
+
+.github-link:hover {
+  background: #000;
+  text-decoration: none;
+}
+
+.github-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  flex: 0 0 18px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.15rem;
+  }
+  .github-link {
+    position: static;
+    transform: none;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+  }
+}
+.github-link svg path {
+  fill: currentColor;
+}
+
+.github-link:focus {
+  outline: 2px solid #9fd3ff;
+  outline-offset: 2px;
 }
