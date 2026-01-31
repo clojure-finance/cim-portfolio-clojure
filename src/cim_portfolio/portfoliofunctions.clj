@@ -489,7 +489,7 @@
          complete-stock-prices {}
          data (rest data)]
     (if (empty? data)
-      [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) portfolio-value current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices] ;; When no more rows, return final values
+      [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) (util/sort-map-by-date portfolio-value) current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices] ;; When no more rows, return final values
       (let [[date action amount ticker] (first data)
             
             ;; Java Datetime related functions
