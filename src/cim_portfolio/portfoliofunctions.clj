@@ -188,7 +188,7 @@
 ;; This function calculates the log returns for a set of portfolios over time (portfolio-composition-by-date), returning information about each portfolio while they existed
 ;; Multiple variables are returned to prevent the need to fetch to yfinance multiple times, which causes increased computation time and risks rate limiting
 ;; This function excludes the consideration of CASH
-(defn set-of-portfolio-log-returns-and-weights-without-cash [portfolio-composition-by-date start-date end-date]
+(defn set-of-portfolio-log-returns-and-weights-without-cash [portfolio-composition-by-date complete-stock-prices]
   (let [;; Java Date Parser
         date-formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd")
         date-parser (fn [d] (java.time.LocalDate/parse d date-formatter))
@@ -200,21 +200,13 @@
                                             (keys portfolio-composition-by-date))))
 
         ;; Get prices of all past and current tickers from start-date (executed date) to end-date 
-        prices-until-end-date (into {} ;; this makes everything unsorted
-                                    (map (fn [[ticker amount]]
-                                           [ticker (client/get-ticker-price-with-end ticker start-date end-date)])
-                                         (get portfolio-composition-by-date latest-execution-date))) ;; Newest Portfolio should contain all past and current tickers
+        ;; prices-until-end-date (into {} ;; this makes everything unsorted
+        ;;                             (map (fn [[ticker amount]]
+        ;;                                    [ticker (client/get-ticker-price-with-end ticker start-date end-date)])
+        ;;                                  (get portfolio-composition-by-date latest-execution-date))) ;; Newest Portfolio should contain all past and current tickers
 
-        ;; Make dates the keys, and opening and closing prices the values, don't forget to sort it
-        sorted-prices-until-end-date-enhanced (into {}
-                                             (map (fn [[ticker prices]]
-                                                    [ticker (util/sort-map-by-date 
-                                                             (into {} ;; this makes everything unsorted 
-                                                                   (map (fn [[date opening-price closing-price]] 
-                                                                          [date [opening-price closing-price]]) 
-                                                                        prices)))
-                                                     ])
-                                                  prices-until-end-date))
+        ;; Get all prices from previous fetch in analyze-portfolio function
+        sorted-prices-until-end-date-enhanced complete-stock-prices
 
         ;; ;; Sort all the price data
         ;; sorted-prices-until-end-date-enhanced (loop 
@@ -227,11 +219,16 @@
         ;;                                            (assoc sorted-prices (first tickers) 
         ;;                                                   (util/sort-map-by-date (get prices-until-end-date-enhanced (first tickers)))))))
 
-        ;; Get all trade dates between start-date and end-date
+
+        ;; Get all trade dates between start of portfolio and today
         ;; Returns a collection of date Strings (i.e. "yyyy-MM-dd")
-        all-trade-dates (map #(first %) ;; Get all trade dates from the data
-                             (get prices-until-end-date ;; Get Prices for any one of the tickers from the portfolio
-                                  (first (keys (get portfolio-composition-by-date latest-execution-date))))) ;; Get any one of the tickers from the newest portfolio
+        all-trade-dates (keys ;; Return the dates 
+                         (reduce ;; Find the ticker with the most number of data, and return the corresponding data
+                          (fn [best curr] 
+                            (if (> (count curr) (count best)) 
+                              curr best))
+                          {} 
+                          (vals sorted-prices-until-end-date-enhanced))) ;; Get all the ticker prices from the newest portfolio
 
         ;; Get all portfolio-composition-by-date execution dates (already converted into java.time.LocalDate)
         all-trade-execution-dates (map date-parser (keys portfolio-composition-by-date)) ;; Take All Order Execution Dates
@@ -262,20 +259,20 @@
         ;; Get the values of each holding on each trade date based on the existing portfolio on that date
         ;; Returns the following format: {"2025-01-10" {"NVDA" ($100 * 25 units) "MSFT" ($100 * 25 units) ...}, 
         ;;                                "2025-01-13" {"NVDA" ($101 * 25 units) "MSFT" ($99 * 25 units) ...}, ...}
-        holding-values-by-date (util/sort-map-by-date 
-                                (into {} 
-                                      (map (fn [d] 
+        holding-values-by-date (util/sort-map-by-date
+                                (into {}
+                                      (map (fn [d]
                                              [d (into {} ;; Date is set as key
-                                                      (map (fn [[ticker prices]] 
+                                                      (map (fn [[ticker prices]]
                                                              [ticker ;; Ticker is inner map's key
-                                                             (if (= d start-date)
-                                                               ;; Multiply price of stock at trade date by the amount in existing portfolio to get holding value
-                                                               ;; Use opening price only if trade date is the execution date, otherwise always use closing price
-                                                               (* (first (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0)) ;; Notice that if ticker is not in existing portfolio, amount is 0
-                                                               (* (last (get prices d)) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0))) ;; Notice that if ticker is not in existing portfolio, amount is 0
-                                                             ]) 
+                                                              (if (= d (first (keys (get sorted-prices-until-end-date-enhanced ticker))))
+                                                                ;; Multiply price of stock at trade date by the amount in existing portfolio to get holding value
+                                                                ;; Use opening price only if trade date is the first execution date of that stock, otherwise always use closing price
+                                                                (* (first (get prices d [0 0])) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0)) ;; Notice that if ticker is not in existing portfolio, amount is 0
+                                                                (* (last (get prices d [0 0])) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0))) ;; Notice that if ticker is not in existing portfolio, amount is 0
+                                                              ])
                                                            sorted-prices-until-end-date-enhanced) ;; For each ticker, get date-prices key-value pair
-                                                      )]) 
+                                                      )])
                                            all-trade-dates)) ; For each trade date 
                                 )
         ;; Get total portfolio value by date (using the existing portfolio on that date), sorted by date
@@ -288,20 +285,24 @@
         ;; Get portfolio weights by date
         ;; Returns the following format: {"2025-01-10" {"NVDA" 20% "MSFT" 100% "TSLA" -20% ...}, 
         ;;                                "2025-01-13" {"NVDA" 10% "MSFT" 100% "TSLA" -10% ...}, ...}
-        portfolio-weights-by-date (util/sort-map-by-date 
+        portfolio-weights-by-date (util/sort-map-by-date
                                    (into {} ;; This is unsorted, becareful 
-                                         (map (fn [[d portfolio-value]] 
+                                         (map (fn [[d portfolio-value]]
                                                 [d (if (zero? portfolio-value) ;; Take care of edge case when portfolio value is 0 (no stocks held in portfolio)  
                                                      (into {}
                                                            (map (fn [ticker]
                                                                   [ticker (double 0)])
-                                                                (keys (get portfolio-composition-by-date latest-execution-date))))
+                                                                ;; (keys (get portfolio-composition-by-date latest-execution-date))
+                                                                (keys sorted-prices-until-end-date-enhanced)
+                                                                ))
                                                      (into {}
                                                            (map (fn [ticker]
                                                                   [ticker (/ (get (get holding-values-by-date d) ticker) portfolio-value)]) ;; Divides the stock holdings on date "d", by the total portfolio value on date "d"
-                                                                (keys (get portfolio-composition-by-date latest-execution-date)))))]) ;; Newest Portfolio should contain all past and current tickers
+                                                                ;; (keys (get portfolio-composition-by-date latest-execution-date)) ;; Newest Portfolio should contain all past and current tickers
+                                                                (keys sorted-prices-until-end-date-enhanced)
+                                                                )))]) 
                                               portfolio-value-by-date)))
-        
+
 
         ;; This variable holds all of the time-series log returns of the portfolio
         ;; On the trade date when a new order execution happens, we need to replace return with 0 because the portfolio changes. There is no return on these dates since there is a change in the portfolio composition.
@@ -309,17 +310,15 @@
                                        (fn [m d]
                                          (assoc m d 0)) ;; This essentially makes it so that execution dates are given 0 log return.
                                        (:log-returns (calculate-returns-with-corresponding-date (vals portfolio-value-by-date) (keys portfolio-value-by-date))) ;; When using this function, arguments have to be ordered by time
-                                       (keys portfolio-composition-by-date))
-        ]
+                                       (keys portfolio-composition-by-date))]
 
     {:stock-weights portfolio-weights-by-date
      :current-stock-holdings holding-values-by-date
      :portfolio-log-returns portfolio-log-returns-by-date
-     :all-ticker-prices sorted-prices-until-end-date-enhanced
      :portfolio-value portfolio-value-by-date
 
      ;; For testing purposes
-    ;;  :portfolio-holdings-by-date holding-values-by-date
+     ;;  :portfolio-holdings-by-date holding-values-by-date
      }))
 
 ;; Same function as above but include cash in the portfolio!!!
@@ -489,7 +488,20 @@
          complete-stock-prices {}
          data (rest data)]
     (if (empty? data)
-      [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) (util/sort-map-by-date portfolio-value) current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices] ;; When no more rows, return final values
+      (let [;; Turns price data into cleaner form, where keys are the stock tickers, and values are maps where keys are dates and vals are open and close prices, e.g.
+            ;;  {"NVDA" {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...}, 
+            ;;   "MSFT" {"2025-01-31" [$172 $180], "2025-02-01" [$177 $175], ...}, ...}
+            complete-stock-prices-enhanced
+            (into {}
+                  (map (fn [[ticker prices]]
+                         [ticker (util/sort-map-by-date ;; Sort by date
+                                  (into {} ;; this makes everything (the dates) unsorted 
+                                        (map (fn [[date opening-price closing-price]]
+                                               [date [opening-price closing-price]])
+                                             prices)))])
+                       complete-stock-prices))]
+        [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) (util/sort-map-by-date portfolio-value) current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices-enhanced] ;; When no more rows, return final values
+        ) 
       (let [[date action amount ticker] (first data)
             
             ;; Java Datetime related functions

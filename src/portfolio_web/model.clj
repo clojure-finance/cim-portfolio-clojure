@@ -82,9 +82,7 @@
               one-year-from-five-weeks-ago  (.minusDays five-weeks-ago 365)
 
               ;; Complete data related to portfolio-composition-by-date from oldest date to today
-              set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights-without-cash portfolio-composition-by-date
-                                                                                                              (.toString one-year-from-five-weeks-ago)
-                                                                                                              (.toString today))
+              set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights-without-cash portfolio-composition-by-date complete-stock-prices)
               ;; Complete Log Returns Time-Series from oldest date to today
               portfolio-log-returns (:portfolio-log-returns set-of-portfolio-complete-data)
 
@@ -151,7 +149,6 @@
            :one-year-cumulative-return-from-five-weeks-ago cumulative-return-five-weeks-ago
 
            ;; For use in other variables
-           :complete-ticker-prices (:all-ticker-prices set-of-portfolio-complete-data)
            :current-portfolio-weights current-portfolio-weights
            :current-portfolio-holdings current-portfolio-holdings
 
@@ -325,13 +322,16 @@
         ;; Portfolio Performance (One Dollar Invested in Portfolio)
         one-dollar-invested-in-portfolio-at-time-zero
         (let 
-         [log-dollar-performance  
+         [log-dollar-performance 
           (util/sort-map-by-date 
            (into {} 
                  (map 
                   (fn [[date value]] 
-                    [date (Math/log 
-                           (/ value starting-cash))]) ;; Starting cash should be the initial portfolio value  
+                    (if (neg? value) 
+                      [date nil] ;; Negative portfolio values will result in NaN when we take the logarithm
+                      [date (Math/log 
+                           (/ value starting-cash))]) ;; Starting cash should be the initial portfolio value 
+                    )  
                   portfolio-value-by-day)))
           
           plotly-data 
@@ -356,14 +356,8 @@
                 ;; Data is already sorted by time.
                 ;; The following is the form of the data: {"NVDA" {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...}, 
                 ;;                                         "MSFT" {"2025-01-31" [$172 $180], "2025-02-01" [$177 $175], ...}, ...}
-                prices-until-end-date (into {}
-                                            (map (fn [[ticker prices]]
-                                                   [ticker (util/sort-map-by-date ;; Sort by date
-                                                            (into {} ;; this makes everything (the dates) unsorted 
-                                                                  (map (fn [[date opening-price closing-price]]
-                                                                         [date [opening-price closing-price]])
-                                                                       prices)))])
-                                                 complete-stock-prices))
+
+                prices-until-end-date complete-stock-prices
 
                 ;; The following will return each stock and their logged dollar performance over time in the following format.
                 ;; {"NVDA" {"2025-01-31" 0, "2025-02-01" 0.006, ...}, 
@@ -516,4 +510,5 @@
      :alternative-rolling-ewma-volatility-figs alternative-rolling-ewma-volatility-figs
 
      ;; Test Data (will delete later) 
-     :test-data current-stock-holdings-and-weights}))
+     :test-data one-dollar-invested-in-portfolio-at-time-zero
+     }))
