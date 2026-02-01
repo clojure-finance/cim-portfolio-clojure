@@ -13,13 +13,15 @@
 (def currency-formatter
   (doto (NumberFormat/getCurrencyInstance Locale/US)
     (.setCurrency (Currency/getInstance "USD"))
-    (.setMinimumFractionDigits 2)))
+    (.setMinimumFractionDigits 0) ;; set number of d.p. here (bounded by the below maximum setting)
+    (.setMaximumFractionDigits 0) ;; Round to whole numbers
+    ))
 
 ;; The default page body
 (def html-home-body 
   [:body 
    [:header
-    [:h1 "CIM Portfolio Analysis Tool"]
+    [:h1 [:a.title-link {:href "/"} "CIM Portfolio Analysis Tool"]]
     [:a.github-link {:href "https://github.com/clojure-finance/cim-portfolio-clojure/tree/web-application" :target "_blank" :rel "noopener noreferrer" :aria-label "View project on GitHub"}
      [:svg.github-icon {:width "20" :height "20" :viewBox "0 0 98 96" :xmlns "http://www.w3.org/2000/svg" :aria-hidden "true" :focusable "false"}
       [:g {:clip-path "url(#clip0_730_27126)"}
@@ -48,7 +50,7 @@
          [:button.example-button {:type "button" :id "fill-example-button"} "Fill with example trades"]
          ;; Hidden pre containing example trades for JS to read
          [:pre.example-data.hidden 
-          "2024-12-01,buy,55000,NVDA\n2024-12-01,buy,29600,GOOG\n2024-12-01,buy,17500,MSFT\n2024-12-01,buy,23000,AAPL\n2024-12-01,buy,17400,AMZN\n2024-12-01,buy,12900,META\n2025-06-30,sell,5500,NVDA\n2025-06-30,buy,11700,TSLA"]]
+          "2024-12-01,buy,55000,NVDA\n2025-01-16,buy,29600,GOOG\n2025-03-14,buy,10000,MSFT\n2025-04-19,buy,7500,MSFT\n2025-05-05,buy,23000,AAPL\n2025-05-06,buy,17400,AMZN\n2025-08-11,buy,11500,META\n2025-10-26,sell,5500,NVDA\n2025-12-08,buy,5500,TSLA"]]
 
         [:textarea {:name "trades" :rows "5"
                     :placeholder "YYYY-MM-DD,action,amount,ticker"}]]
@@ -130,11 +132,23 @@
    ;; Cash Invested by Stock
    [:div.card
     [:h2 "Portfolio Allocation"]
-    [:ul#cashByStock
-     (for [ticker (data :unique-tickers)]
-       [:li (str (format "%s: " ticker) (if (neg? (get (:values (data :current-stock-holdings-and-weights)) ticker)) "-" "")
-                 (.format currency-formatter (abs (get (:values (data :current-stock-holdings-and-weights)) ticker)))
-                 (format " (%.2f%%)" (* 100 (get (:weights (data :current-stock-holdings-and-weights)) ticker))))])]]
+    [:div.allocation-columns
+     [:div.allocation-column
+      [:h3 "Ticker"]
+      [:ul#cashByStockTickers
+       (for [ticker (data :unique-tickers)]
+         [:li ticker])]]
+     [:div.allocation-column
+      [:h3 "Nominal Value"]
+      [:ul#cashByStockValues
+       (for [ticker (data :unique-tickers)]
+         [:li (str (if (neg? (get (:values (data :current-stock-holdings-and-weights)) ticker)) "-" "")
+                   (.format currency-formatter (abs (get (:values (data :current-stock-holdings-and-weights)) ticker))))])]]
+     [:div.allocation-column
+      [:h3 "Weight"]
+      [:ul#cashByStockWeights
+       (for [ticker (data :unique-tickers)]
+         [:li (format "%.2f%%" (* 100 (get (:weights (data :current-stock-holdings-and-weights)) ticker)))])]]]]
    
    [:div.card.return-comparison-card
     [:h2 "1-Year Cumulative Portfolio Return"]
@@ -280,7 +294,8 @@
 
          [:body
           [:header
-           [:h1 "CIM Portfolio Analysis Tool"]
+           [:a.back-button {:href "/" :aria-label "Back to Home"} "← Back to Home"]
+           [:h1 [:a.title-link {:href "/"} "CIM Portfolio Analysis Tool"]]
            [:a.github-link {:href "https://github.com/clojure-finance/cim-portfolio-clojure/tree/web-application" :target "_blank" :rel "noopener noreferrer" :aria-label "View project on GitHub"}
             [:svg.github-icon {:width "20" :height "20" :viewBox "0 0 98 96" :xmlns "http://www.w3.org/2000/svg" :aria-hidden "true" :focusable "false"}
              [:g {:clip-path "url(#clip0_730_27126)"}
