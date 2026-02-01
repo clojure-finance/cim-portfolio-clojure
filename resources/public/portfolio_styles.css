@@ -17,6 +17,26 @@ header h1 {
     margin: 0;
 }
 
+/* Clickable title link */
+.title-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-block;
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+    font-weight: inherit;
+}
+
+.title-link:hover {
+    text-decoration: underline;
+}
+
+.title-link:focus {
+    outline: 2px solid #9fd3ff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
 /* GitHub link in header */
 .github-link {
     position: absolute;
@@ -53,12 +73,46 @@ header h1 {
     outline-offset: 2px;
 }
 
+/* Back button (left side) */
+.back-button {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ffffff;
+    color: #2c3e50;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+}
+
+.back-button:hover {
+    background: #f0f0f0;
+}
+
+.back-button:focus {
+    outline: 2px solid #9fd3ff;
+    outline-offset: 2px;
+}
+
 /* Responsive fallback: stack link under title on small screens */
 @media (max-width: 600px) {
     header h1 {
         font-size: 1.1rem;
     }
     .github-link {
+        position: static;
+        transform: none;
+        margin-top: 0.5rem;
+    }
+    .back-button {
         position: static;
         transform: none;
         margin-top: 0.5rem;
@@ -194,5 +248,35 @@ canvas {
   display: flex;
   justify-content: space-between;
   gap: 20px;
+}
+
+/* Portfolio Allocation three-column layout */
+.allocation-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem;
+}
+
+.allocation-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.allocation-column h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.allocation-column ul {
+  margin: 0;
+  padding-left: 0rem;
+  list-style-type: none;
+}
+
+.allocation-column li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
 }
 
