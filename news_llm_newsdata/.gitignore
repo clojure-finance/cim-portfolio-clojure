@@ -1,0 +1,50 @@
+# Clojure
+.cpcache/
+target/
+classes/
+checkouts/
+profiles.clj
+*.class
+.lein-deps-sum
+.lein-repl-history
+.nrepl-port
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+.env.*
+!.env.example
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Data and Reports (Local runtime files)
+dynamic report/
+Reports/
+data/
+run.log
+*.log
+
+# Model files (too large for git)
+embeddings/model/
+*.model
+*.bin
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# Editors
+.vscode/
+.idea/
+*.iml
