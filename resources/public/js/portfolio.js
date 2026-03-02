@@ -28,4 +28,26 @@ document.addEventListener('DOMContentLoaded', function() {
       volatilityBtn.textContent = "Switch to λ = 0.97";
       currentTitle.textContent = "30-Day Annualized EWMA Rolling Volatility of Portfolio (λ = 0.94)";
       }});
+
+  // Logic for portfolio sharpe ratio graphs
+
+  // Button to change sharpe ratio graphs
+  const sharpeChartDiv = document.getElementById("rolling-sharpe-ratio");
+  const sharpeBtn = document.getElementById("sharpeLambdaSwitch");
+
+  sharpeBtn.addEventListener("click", function() {
+
+    // Toggle between λ=0.94 and λ=0.97
+    const currentTitle = sharpeChartDiv.parentElement.parentElement.querySelector('h2'); 
+
+    if (sharpeBtn.textContent.includes("0.97")) {
+      Plotly.newPlot(sharpeChartDiv.id, [JSON.parse(sharpeChartDiv.dataset.altPlot)]);
+      sharpeBtn.textContent = "Switch to λ = 0.94";
+      currentTitle.textContent = "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.97)";
+      } 
+    else { 
+      Plotly.newPlot(sharpeChartDiv.id, [JSON.parse(sharpeChartDiv.dataset.plot)]);
+      sharpeBtn.textContent = "Switch to λ = 0.97";
+      currentTitle.textContent = "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.94)";
+      }});
 });
