@@ -267,7 +267,7 @@
                                                              [ticker ;; Ticker is inner map's key
                                                               (if (= d (first (keys (get sorted-prices-until-end-date-enhanced ticker))))
                                                                 ;; Multiply price of stock at trade date by the amount in existing portfolio to get holding value
-                                                                ;; Use opening price only if trade date is the first execution date of that stock, otherwise always use closing price
+                                                                ;; Use opening price only if trade date is the first execution date of that stock, otherwise always use closing price (This is correct even if the same stock is bought/sold in a future date, because we only care about the stock holdings at the end of day, this is not a measure of PnL (but should it be? Seems too complicated tho...)!!!)
                                                                 (* (first (get prices d [0 0])) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0)) ;; Notice that if ticker is not in existing portfolio, amount is 0
                                                                 (* (last (get prices d [0 0])) (get (get portfolio-composition-by-date (get-nearest-execution-date d)) ticker 0))) ;; Notice that if ticker is not in existing portfolio, amount is 0
                                                               ])
@@ -502,29 +502,31 @@
                        complete-stock-prices))]
         [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) (util/sort-map-by-date portfolio-value) current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices-enhanced] ;; When no more rows, return final values
         ) 
-      (let [[date action amount ticker] (first data)
-            
+      (let [[date action amount ticker set-price] (first data)
+           
             ;; Java Datetime related functions
             date-formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd")
             date-parser (fn [d] (java.time.LocalDate/parse d date-formatter))
-
-            ticker-prices (filter ;; Filter ticker prices such that only data on the next trade date and after is taken  
-                           (fn [[d open-price close-price]] 
-                             (.isAfter (date-parser d) (date-parser date)))
-
-                            ;; Obtain stock price data (Please check if vector is ordered by date) 
+           
+            ticker-prices (filter ;; Filter ticker prices such that only data on the trade date and after is taken  
+                           (fn [[d open-price close-price]]
+                             (or (.isEqual (date-parser d) (date-parser date))
+                                 (.isAfter (date-parser d) (date-parser date))))
+           
+                           ;; Obtain stock price data (Please check if vector is ordered by date) 
                            (if (= (get complete-stock-prices ticker "") "") ;; Check if we have fetched this ticker previously 
                              (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for only one of the tickers from the trade date until today 
                              (get complete-stock-prices ticker 0)) ;; If already previously fetched, then no need to re-fetch
                            )
             executed-date (first (first ticker-prices))				; gets the date the buy/sell order is executed
+            set-price (if (nil? set-price) set-price (str (client/convert-currency ticker set-price))) ;; Converts the inputted price into USD (by default) if not in USD, this returns a string for consistency
             ]
         (cond
           (= (clojure.string/lower-case action) "buy")
           (if (pos? (Double. amount))
-            (let [price (second (first ticker-prices))        			; Gets open price of next trading day
+            (let [price (if (nil? set-price) (second (first ticker-prices)) (Double. set-price))         ; Gets open price of trading day OR the set-price if available
                   currPrice (nth (last ticker-prices) 2)				; Gets adj close price of latest day
-                  prices (mapv #(nth % 2) ticker-prices)       			; Extracts the prices from ticker-prices (trade date to today)
+                  prices (mapv #(nth % 2) ticker-prices)       			; Extracts the closing prices from ticker-prices (trade date to today)
                   amounts (repeatedly (count prices) #(Double. amount))	; Repeats amount for num of trading days (trade date to today)
                   ;; trading-dates (mapv #(first %) ticker-prices) ;; List of trading dates
                   ]
@@ -537,27 +539,24 @@
                                   (map #(- % (* (Double. amount) price)) (map * prices amounts)))) ;; PnL for each trading day relative to trade date = Market value of each holding for trading days after the trade date - Market value of the holdings on the trade date
                      ; Updates portfolio-value with the calculated values
                      (+ current-value (* (Double. amount) currPrice)) ;; Current (Latest) market value of stocks
-                     
-                    ;;  (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates)) ;; Returns the day to day arithmetic and log returns; Also the cumulative log returns.; Which trading dates depend on data received from client/get-ticker-price-all
+
+                     ;;  (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates)) ;; Returns the day to day arithmetic and log returns; Also the cumulative log returns.; Which trading dates depend on data received from client/get-ticker-price-all
                      ;; The above may have problem, especially with the cumulative log return, since it only takes into account the next 30 days only after a trade, will change to up until today 
                      (assoc cash-invested ticker (+ (get cash-invested ticker 0) (* (Double. amount) price))) ;; Updates the amount of cash spent on the trade date so far for each ticker
                      (assoc cash-invested-by-date executed-date (assoc cash-invested ticker (+ (get cash-invested ticker 0) (* (Double. amount) price)))) ;; Same like above but with the trade date
                      ;; Be careful of signage, buy orders should "deplete" cash
-                     (assoc change-in-cash-by-date executed-date 
+                     (assoc change-in-cash-by-date executed-date
                             (if (empty? change-in-cash-by-date)
                               ;; If this is the first trade, just put in the initial investment
                               (- 0 (* (Double. amount) price))
 
                               ;; Add new trade notional to most recent cash change
-                              (- (get change-in-cash-by-date 
+                              (- (get change-in-cash-by-date
                                       ;; Get most recent trade date
                                       (.toString
                                        (reduce #(if (> (.compareTo %1 %2) 0) %1 %2) ;; .compareTo returns a positive integer if %1 is greater than %0, zero if they are equal, otherwise negative integer 
                                                (map date-parser
-                                                    (keys change-in-cash-by-date)))) 0
-                                      ) (* (Double. amount) price)
-                                 ) 
-                              ))
+                                                    (keys change-in-cash-by-date)))) 0) (* (Double. amount) price))))
                      (if (= (get complete-stock-prices ticker "") "") ;; Check if we have to store new stock prices into map
                        (assoc complete-stock-prices ticker ticker-prices)
                        complete-stock-prices) ;; Keep previously fetched stock price data
@@ -565,7 +564,7 @@
             (recur cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices (rest data))) ;; If negative amount, ignore
           
           (= (clojure.string/lower-case action) "sell")
-          (let [price (second (first ticker-prices))
+          (let [price (if (nil? set-price) (second (first ticker-prices)) (Double. set-price))
                 currPrice (nth (last ticker-prices) 2)
                 prices (map second ticker-prices)
                 amounts (repeatedly (count prices) #(Double. amount))

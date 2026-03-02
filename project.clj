@@ -6,20 +6,15 @@
 
   :dependencies [[org.clojure/clojure "1.12.0"]
                  [org.clojure/data.csv "1.0.1"]
-                 [clj-time "0.15.2"]
-                 [clj-http "3.13.1"]
-                 [cheshire "5.12.0"] 
+                 [clj-time "0.15.2"] 
                  [clj-python/libpython-clj "2.025"]
                  [nrepl "1.0.0"]
-                 [org.slf4j/slf4j-api "2.0.9"]         ; Add this line for SLF4J API
-                 [org.slf4j/slf4j-simple "2.0.9"]
                  [generateme/fastmath "3.0.0-alpha3"]
-                 [datalevin "0.9.22"]
                  [ring/ring-core "1.15.3"]
                  [ring/ring-jetty-adapter "1.15.3"]
                  [ring/ring-codec "1.3.0"]
                  [hiccup "2.0.0"]
-                 ]     ; Add this line for SLF4J Simple Logger
+                 ]
   :ring {:handler portfolio-web.controllers/app}
   :plugins [[lein-ring "0.12.6"]]
   :main cim-portfolio.core
