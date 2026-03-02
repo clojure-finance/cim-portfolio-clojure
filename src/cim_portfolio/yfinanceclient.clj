@@ -45,7 +45,7 @@ def get_ticker_price_all_deprecated(ticker, date): # This function should fetch 
     return data[['Date', 'Open', 'Close']].to_json(orient = 'values')
 
 def get_ticker_price_all(ticker, date): # This function should fetch all prices in all trading dates from the trade date to today.
-    date = (datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d') # Trade date is at least one day after the order date
+    # date = (datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d') # Trade date is at least one day after the order date (Comment for new changes to order format)
     count = 0
     while True:
         count += 1
@@ -89,11 +89,28 @@ def get_ticker_price_with_end(ticker, start_date, end_date):
         fx_to_usd = 1
     data['Open'] = data['Open'] * fx_to_usd
     data['Close'] = data['Close'] * fx_to_usd
-    return data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
+    return data[['Date', 'Open', 'Close']].to_json(orient = 'values')
+    
+def convert_currency(ticker, ticker_price, target_currency='USD'):
+    # This function is used to convert a price in a foreign currency (e.g. for a non USD-denominated asset) to a target currency
+    stock = yf.Ticker(ticker)
+    ticker_price = float(ticker_price)
+            
+    if 'currency' in stock.info and stock.info['currency'] != target_currency:
+        c = CurrencyConverter()
+        fx_to_target = c.convert(1, stock.info['currency'], target_currency)
+    else:
+        fx_to_target = 1
+    
+    converted_price = ticker_price * fx_to_target
+    return converted_price
+    "))
 
 (def get-ticker-price-all-wrapper (:get_ticker_price_all (:globals pythonWrapper)))
 
 (def get-ticker-price-with-end-wrapper (:get_ticker_price_with_end (:globals pythonWrapper)))
+
+(def convert-currency-wrapper (:convert_currency (:globals pythonWrapper)))
 
 (defn get-ticker-price-all [ticker date]
   (json/read-str (get-ticker-price-all-wrapper ticker date))
@@ -102,6 +119,12 @@ def get_ticker_price_with_end(ticker, start_date, end_date):
 (defn get-ticker-price-with-end [ticker start_date end_date]
   (json/read-str (get-ticker-price-with-end-wrapper ticker start_date end_date))
   )
+
+(defn convert-currency 
+  ([ticker ticker_price target_currency] (convert-currency-wrapper ticker ticker_price target_currency))
+  ([ticker ticker_price] (convert-currency-wrapper ticker ticker_price) ;; No target currency defaults to USD
+   )) 
+
 ;; Test if function is working + price is converted to USD
 
 (get-ticker-price-all "0700.HK" "2025-01-25")

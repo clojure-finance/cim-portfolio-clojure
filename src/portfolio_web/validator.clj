@@ -12,7 +12,8 @@
   ["Date of trade submitted (YYYY-MM-DD)"
    "Action"
    "Amount Bought/Sold"
-   "Ticker"])
+   "Ticker"
+   "Price"])
 
 ;; DEPRECATED, used when the form data is in encoded in application/x-www-form-urlencoded
 (defn parse-trades [raw-body] ;; Returns a map
@@ -44,18 +45,18 @@
 ;; For Manual Input
 (defn parse-manual-input [trades-map] ;; Returns a map
   (let [;; Currently trades-map should look like 
-        ;; {:trades "2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG\r\n2024-12-22,sell,30,TSLA\r\n2025-01-08,sell,30,NVDA" 
+        ;; {:trades "2024-10-15,buy,100,NVDA,130\r\n2024-11-25,buy,50,GOOG,\r\n2024-12-22,sell,30,TSLA,\r\n2025-01-08,sell,30,NVDA," 
         ;;  :starting-cash "50000000"
         ;;  :show-capm-metrics "true",
         ;;  :show-stock-performances "true"} 
         
         trades (-> (:trades trades-map)
-                   (str/split-lines)) ;; Turns it into ["2024-10-15,buy,100,NVDA" "2024-11-25,buy,50,GOOG" "2024-12-22,sell,30,TSLA" "2025-01-08,sell,30,NVDA"] 
+                   (str/split-lines)) ;; Turns it into ["2024-10-15,buy,100,NVDA,130" "2024-11-25,buy,50,GOOG," "2024-12-22,sell,30,TSLA," "2025-01-08,sell,30,NVDA,"] 
         
         ;; The following turns it into 
-        ;; [["Date of trade submitted (YYYY-MM-DD)" "Action" "Amount Bought/Sold" "Ticker"] 
-        ;;  ["2024-10-15" "buy" "100" "NVDA"]
-        ;;  ["2024-11-25" "buy" "50" "GOOG"]
+        ;; [["Date of trade submitted (YYYY-MM-DD)" "Action" "Amount Bought/Sold" "Ticker" "Price"] 
+        ;;  ["2024-10-15" "buy" "100" "NVDA" "130"]
+        ;;  ["2024-11-25" "buy" "50" "GOOG"] <- if there is no "Price" set, it will only return 4 items in the collection
         ;;  ["2024-12-22" "sell" "30" "TSLA"]
         ;;  ["2025-01-08" "sell" "30" "NVDA"]]
         trades (into [header]
@@ -74,19 +75,19 @@
   (let [
         
         ;; Currently trades-map should look like 
-        ;; {:trades "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker\r\n2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG\r\n2024-12-22,sell,30,TSLA\r\n2025-01-08,sell,30,NVDA"
+        ;; {:trades "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker,Price\r\n2024-10-15,buy,100,NVDA,130\r\n2024-11-25,buy,50,GOOG,\r\n2024-12-22,sell,30,TSLA,\r\n2025-01-08,sell,30,NVDA,"
         ;;  :starting-cash "50000000"
         ;;  :show-capm-metrics "true"}
 
-        ;; First, we get rid of the string "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker\r\n", using regex (hashtag string denotes regex exp)
+        ;; First, we get rid of the string "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker,Price\r\n", using regex (hashtag string denotes regex exp)
         trades (-> (str/split (:trades trades-map) #"\n" 2) ;; There should be 1 newline before the data we want
                    (last)
-                   (str/split-lines)) ;; Turns it into ["2024-10-15,buy,100,NVDA" "2024-11-25,buy,50,GOOG" "2024-12-22,sell,30,TSLA" "2025-01-08,sell,30,NVDA"] 
+                   (str/split-lines)) ;; Turns it into ["2024-10-15,buy,100,NVDA,130" "2024-11-25,buy,50,GOOG," "2024-12-22,sell,30,TSLA," "2025-01-08,sell,30,NVDA,"] 
 
         ;; The following turns it into 
-        ;; [["Date of trade submitted (YYYY-MM-DD)" "Action" "Amount Bought/Sold" "Ticker"] 
-        ;;  ["2024-10-15" "buy" "100" "NVDA"]
-        ;;  ["2024-11-25" "buy" "50" "GOOG"]
+        ;; [["Date of trade submitted (YYYY-MM-DD)" "Action" "Amount Bought/Sold" "Ticker" "Price"] 
+        ;;  ["2024-10-15" "buy" "100" "NVDA" "130"]
+        ;;  ["2024-11-25" "buy" "50" "GOOG"] <- if there is no "Price" set, it will only return 4 items in the collection
         ;;  ["2024-12-22" "sell" "30" "TSLA"]
         ;;  ["2025-01-08" "sell" "30" "NVDA"]]
         trades (into [header]

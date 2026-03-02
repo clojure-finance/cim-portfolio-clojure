@@ -53,7 +53,7 @@
           "2024-12-01,buy,55000,NVDA\n2025-01-16,buy,29600,GOOG\n2025-03-14,buy,10000,MSFT\n2025-04-19,buy,7500,MSFT\n2025-05-05,buy,23000,AAPL\n2025-05-06,buy,17400,AMZN\n2025-08-11,buy,11500,META\n2025-10-26,sell,5500,NVDA\n2025-12-08,buy,5500,TSLA"]]
 
         [:textarea {:name "trades" :rows "5"
-                    :placeholder "YYYY-MM-DD,action,amount,ticker"}]]
+                    :placeholder "YYYY-MM-DD,action,amount,ticker,price"}]]
 
       ;; File upload input (Accepts .csv or .txt)
       [:div.file-input
