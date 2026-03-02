@@ -443,15 +443,15 @@
 
         (loop
          [sliding-window rolling-returns-squared
-          ewma-rolling-portfolio-volatility []]
+          ewma-rolling-portfolio-variance []]
 
           (if (empty? sliding-window)
 
-            ewma-rolling-portfolio-volatility
+            ewma-rolling-portfolio-variance
 
             (recur
              (rest sliding-window) ;; Remove first window
-             (conj ewma-rolling-portfolio-volatility
+             (conj ewma-rolling-portfolio-variance
                    (reduce + ;; Sum all products in each window
                                  (map * (first sliding-window) reversed-applied-weights)) ;; Multiply each element in first window, with the corresponding weight
                    )
@@ -467,6 +467,18 @@
         (vec annualized-rolling-ewma-sd)
         
         ))
+
+;; Calculates the annualized rolling sharpe ratio, intended to be used with a measure of annualized rolling volatility with the same size for the sliding window
+
+(defn rolling-sharpe-ratio [prices volatility window-size]
+  (let [returns (:arithmetic-returns (calculate-returns prices))
+        rolling-returns (partition window-size 1 returns)
+        rolling-average-returns (map #(/ (reduce + %) window-size) rolling-returns)
+        annualized-rolling-average-returns (map #(* 252 %) rolling-average-returns)
+        rolling-sharpe-ratio (map / annualized-rolling-average-returns volatility)
+        ] 
+    rolling-sharpe-ratio
+    ))
 
 ;;; ### Portfolio Processing Section
 

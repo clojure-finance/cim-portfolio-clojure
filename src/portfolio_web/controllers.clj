@@ -59,14 +59,14 @@
                            ]
                        (-> parsed-trades
                            
-                           ; Send result to the model to be processed
-                            (model/process-trades)
-                           
-                           ; Send processed data to view to display
-                            ;; (views/test-page)
-                            (views/portfolio-page)
-                           )
-                      ;;  (str parsed-trades)
+
+                           ;; Send result to the model to be processed
+                           (model/process-trades)
+                       
+                           ;; Send processed data to view to display
+                           ;; (views/test-page)
+                           (views/portfolio-page)
+                           ) 
                        )
                        )
                     "text/html")) 

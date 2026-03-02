@@ -222,8 +222,16 @@
             :data-plot (json/write-str (data :default-rolling-ewma-volatility-figs))
             :data-alt-plot (json/write-str (data :alternative-rolling-ewma-volatility-figs))}]]
     [:button {:id "lambdaSwitch"} "Switch to λ = 0.97"]]  ;; This button is a temporary feature (before user input) to change lambda to 0.97 (via Javascript)
+
+    [:div.card.full-width
+     [:h2 "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.94)"]
+     [:div.graph
+      [:div {:id "rolling-sharpe-ratio" :class "miscChart"
+             :data-plot (json/write-str (data :default-rolling-sharpe-ratio-figs))
+             :data-alt-plot (json/write-str (data :alternative-rolling-sharpe-ratio-figs))}]]
+     [:button {:id "sharpeLambdaSwitch"} "Switch to λ = 0.97"]]  ;; This button is a temporary feature (before user input) to change lambda to 0.97 (via Javascript)
    
-   
+
    ;; Alpha & Beta Graphs (Conidtional on whether :show-capm-metrics = true)
    (if (= (data :alpha-beta-figs) "")
      ;; :show-capm-metrics = false
