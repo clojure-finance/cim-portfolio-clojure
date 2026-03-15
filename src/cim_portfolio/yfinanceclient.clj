@@ -1,86 +1,93 @@
-;;; # Clojure Wrapper over Python's yfinance API 
-;;; ### Requires python, yfinance etc. to be installed on local machine
 (ns cim_portfolio.yfinanceclient
-  (:require [libpython-clj2.require :refer [require-python]]
-            [libpython-clj2.python :refer [py. py.. py.-] :as py] 
-            [clojure.data.json :as json]
-  )
-)
+  (:require [clj-http.client :as http]
+            [cheshire.core :as json]
+            [clojure.string :as str])
+  (:import [java.time LocalDate ZoneId Instant]
+           [java.time.format DateTimeFormatter]))
 
-(py/initialize! :python-executable "/home/edward/miniconda3/envs/cim-portfolio/bin/python")
+(def user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
-;; (require-python '[yfinance :as yf]
-;;                 '[datetime :as dt])
+(defn- to-epoch [date-str]
+  (let [formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd")
+        date (LocalDate/parse date-str formatter)
+        zone (ZoneId/of "America/New_York")]
+    (-> date (.atStartOfDay zone) (.toEpochSecond))))
 
+(defn- epoch-to-date [seconds]
+  (let [instant (Instant/ofEpochSecond seconds)
+        zone (ZoneId/of "America/New_York")
+        formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd")]
+    (-> instant (.atZone zone) (.format formatter))))
 
-;; Test if yfinance working through clojure-python wrapper
-;; (yf/download "AAPL" "2025-01-15" :progress false :auto_adjust false)
+(defn- fetch-chart [ticker start-epoch end-epoch]
+  (let [url (str "https://query2.finance.yahoo.com/v8/finance/chart/" ticker)
+        params {:period1 start-epoch
+                :period2 end-epoch
+                :interval "1d"
+                :events "history"}
+        resp (http/get url {:query-params params 
+                            :headers {"User-Agent" user-agent} 
+                            :as :json
+                            :throw-exceptions false})]
+    (if (= 200 (:status resp))
+      (get-in resp [:body :chart :result 0])
+      (throw (Exception. (str "Failed to fetch data for " ticker " status: " (:status resp)))))))
 
-(def pythonWrapper (py/run-simple-string "from datetime import datetime, timedelta
-import yfinance as yf
-from currency_converter import CurrencyConverter
+(defn- get-exchange-rate [from-curr]
+  (if (or (nil? from-curr) (= "USD" from-curr))
+    1.0
+    (try
+      (let [pair (str from-curr "USD=X")
+            end (quot (System/currentTimeMillis) 1000)
+            start (- end 864000) ;; Look back 10 days to be safe
+            data (fetch-chart pair start end)
+            price (get-in data [:meta :regularMarketPrice])]
+         (double (or price 1.0)))
+      (catch Exception e
+        (println "Error fetching exchange rate for" from-curr ":" (.getMessage e))
+        1.0))))
 
-def get_ticker_price_all(ticker, date):
-    date = (datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
-    count = 0
-    while True:
-        count += 1
-        data = yf.download(ticker, start=date, progress=False, auto_adjust=False) # This might only be 1 month
-        if len(data) > 0:
-            break
-        if count >= 10:
-            return 'ERROR'
-    data.reset_index(inplace=True)
-    data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')
-    stock = yf.Ticker(ticker)
-
-    if 'currency' in stock.info and stock.info['currency'] != 'USD':
-        c = CurrencyConverter()
-        fx_to_usd = c.convert(1, stock.info['currency'], 'USD')
-    else:
-        fx_to_usd = 1
-    data['Open'] = data['Open'] * fx_to_usd
-    data['Close'] = data['Close'] * fx_to_usd
-    return data[['Date', 'Open', 'Close']].to_json(orient = 'values')
-    
-def get_ticker_price_with_end(ticker, start_date, end_date):
-    # Note that one day is not added to the start date here 
-    count = 0
-    while True:
-        count += 1
-        data = yf.download(ticker, start=start_date, end=end_date, progress=False, auto_adjust=True) # Note that this is adjusted for dividends!
-        if len(data) > 0:
-            break
-        if count >= 10:
-            return 'ERROR'
-
-    data.reset_index(inplace=True)
-    data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')
-    stock = yf.Ticker(ticker)
-
-    if 'currency' in stock.info and stock.info['currency'] != 'USD':
-        c = CurrencyConverter()
-        fx_to_usd = c.convert(1, stock.info['currency'], 'USD')
-    else:
-        fx_to_usd = 1
-    data['Open'] = data['Open'] * fx_to_usd
-    data['Close'] = data['Close'] * fx_to_usd
-    return data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
-
-(def get-ticker-price-all-wrapper (:get_ticker_price_all (:globals pythonWrapper)))
-
-(def get-ticker-price-with-end-wrapper (:get_ticker_price_with_end (:globals pythonWrapper)))
-
+;; Main functions
+(defn get-ticker-price-with-end [ticker start-date end-date]
+  (try
+    (let [start (to-epoch start-date)
+          end (to-epoch end-date)
+          data (fetch-chart ticker start end)
+          timestamps (get-in data [:timestamp])
+          quotes (get-in data [:indicators :quote 0])
+          adj-closes (get-in data [:indicators :adjclose 0 :adjclose])
+          opens (:open quotes)
+          closes (:close quotes)
+          
+          ;; Detect currency and rate
+          meta (:meta data)
+          currency (:currency meta)
+          rate (get-exchange-rate currency)]
+      
+      (if (or (empty? timestamps) (empty? opens))
+        []
+        (vec
+         (keep (fn [idx]
+                 (let [ts (nth timestamps idx)
+                       o (nth opens idx nil)
+                       c (nth closes idx nil)
+                       adj (nth adj-closes idx nil)]
+                   (when (and o c adj)
+                     (let [date-str (epoch-to-date ts)
+                           ;; Auto-adjust wrapper logic:
+                           ;; We want Adjusted Open and Adjusted Close in USD.
+                           ;; factor = adj-close / close
+                           factor (if (zero? c) 1.0 (/ adj c))
+                           final-open (* o factor rate)
+                           final-close (* adj rate)] ;; adj is already adjusted
+                       [date-str (double final-open) (double final-close)]))))
+               (range (count timestamps))))))
+    (catch Exception e
+      (println "Error fetching" ticker ":" (.getMessage e))
+      [])))
+      
 (defn get-ticker-price-all [ticker date]
-  (json/read-str (get-ticker-price-all-wrapper ticker date))
-)
+  (let [now-str (epoch-to-date (quot (System/currentTimeMillis) 1000))]
+    (get-ticker-price-with-end ticker date now-str)))
 
-(defn get-ticker-price-with-end [ticker start_date end_date]
-  (json/read-str (get-ticker-price-with-end-wrapper ticker start_date end_date))
-  )
-;; Test if function is working + price is converted to USD
-
-(get-ticker-price-all "0700.HK" "2025-01-25")
-
-(get-ticker-price-with-end "0700.HK" "2025-01-25" (.toString (java.time.LocalDate/now)))
 

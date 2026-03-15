@@ -14,7 +14,13 @@
             [clojure.string :as string]
             [cim_portfolio.regression :as reg]
             [cim_portfolio.portfoliofunctions :as portfolio]
-            [nextjournal.clerk :as clerk]))
+            [nextjournal.clerk :as clerk]
+            [cim-portfolio.news.core :as news]))
+
+;;; ### News Analysis Configuration
+(def news-config
+  {:query "AAPL"
+   :max-articles 3})
 
 ;;; ### Program Configuration
 

@@ -1,8 +1,60 @@
 # cim_portfolio_clojure
 
-A portfolio analysis program written in Clojure.
+A portfolio analysis program written in Clojure, now featuring **AI-Powered Market News Analysis**.
 
-## Installation
+## 🚀 Quick Start: AI News Analyzer
+
+This project includes a web-based AI Financial News Analyzer that fetches real-time market news and uses Large Language Models (LLMs) to provide sentiment analysis, summaries, and investment signals.
+
+### Prerequisites
+
+To use the AI News Analyzer, you need API keys for:
+1. **NewsData.io** (for fetching news)
+2. **DeepSeek API** (for AI analysis)
+
+### Option 1: Run with Docker Compose (Recommended)
+
+1. **Set your API keys** in your environment or a `.env` file:
+   ```bash
+   export NEWSDATA_API_KEY="your_key_here"
+   export DEEPSEEK_API_KEY="your_key_here"
+   ```
+   *(Windows PowerShell: `$env:NEWSDATA_API_KEY="your_key"`)*
+
+2. **Start the service**:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Access the App**:
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Option 2: Run Locally (Non-Docker)
+
+1. **Install Dependencies**: Java (JDK 21+), Leiningen.
+2. **Set Environment Variables**:
+   ```bash
+   # Mac/Linux
+   export NEWSDATA_API_KEY="your_key"
+   export DEEPSEEK_API_KEY="your_key"
+   
+   # Windows (CMD)
+   set NEWSDATA_API_KEY=your_key
+   set DEEPSEEK_API_KEY=your_key
+   ```
+3. **Run the App**:
+   ```bash
+   # Mac/Linux
+   ./run_web_app.sh
+
+   # Windows
+   run_web_app.bat
+   ```
+   Or manually: `lein run`
+
+---
+
+## Legacy Portfolio Analysis (Clerk Notebooks)
 
 ### RUNNING USING DOCKER IMAGE (RECOMMENDED - Tested on Windows, Mac and Linux):
 
