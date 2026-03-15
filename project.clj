@@ -9,13 +9,19 @@
                  [clj-time "0.15.2"]
                  [clj-http "3.13.1"]
                  [cheshire "5.12.0"] 
-                 [clj-python/libpython-clj "2.025"]
+                 ; [clj-python/libpython-clj "2.025"] - Removed for Pure Clojure implementation
                  [io.github.nextjournal/clerk "0.18.1150"]
                  [nrepl "1.0.0"]
                  [org.slf4j/slf4j-api "2.0.9"]         ; Add this line for SLF4J API
                  [org.slf4j/slf4j-simple "2.0.9"]
                  [generateme/fastmath "3.0.0-alpha3"]
                  [datalevin "0.9.22"]
+                 [org.jsoup/jsoup "1.17.2"]
+                 [http-kit "2.7.0"]
+                 [compojure "1.7.0"]
+                 [hiccup "2.0.0-alpha2"]
+                 [ring/ring-defaults "0.5.0"]
+                 [org.clojure/tools.cli "1.1.230"]
                  ]     ; Add this line for SLF4J Simple Logger
   :main ^:skip-aot cim-portfolio.core
   :target-path "target/%s"
