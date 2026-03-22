@@ -4,10 +4,16 @@
   (:require [libpython-clj2.require :refer [require-python]]
             [libpython-clj2.python :refer [py. py.. py.-] :as py] 
             [clojure.data.json :as json]
+            [clj-yfinance.core :as yf] 
+            [clojure-finance.ecbjure.fx :as fx]
   )
+  (:import  (java.time Instant LocalDate ZoneOffset))
 )
 
 (py/initialize! :python-executable "/home/edward/miniconda3/envs/cim-portfolio/bin/python")
+
+;; Fetch latest rates from ECB
+(def c (fx/make-converter))
 
 ;; (require-python '[yfinance :as yf]
 ;;                 '[datetime :as dt])
@@ -112,18 +118,50 @@ def convert_currency(ticker, ticker_price, target_currency='USD'):
 
 (def convert-currency-wrapper (:convert_currency (:globals pythonWrapper)))
 
-(defn get-ticker-price-all [ticker date]
+(defn python-get-ticker-price-all [ticker date]
   (json/read-str (get-ticker-price-all-wrapper ticker date))
 )
 
-(defn get-ticker-price-with-end [ticker start_date end_date]
+(defn python-get-ticker-price-with-end [ticker start_date end_date]
   (json/read-str (get-ticker-price-with-end-wrapper ticker start_date end_date))
   )
 
-(defn convert-currency 
+(defn python-convert-currency 
   ([ticker ticker_price target_currency] (convert-currency-wrapper ticker ticker_price target_currency))
   ([ticker ticker_price] (convert-currency-wrapper ticker ticker_price) ;; No target currency defaults to USD
    )) 
+
+(defn convert-currency
+  ([ticker ticker-price target-currency] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c ticker-price stock-currency target-currency)))
+  ([ticker ticker-price] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c ticker-price stock-currency "USD"))) ;; No target currency defaults to USD 
+  )
+
+(defn get-ticker-price-all [ticker date]
+  (let [yf-response (yf/fetch-historical ticker :start (.toEpochSecond (.atStartOfDay (LocalDate/parse date) ZoneOffset/UTC)) ;; Convert date string, e.g. 2026-01-31, to Epoch Seconds
+                                         :interval "1d")
+        stock-currency (:currency (yf/fetch-info ticker))
+        ticker-prices (pop ;; For some reason, the last datapoint is duplicated 
+                               (vec 
+                                (map #(vector (str (.toLocalDate (.atZone (Instant/ofEpochSecond (:timestamp %)) ZoneOffset/UTC))) ;; Convert Seconds since Epoch to a Date String, e.g. 2026-01-31 
+                                              (fx/convert c (:open %) stock-currency "USD") 
+                                              (fx/convert c (:close %) stock-currency "USD")) 
+                                     yf-response))) 
+        ]
+    ticker-prices)
+  )
+
+(defn get-ticker-price-with-end [ticker start-date end-date]
+  (let [yf-response (yf/fetch-historical ticker :start (.toEpochSecond (.atStartOfDay (LocalDate/parse start-date) ZoneOffset/UTC)) ;; Convert date string, e.g. 2026-01-31, to Epoch Seconds
+                                         :end (.toEpochSecond (.atStartOfDay (LocalDate/parse end-date) ZoneOffset/UTC)) 
+                                         :interval "1d")
+        stock-currency (:currency (yf/fetch-info ticker))
+        ticker-prices (pop ;; For some reason, the last datapoint is duplicated 
+                       (vec
+                        (map #(vector (str (.toLocalDate (.atZone (Instant/ofEpochSecond (:timestamp %)) ZoneOffset/UTC))) ;; Convert Seconds since Epoch to a Date String, e.g. 2026-01-31 
+                                      (fx/convert c (:open %) stock-currency "USD")
+                                      (fx/convert c (:close %) stock-currency "USD"))
+                             yf-response)))]
+    ticker-prices))
 
 ;; Test if function is working + price is converted to USD
 

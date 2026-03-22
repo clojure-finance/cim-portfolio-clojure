@@ -11,7 +11,8 @@
             [clojure.string :as string]
             [cim_portfolio.regression :as reg]
             [cim_portfolio.portfoliofunctions :as portfolio]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            ))
 
 ;; (def portfolio-options {:starting-cash 200000}) ;; Make this dynamic later on 
 
@@ -527,7 +528,10 @@
      :default-rolling-ewma-volatility-figs default-rolling-ewma-volatility-figs
      :alternative-rolling-ewma-volatility-figs alternative-rolling-ewma-volatility-figs
      :default-rolling-sharpe-ratio-figs default-rolling-sharpe-ratio-figs
-     :alternative-rolling-sharpe-ratio-figs alternative-rolling-sharpe-ratio-figs 
+     :alternative-rolling-sharpe-ratio-figs alternative-rolling-sharpe-ratio-figs
     
      ;; Test Data (will delete later) 
-     :test-data default-rolling-sharpe-ratio}))
+     ;; :test-data (client/get-ticker-price-all "^GSPC" "2022-09-01")
+     ;; :test-data (fx/convert (fx/make-converter) 100 "USD" "USD")
+     :test-data (client/convert-currency "6758.T" 3000)
+     }))
