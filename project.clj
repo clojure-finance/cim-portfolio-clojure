@@ -14,6 +14,8 @@
                  [ring/ring-jetty-adapter "1.15.3"]
                  [ring/ring-codec "1.3.0"]
                  [hiccup "2.0.0"]
+                 [com.github.clojure-finance/clj-yfinance "0.1.6"]
+                 [com.github.clojure-finance/ecbjure "0.1.4"]
                  ]
   :ring {:handler portfolio-web.controllers/app}
   :plugins [[lein-ring "0.12.6"]]
