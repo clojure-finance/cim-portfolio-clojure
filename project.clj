@@ -6,10 +6,11 @@
 
   :dependencies [[org.clojure/clojure "1.12.0"]
                  [org.clojure/data.csv "1.0.1"]
+                 [org.clojure/data.json "2.5.1"]
                  [clj-time "0.15.2"]
                  [clj-http "3.13.1"]
                  [cheshire "5.12.0"] 
-                 ; [clj-python/libpython-clj "2.025"] - Removed for Pure Clojure implementation
+                 ; ;; [clj-python/libpython-clj "2.025"] - Removed for Pure Clojure implementation
                  [io.github.nextjournal/clerk "0.18.1150"]
                  [nrepl "1.0.0"]
                  [org.slf4j/slf4j-api "2.0.9"]         ; Add this line for SLF4J API
@@ -21,6 +22,8 @@
                  [compojure "1.7.0"]
                  [hiccup "2.0.0-alpha2"]
                  [ring/ring-defaults "0.5.0"]
+                 [javax.servlet/javax.servlet-api "3.1.0"]
+                 ;; [clj-python/libpython-clj "2.025"]  ;; We must leave this commented out as the original project had it commented out
                  [org.clojure/tools.cli "1.1.230"]
                  ]     ; Add this line for SLF4J Simple Logger
   :main ^:skip-aot cim-portfolio.core
