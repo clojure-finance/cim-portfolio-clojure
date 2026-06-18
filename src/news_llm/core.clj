@@ -22,7 +22,7 @@
    :language "en"
    :max-articles 1
    :output-format "txt"
-   :output-dir "/mnt/c/Users/53419/Desktop/RA Documents/news_llm_newsdata/dynamic report"
+   :output-dir "reports"
    :request-delay 1000
    :max-retries 2
    :model "meta-llama/llama-3.2-3b-instruct:free"
