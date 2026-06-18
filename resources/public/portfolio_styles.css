@@ -102,25 +102,6 @@ header h1 {
     outline-offset: 2px;
 }
 
-/* Navigation links in header */
-.top-nav {
-    margin-top: 0.3rem;
-}
-
-.nav-link {
-    color: #fff;
-    text-decoration: none;
-    font-size: 0.88rem;
-    padding: 0.2rem 0.55rem;
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.45);
-    margin: 0 0.25rem;
-}
-
-.nav-link:hover {
-    background: rgba(255,255,255,0.18);
-}
-
 /* Responsive fallback: stack link under title on small screens */
 @media (max-width: 600px) {
     header h1 {

@@ -6,4 +6,3 @@ config.edn
 .lsp/
 .clj-kondo/
 target/
-lein_deps_output.txt
