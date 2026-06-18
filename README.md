@@ -9,8 +9,10 @@ This project includes a web-based AI Financial News Analyzer that fetches real-t
 ### Prerequisites
 
 To use the AI News Analyzer, you need API keys for:
-1. **NewsData.io** (for fetching news)
-2. **DeepSeek API** (for AI analysis)
+1. **NewsData.io** (for fetching news) — free tier at [newsdata.io](https://newsdata.io)
+2. **LLM API** — choose one:
+   - **DeepSeek** (default, recommended) — [platform.deepseek.com](https://platform.deepseek.com)
+   - **OpenRouter** (100+ models, free tiers available) — [openrouter.ai](https://openrouter.ai)
 
 ### Option 1: Run with Docker Compose (Recommended)
 

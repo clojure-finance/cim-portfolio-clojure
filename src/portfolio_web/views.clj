@@ -325,7 +325,7 @@
           [:title "News Intelligence Results -- CIM Portfolio Tool"]
           [:link {:rel "stylesheet" :href "/styles.css"}]]
          [:body
-          (page-header [:a.nav-link {:href "/news"} "New Analysis"] [:a.nav-link {:href "/"} "Portfolio"])
+          (page-header [:a.nav-link {:href "/news"} "News Analysis"] [:a.nav-link {:href "/"} "Portfolio"])
           [:div.container
            (if error-msg
              [:div.news-error error-msg]
