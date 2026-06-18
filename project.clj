@@ -10,6 +10,9 @@
                  [org.clojure/tools.cli "1.1.230"]
                  [clj-time "0.15.2"]
                  [nrepl "1.0.0"]
+                 [io.github.nextjournal/clerk "0.18.1150"]
+                 [org.slf4j/slf4j-api "2.0.9"]
+                 [org.slf4j/slf4j-simple "2.0.9"]
                  [generateme/fastmath "3.0.0-alpha3"]
                  ;; Web framework
                  [ring/ring-core "1.15.3"]
