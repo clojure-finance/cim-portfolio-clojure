@@ -10,7 +10,7 @@
                  [org.clojure/tools.cli "1.1.230"]
                  [clj-time "0.15.2"]
                  [nrepl "1.0.0"]
-                 [io.github.nextjournal/clerk "0.18.1150"]
+                 [io.github.nextjournal/clerk "0.18.1150" :exclusions [hiccup]]
                  [org.slf4j/slf4j-api "2.0.9"]
                  [org.slf4j/slf4j-simple "2.0.9"]
                  [generateme/fastmath "3.0.0-alpha3"]
@@ -18,7 +18,7 @@
                  [ring/ring-core "1.15.3"]
                  [ring/ring-jetty-adapter "1.15.3"]
                  [ring/ring-codec "1.3.0"]
-                 [hiccup "2.0.0"]
+                 [hiccup "1.0.5"]
                  ;; Portfolio data sources
                  [com.github.clojure-finance/clj-yfinance "0.1.6"]
                  [com.github.clojure-finance/ecbjure "0.1.4"]
@@ -27,8 +27,6 @@
                  [cheshire/cheshire "5.11.0"]
                  [org.jsoup/jsoup "1.17.2"]]
 
-  :ring {:handler portfolio-web.controllers/app}
-  :plugins [[lein-ring "0.12.6"]]
   :main cim-portfolio.core
   :aot [cim-portfolio.core]
   :target-path "target/%s"
