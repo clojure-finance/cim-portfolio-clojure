@@ -1,5 +1,5 @@
 (ns portfolio-web.views
-  (:require [hiccup2.core :as h]
+  (:require [hiccup.core :as h]
             [clojure.data.json :as json]
             [clojure.string :as str]
             [news-llm.core :as news])
