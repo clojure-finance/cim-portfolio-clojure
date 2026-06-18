@@ -1,2 +1,0 @@
-Wrong number of arguments to version task. 
-Expected []
