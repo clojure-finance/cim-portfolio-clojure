@@ -1,6 +1,5 @@
-(ns portfolio-web.controllers 
+(ns portfolio-web.controllers
   (:require [ring.util.response :as res]
-            [ring.util.request :as req]
             [ring.middleware.resource :as resource]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
@@ -8,114 +7,91 @@
             [portfolio-web.views :as views]
             [portfolio-web.validator :as validator]
             [portfolio-web.model :as model]
+            [news-llm.core :as news]
             [clojure.string :as str]))
 
-;; Home Webpage Handler
+;; ─── Portfolio handlers ────────────────────────────────────────────────────────
+
 (defn home-handler [request]
   (res/content-type (res/response (views/home-page)) "text/html"))
 
-;; Portfolio Analysis Page, DEPRECATED (used to handle form-data encoded in application/x-www-form-urlencoded)
-;; (defn analysis-handler [request]
-;;   (res/content-type (res/response (-> request 
-;;                                       (:params)
-
-;;                                       (str)
-;;                                       ; Convert URL-Encoded to raw string
-;;                                       ;; (slurp)
-;;                                       ;; ; Validate and parse the trades format
-;;                                       ;; (validator/parse-trades)
-;;                                       ;; ; Send result to model to be processed
-;;                                       ;; (model/process-trades)
-;;                                       ;; ; Send processed data to view to display
-;;                                       ;; ;; (views/test-page)
-;;                                       ;; (views/portfolio-page)
-;;                                       ))
-;;                     "text/html"))
-
-;; Portfolio Analysis Page
-;; Below is updated function (used to handle form-data encoded in multipart/form-data to accept file inputs)
 (defn analysis-handler [request]
-  (res/content-type (res/response
-                     (let [params (:params request)
-                           
-                           ;; Parse the raw request into the desired format (format is shown in validator.clj)
-                           parsed-trades 
-                           (if (= (get params "trades") "") ;; If the "trades" key has an empty string as a value, then it is not a manual input  
-                             ;; File Input
-                             (validator/parse-file-input
-                              {:trades (slurp (:tempfile (get params "trades-file")))
-                               ;; The above variable (:trades) looks like the following:
-                               ;; "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker,Price\r\n2024-10-15,buy,100,NVDA,130\r\n2024-11-25,buy,50,GOOG,\r\n2024-12-22,sell,30,TSLA,\r\n2025-01-08,sell,30,NVDA,"
-                               :starting-cash (str/replace (get params "starting-cash") #"[$,]" "") ;; This may contain '$' and comma, remove them!
-                               :show-capm-metrics (get params "show-capm-metrics" "false")
-                               :show-stock-performances (get params "show-stock-performances" "false")})
-                             
-                             ;; Manual Input 
-                             (validator/parse-manual-input
-                              {:trades (get params "trades")
-                               :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
-                               :show-capm-metrics (get params "show-capm-metrics" "false")
-                               :show-stock-performances (get params "show-stock-performances" "false")}))
-                           ]
-                       (-> parsed-trades
-                       
-                       
-                           ;; Send result to the model to be processed
-                           (model/process-trades)
-                       
-                           ;; Send processed data to view to display
-                           ;; (views/test-page)
-                           (views/portfolio-page)) 
-                       )
-                       )
-                    "text/html")) 
+  (res/content-type
+   (res/response
+    (let [params (:params request)
+          parsed-trades
+          (if (= (get params "trades") "")
+            (validator/parse-file-input
+             {:trades (slurp (:tempfile (get params "trades-file")))
+              :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
+              :show-capm-metrics (get params "show-capm-metrics" "false")
+              :show-stock-performances (get params "show-stock-performances" "false")})
+            (validator/parse-manual-input
+             {:trades (get params "trades")
+              :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
+              :show-capm-metrics (get params "show-capm-metrics" "false")
+              :show-stock-performances (get params "show-stock-performances" "false")}))]
+      (-> parsed-trades
+          (model/process-trades)
+          (views/portfolio-page))))
+   "text/html"))
 
-;; GPT-generated code for sample (code is too convoluted)
-;; (defn analysis-handler [request]
-;;   ;; Support three ways of sending input:
-;;   ;; 1) standard urlencoded body: "trades=...&starting-cash=..." (fallback)
-;;   ;; 2) textarea named "trades" (form post)
-;;   ;; 3) multipart file named "trades-file" (uploaded file)
-;;   (let [params (or (:params request) {})
-;;         ;; check for textarea value first
-;;         trades-text (or (get params "trades") (get params :trades))
-;;         file-param (or (get params "trades-file") (get params :trades-file))
-;;         starting-cash (or (get params "starting-cash") (get params :starting-cash) "0")
-;;         ;; if a file was uploaded, try reading its tempfile; otherwise use textarea
-;;         trades-content (cond
-;;                          trades-text trades-text
-;;                          (and (map? file-param) (:tempfile file-param)) (try (slurp (:tempfile file-param)) (catch Exception _ nil))
-;;                          file-param (try (slurp file-param) (catch Exception _ nil))
-;;                          :else nil)
-;;         ;; build a raw url-encoded body string expected by validator/parse-trades
-;;         raw-body (if trades-content
-;;                    (str "trades=" (codec/url-encode trades-content) "&starting-cash=" (codec/url-encode (str starting-cash)))
-;;                    ;; fallback: use raw request body if present (previous behavior)
-;;                    (try (slurp (:body request)) (catch Exception _ "")))]
-;;     (res/content-type
-;;      (res/response
-;;       (-> raw-body
-;;           (validator/parse-trades)
-;;           (model/process-trades)
-;;           (views/portfolio-page)))
-;;      "text/html")))
+;; ─── News Analysis handlers ────────────────────────────────────────────────────
 
+(defn news-page-handler [request]
+  (res/content-type
+   (res/response (views/news-page nil))
+   "text/html"))
 
-;; Handler not wrapped with middleware
+(defn analyze-news-handler [request]
+  (res/content-type
+   (res/response
+    (let [params (:params request)
+          newsdata-key (get params "newsdata-api-key")
+          llm-key      (get params "llm-api-key")
+          provider     (get params "llm-provider" "deepseek")
+          llm-url      (if (= provider "deepseek") news/deepseek-url news/openrouter-url)
+          query        (let [q (str/trim (get params "query" ""))]
+                         (when-not (str/blank? q) q))
+          country      (get params "country" "us")
+          language     (get params "language" "en")
+          max-articles (try (Integer/parseInt (get params "max-articles" "3"))
+                            (catch Exception _ 3))
+          model        (get params "model" (first news/deepseek-models))
+          delay-ms     (try (Long/parseLong (get params "delay" "1000"))
+                            (catch Exception _ 1000))]
+      (cond
+        (str/blank? newsdata-key)
+        (views/news-page "Newsdata.io API key is required.")
+
+        (str/blank? llm-key)
+        (views/news-page "LLM API key is required.")
+
+        :else
+        (let [articles (news/fetch-news newsdata-key country language max-articles query)]
+          (if (empty? articles)
+            (views/news-results-page [] "No articles found for your query. Try a different search term.")
+            (let [results (mapv (fn [article]
+                                  (news/analyze-article
+                                   llm-key article model nil delay-ms 2 nil 0.7 llm-url))
+                                articles)]
+              (views/news-results-page results nil)))))))
+   "text/html"))
+
+;; ─── Router ───────────────────────────────────────────────────────────────────
+
 (defn base-app [request]
-  (case (:uri request)
-    "/" (home-handler request)
-    "/analyze-portfolio" (analysis-handler request)
-    {:status 404 :body "Not Found"})
-  )
+  (let [method (:request-method request)
+        uri    (:uri request)]
+    (case [method uri]
+      [:get  "/"]                (home-handler request)
+      [:post "/analyze-portfolio"] (analysis-handler request)
+      [:get  "/news"]            (news-page-handler request)
+      [:post "/analyze-news"]    (analyze-news-handler request)
+      {:status 404 :body "Not Found"})))
 
-;; Wrapped with middleware
 (def app
   (-> base-app
       (resource/wrap-resource "public")
-      (wrap-multipart-params)))
-
-
-
-
-
+      (wrap-multipart-params)
+      (wrap-params)))
