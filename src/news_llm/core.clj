@@ -239,10 +239,23 @@
                   raw-content)
         ;; Escape/Clean content to ensure valid JSON string construction (though json/encode handles most)
         clean-content (str/replace content #"[^\x20-\x7E\n\r\t]" "")] 
-    (str "Analyze the following news article and return ONLY valid JSON:\n"
-         "{\"summary\": \"brief summary\", \"tldr\": \"one sentence\", \"sentiment\": \"Positive/Negative/Neutral\", "
-         "\"bias\": \"assessment\", \"keywords\": [\"topic1\", \"topic2\"], \"entities\": [\"name/org\"], "
-         "\"category\": \"category\", \"target_audience\": \"audience\"}\n\n"
+    (str "Analyze the following financial news article and return ONLY valid JSON.\n"
+         "Required JSON fields (return ALL 15):\n"
+         "{\"summary\": \"2-3 sentence detailed summary\", "
+         "\"tldr\": \"one sentence\", "
+         "\"sentiment\": \"Positive/Negative/Neutral\", "
+         "\"bias\": \"left-leaning/right-leaning/centrist/neutral\", "
+         "\"keywords\": [\"keyword1\", \"keyword2\"], "
+         "\"entities\": [\"company or person name\"], "
+         "\"category\": \"Finance/Technology/Economics/Politics/Healthcare/Energy/etc\", "
+         "\"target_audience\": \"retail investors/institutional/general public\", "
+         "\"market_impact\": 7, "
+         "\"investment_stance\": \"Bullish/Bearish/Neutral\", "
+         "\"time_sensitivity\": \"Breaking/Recent/Evergreen\", "
+         "\"affected_sectors\": [\"Technology\", \"Finance\"], "
+         "\"key_quote\": \"most impactful sentence from the article verbatim\", "
+         "\"risk_level\": \"High/Medium/Low\", "
+         "\"actionable_insight\": \"what investors should watch or consider\"}\n\n"
          "Title: " (:title article) "\n"
          "Content: " clean-content)))
 
@@ -275,7 +288,7 @@
    (try
      (let [body {:model model
                  :messages [{:role "system"
-                             :content "You are a concise news analyst. Return ONLY valid JSON with these exact fields: summary, tldr, sentiment, bias, keywords, entities, category, target_audience. No markdown."}
+                             :content "You are a senior financial news analyst. Return ONLY valid JSON with these exact 15 fields: summary, tldr, sentiment, bias, keywords, entities, category, target_audience, market_impact (integer 1-10), investment_stance (Bullish/Bearish/Neutral), time_sensitivity (Breaking/Recent/Evergreen), affected_sectors (array of strings), key_quote (verbatim sentence), risk_level (High/Medium/Low), actionable_insight (string). No markdown, no text outside the JSON object."}
                             {:role "user"
                              :content prompt}]}
            resp (http/post llm-url
@@ -421,6 +434,13 @@
          :entities (or (:entities parsed) [])
          :category (or (:category parsed) "General")
          :target-audience (or (:target_audience parsed) "General")
+         :market-impact (when-let [v (:market_impact parsed)] (try (int v) (catch Exception _ nil)))
+         :investment-stance (or (:investment_stance parsed) "Neutral")
+         :time-sensitivity (or (:time_sensitivity parsed) "Recent")
+         :affected-sectors (or (:affected_sectors parsed) [])
+         :key-quote (or (:key_quote parsed) "")
+         :risk-level (or (:risk_level parsed) "Medium")
+         :actionable-insight (or (:actionable_insight parsed) "")
          :story-id story-id
          :similar similar
          :embedding-source embedding-source
@@ -439,6 +459,13 @@
          :entities []
          :category "Unknown"
          :target-audience "N/A"
+         :market-impact nil
+         :investment-stance "Neutral"
+         :time-sensitivity "Recent"
+         :affected-sectors []
+         :key-quote ""
+         :risk-level "Medium"
+         :actionable-insight ""
          :similar similar
          :embedding-source embedding-source
          :success false})))))
