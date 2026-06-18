@@ -1,1 +1,0 @@
-["^ ","~:members",["^ ","getLoggerFactory",["~#set",[["^ ","~:flags",["^2",["~:method","~:public"]]]]],"getMarkerFactory",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getMDCAdapter",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getRequestedApiVersion",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"initialize",["^2",[["^ ","^3",["^2",["^4","^5"]]]]]]]

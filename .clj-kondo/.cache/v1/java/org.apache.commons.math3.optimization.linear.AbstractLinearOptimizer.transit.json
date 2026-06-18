@@ -1,1 +1,0 @@
-["^ ","~:members",["^ ","DEFAULT_MAX_ITERATIONS",["~#set",[["^ ","~:flags",["^2",["~:public","~:static","~:field","~:final"]]]]],"setMaxIterations",["^2",[["^ ","^3",["^2",["~:method","^4"]]]]],"getMaxIterations",["^2",[["^ ","^3",["^2",["^9","^4"]]]]],"getIterations",["^2",[["^ ","^3",["^2",["^9","^4"]]]]],"optimize",["^2",[["^ ","^3",["^2",["^9","^4"]]]]]]]
