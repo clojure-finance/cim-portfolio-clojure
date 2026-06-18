@@ -253,19 +253,19 @@
               [:div.news-section-header "LLM Provider"]
               [:div.provider-cards
                [:label.provider-card.active
-                {:id "card-openrouter"
-                 :onclick "document.getElementById('card-openrouter').classList.add('active');document.getElementById('card-deepseek').classList.remove('active');"}
-                [:input {:type "radio" :name "llm-provider" :value "openrouter" :checked true}]
-                [:div
-                 [:div.provider-card-name "OpenRouter"]
-                 [:div.provider-card-desc "100+ models including free tiers"]]]
-               [:label.provider-card
                 {:id "card-deepseek"
                  :onclick "document.getElementById('card-deepseek').classList.add('active');document.getElementById('card-openrouter').classList.remove('active');"}
-                [:input {:type "radio" :name "llm-provider" :value "deepseek"}]
+                [:input {:type "radio" :name "llm-provider" :value "deepseek" :checked true}]
                 [:div
                  [:div.provider-card-name "DeepSeek"]
-                 [:div.provider-card-desc "High-performance reasoning, direct API"]]]]]
+                 [:div.provider-card-desc "High-performance reasoning, direct API"]]]
+               [:label.provider-card
+                {:id "card-openrouter"
+                 :onclick "document.getElementById('card-openrouter').classList.add('active');document.getElementById('card-deepseek').classList.remove('active');"}
+                [:input {:type "radio" :name "llm-provider" :value "openrouter"}]
+                [:div
+                 [:div.provider-card-name "OpenRouter"]
+                 [:div.provider-card-desc "100+ models including free tiers"]]]]]
 
              ;; API keys
              [:div.news-section
@@ -285,10 +285,10 @@
               [:div.field-group
                [:label "Select Model"]
                [:select {:name "model"}
-                [:optgroup {:label "OpenRouter (free)"}
-                 (for [m news/free-models] [:option {:value m} m])]
                 [:optgroup {:label "DeepSeek (direct)"}
-                 (for [m news/deepseek-models] [:option {:value m} m])]]]]
+                 (for [m news/deepseek-models] [:option {:value m} m])]
+                [:optgroup {:label "OpenRouter (free)"}
+                 (for [m news/free-models] [:option {:value m} m])]]]]
 
              ;; Search parameters
              [:div.news-section

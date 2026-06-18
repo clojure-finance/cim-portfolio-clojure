@@ -49,7 +49,7 @@
     (let [params (:params request)
           newsdata-key (get params "newsdata-api-key")
           llm-key      (get params "llm-api-key")
-          provider     (get params "llm-provider" "openrouter")
+          provider     (get params "llm-provider" "deepseek")
           llm-url      (if (= provider "deepseek") news/deepseek-url news/openrouter-url)
           query        (let [q (str/trim (get params "query" ""))]
                          (when-not (str/blank? q) q))
@@ -57,7 +57,7 @@
           language     (get params "language" "en")
           max-articles (try (Integer/parseInt (get params "max-articles" "3"))
                             (catch Exception _ 3))
-          model        (get params "model" (first news/free-models))
+          model        (get params "model" (first news/deepseek-models))
           delay-ms     (try (Long/parseLong (get params "delay" "1000"))
                             (catch Exception _ 1000))]
       (cond
