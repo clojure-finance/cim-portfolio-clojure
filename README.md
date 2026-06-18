@@ -1,8 +1,97 @@
-# cim_portfolio_clojure Web Application
+# cim_portfolio_clojure
 
-A portfolio analysis web application written in Clojure.
+A portfolio analysis program written in Clojure, now featuring **AI-Powered Market News Analysis**.
 
-### LOCAL DEVELOPMENT:
+## 🚀 Quick Start: AI News Analyzer
+
+This project includes a web-based AI Financial News Analyzer that fetches real-time market news and uses Large Language Models (LLMs) to provide sentiment analysis, summaries, and investment signals.
+
+### Prerequisites
+
+To use the AI News Analyzer, you need API keys for:
+1. **NewsData.io** (for fetching news) — free tier at [newsdata.io](https://newsdata.io)
+2. **LLM API** — choose one:
+   - **DeepSeek** (default, recommended) — [platform.deepseek.com](https://platform.deepseek.com)
+   - **OpenRouter** (100+ models, free tiers available) — [openrouter.ai](https://openrouter.ai)
+
+### Option 1: Run with Docker Compose (Recommended)
+
+1. **Set your API keys** in your environment or a `.env` file:
+   ```bash
+   export NEWSDATA_API_KEY="your_key_here"
+   export DEEPSEEK_API_KEY="your_key_here"
+   ```
+   *(Windows PowerShell: `$env:NEWSDATA_API_KEY="your_key"`)*
+
+2. **Start the service**:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Access the App**:
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Option 2: Run Locally (Non-Docker)
+
+1. **Install Dependencies**: Java (JDK 21+), Leiningen.
+2. **Set Environment Variables**:
+   ```bash
+   # Mac/Linux
+   export NEWSDATA_API_KEY="your_key"
+   export DEEPSEEK_API_KEY="your_key"
+   
+   # Windows (CMD)
+   set NEWSDATA_API_KEY=your_key
+   set DEEPSEEK_API_KEY=your_key
+   ```
+3. **Run the App**:
+   ```bash
+   # Mac/Linux
+   ./run_web_app.sh
+
+   # Windows
+   run_web_app.bat
+   ```
+   Or manually: `lein run`
+
+---
+
+## Legacy Portfolio Analysis (Clerk Notebooks)
+
+### RUNNING USING DOCKER IMAGE (RECOMMENDED - Tested on Windows, Mac and Linux):
+
+Using the provided Dockerfile to build a Docker image and run a container greatly simplifies the usage of the software. Please install Docker on your system from the official website: https://www.docker.com/
+
+Note: Please place your csv files containing your trades in the examples/ directory before starting.
+
+**Initial Setup**
+
+Please ensure Docker is installed and then run the following commands in the root directory:
+
+1. Build the Docker image: `docker build -t cim-portfolio-env .`
+2. Run the container: `docker run -it -p 8990:8990 -v ./src:/app/src:ro -v ./examples:/app/examples:ro --name cim-portfolio-app cim-portfolio-env`
+
+The Clerk Notebook should be accessible on: http://localhost:8990
+
+Load `portfolio.clj` and all the code cells should be automatically executed, please ensure no errors occur. You can edit the source code and your changes will be instantly reflected in the Clerk Notebook. Set your starting cash amount (important as it influences your return %, portfolio volatility etc.), toggle optional displays of statistics etc. Input the relative directory of your trade file in `input-files`.
+
+For e.g., if your directory contains: examples/myTrades.csv, please enter "./examples/myTrades.csv"
+
+Stop the application by running the following command in a new terminal:
+
+`docker stop cim-portfolio-app`
+
+**Subsequent Runs**
+
+After the initial setup, you can rerun the application using the following command:
+
+`docker start cim-portfolio-app`
+
+Stop the application once again by using the command:
+
+`docker stop cim-portfolio-app`
+
+### RUNNING LOCALLY:
 
 Ensure that the following are installed:
 - Java
@@ -24,31 +113,19 @@ libpython-clj (https://github.com/clj-python/libpython-clj) is a key requirement
 Python objects are linked to the JVM, allowing Clojure to run the yfinanceclient.clj file that enables scraping data from Python's yfinance package.
 
 
-## Deploy Changes
+## Usage (Running Locally)
 
-The steps to deploy any changes to the application are as follows:
+<!-- Here's a video tutorial on running the program: [CIM Portfolio Tutorial](https://youtu.be/kpxD8rUBuFk) -->
 
-1. Before committing your changes, run the commands `lein clean`, and `lein uberjar` to generate a Java Executable file `.jar` in `target/`
-2. Move the **standalone** `.jar` file to the root directory of the repository, replacing any old `.jar` file that may have existed before.
-3. Commit you changes, and push them to GitHub.
-4. In the Heroku Application, ensure that the Python and Java buildpacks are enabled. They must be enabled in a certain order, where Python needs to be the first buildpack, while Java is second. If these Buildpacks are not enabled yet, do the commands `heroku buildpacks:clear`, `heroku buildpacks:add heroku/python`, and `heroku buildpacks:add heroku/java`.
-5. When all is done, run `git push heroku web-application:main` to clone the repository to a Heroku Remote Branch. (You may have to reset the app first, see below.)
-
-To reset Heroku Application, do the following:
-
-`heroku plugins:install heroku-repo` (if you have not installed the repo add-on)
-`heroku repo:reset --app cim-portfolio-clojure`
-
-Command to temporarily stop the Heroku Application from running:
-
-`heroku ps:scale web=0`
-
-Command to turn application back on:
-
-`heroku ps:scale web=1`
-
-
-## Input
+- Clone the github repository to your local computer.
+- Open the cloned folder in your terminal and run `lein repl`.
+- If your web browser does not automatically open the URL provided in the terminal, open the URL manually in your browser of choice.
+- Under **All Notebooks**, select `src/cim_portfolio/yfinanceclient.clj` and wait for it to load (may take a few seconds).
+- Verify that all of the code blocks were run successfully, and that the output shows proper historical price data. If error, flag the issue and try to debug.
+- Now, load `src/cim_portfolio/portfolio.clj` and wait for it to load.
+- Verify once again that all of the code blocks were run successfully.
+- Open `src/cim_portfolio/portfolio.clj` in your favourite code editor, and enter the relative path to your csv file containing all your trades (relative to main directory).
+- Check that Clerk has updated the final code block to show an overview of your portfolio performance as well as other statistics (e.g. individual stock performance, etc.) 
 
 Format of portfolio file (in csv):
 
@@ -56,6 +133,12 @@ Date (YYYY-MM-DD)   |   Action (buy/sell)   |   Number of units bought/sold    |
 
 (refer to testPortfolio.csv)
 
+## Options
+
+In src/cim_portfolio/portfolio.clj, the second last code block allows you to set various options within the software.
+
+Modify the `portfolio-options` map to set the starting cash amount (in USD).
+Modify the `view-options` map to show/hide various statistics (e.g. the day-by-day value of your portfolio, performance metrics of individuals stocks, the day-by-day cumulative portfolio return)
 
 ## Output
 This program gives you the most relevant statistics about your portfolio performance.
@@ -66,6 +149,9 @@ It displays:
 - portfolio-value from the first day of trades
 - statistics about each stock
 
+## Examples
+
+Refer to testPortfolio.csv
 
 ### Bugs
 

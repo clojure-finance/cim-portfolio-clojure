@@ -1,0 +1,35 @@
+name: Build & Test
+
+on:
+  push:
+    branches: ["feature/news-analysis-merge"]
+  pull_request:
+    branches: ["web-application"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Leiningen
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -o lein
+          chmod +x lein
+          sudo mv lein /usr/local/bin/lein
+          lein version
+
+      - name: Download dependencies
+        run: lein deps
+
+      - name: Compile
+        run: lein compile
+
+      - name: Run tests
+        run: lein test
