@@ -1,0 +1,301 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+header {
+    background: #2c3e50;
+    color: white;
+    padding: 1rem;
+    position: relative; /* allow absolute positioning of GitHub button */
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+/* Clickable title link */
+.title-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-block;
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+    font-weight: inherit;
+}
+
+.title-link:hover {
+    text-decoration: underline;
+}
+
+.title-link:focus {
+    outline: 2px solid #9fd3ff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* GitHub link in header */
+.github-link {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #24292e;
+    color: #fff;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    font-size: 0.95rem;
+}
+
+.github-link:hover {
+    background: #000;
+}
+
+.github-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    flex: 0 0 20px;
+}
+
+/* Accessibility focus style */
+.github-link:focus {
+    outline: 2px solid #9fd3ff;
+    outline-offset: 2px;
+}
+
+/* Back button (left side) */
+.back-button {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ffffff;
+    color: #2c3e50;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+}
+
+.back-button:hover {
+    background: #f0f0f0;
+}
+
+.back-button:focus {
+    outline: 2px solid #9fd3ff;
+    outline-offset: 2px;
+}
+
+/* Navigation links in header */
+.top-nav {
+    margin-top: 0.3rem;
+}
+
+.nav-link {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.45);
+    margin: 0 0.25rem;
+}
+
+.nav-link:hover {
+    background: rgba(255,255,255,0.18);
+}
+
+/* Responsive fallback: stack link under title on small screens */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 1.1rem;
+    }
+    .github-link {
+        position: static;
+        transform: none;
+        margin-top: 0.5rem;
+    }
+    .back-button {
+        position: static;
+        transform: none;
+        margin-top: 0.5rem;
+    }
+}
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    padding-bottom: 0rem;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+}
+
+canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+.stockAccordion {
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.stockAccordion summary {
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+}
+
+.graphRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.graph {
+  width: 100%;
+}
+
+.card.full-width {
+    grid-column: 1 / -1;
+}
+
+.rolling-alpha-header, .rolling-beta-header, .stock-performance-header {
+    margin-left: 1rem
+}
+
+.card button {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #ffffff;       /* white background */
+  color: #333;                     /* dark text */
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #ccc;          /* subtle border */
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.card button:hover {
+  background-color: #f0f0f0;       /* light gray hover */
+  color: #000;                     /* darker text */
+  transform: translateY(-1px);     /* subtle lift */
+}
+
+.card button:active {
+  background-color: #e0e0e0;       /* darker gray when clicked */
+  color: #000;
+  transform: translateY(0);
+}
+
+.return-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.return-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.return-column h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.return-column ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+.return-column li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+#one-year-cumulative-return {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* Portfolio Allocation three-column layout */
+.allocation-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem;
+}
+
+.allocation-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.allocation-column h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.allocation-column ul {
+  margin: 0;
+  padding-left: 0rem;
+  list-style-type: none;
+}
+
+.allocation-column li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+

@@ -7,26 +7,27 @@
   :dependencies [[org.clojure/clojure "1.12.0"]
                  [org.clojure/data.csv "1.0.1"]
                  [org.clojure/data.json "2.5.1"]
-                 [clj-time "0.15.2"]
-                 [clj-http "3.13.1"]
-                 [cheshire "5.12.0"] 
-                 ; ;; [clj-python/libpython-clj "2.025"] - Removed for Pure Clojure implementation
-                 [io.github.nextjournal/clerk "0.18.1150"]
-                 [nrepl "1.0.0"]
-                 [org.slf4j/slf4j-api "2.0.9"]         ; Add this line for SLF4J API
-                 [org.slf4j/slf4j-simple "2.0.9"]
-                 [generateme/fastmath "3.0.0-alpha3"]
-                 [datalevin "0.9.22"]
-                 [org.jsoup/jsoup "1.17.2"]
-                 [http-kit "2.7.0"]
-                 [compojure "1.7.0"]
-                 [hiccup "2.0.0-alpha2"]
-                 [ring/ring-defaults "0.5.0"]
-                 [javax.servlet/javax.servlet-api "3.1.0"]
-                 ;; [clj-python/libpython-clj "2.025"]  ;; We must leave this commented out as the original project had it commented out
                  [org.clojure/tools.cli "1.1.230"]
-                 ]     ; Add this line for SLF4J Simple Logger
-  :main ^:skip-aot cim-portfolio.core
+                 [clj-time "0.15.2"]
+                 [nrepl "1.0.0"]
+                 [generateme/fastmath "3.0.0-alpha3"]
+                 ;; Web framework
+                 [ring/ring-core "1.15.3"]
+                 [ring/ring-jetty-adapter "1.15.3"]
+                 [ring/ring-codec "1.3.0"]
+                 [hiccup "2.0.0"]
+                 ;; Portfolio data sources
+                 [com.github.clojure-finance/clj-yfinance "0.1.6"]
+                 [com.github.clojure-finance/ecbjure "0.1.4"]
+                 ;; News analysis
+                 [clj-http/clj-http "3.12.3"]
+                 [cheshire/cheshire "5.11.0"]
+                 [org.jsoup/jsoup "1.17.2"]]
+
+  :ring {:handler portfolio-web.controllers/app}
+  :plugins [[lein-ring "0.12.6"]]
+  :main cim-portfolio.core
+  :aot [cim-portfolio.core]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
