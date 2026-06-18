@@ -9,6 +9,7 @@
                  [org.clojure/data.json "2.5.1"]
                  [org.clojure/tools.cli "1.1.230"]
                  [clj-time "0.15.2"]
+                 [clj-python/libpython-clj "2.025"]
                  [nrepl "1.0.0"]
                  [io.github.nextjournal/clerk "0.18.1150" :exclusions [hiccup]]
                  [org.slf4j/slf4j-api "2.0.9"]
@@ -27,6 +28,8 @@
                  [cheshire/cheshire "5.11.0"]
                  [org.jsoup/jsoup "1.17.2"]]
 
+  :ring {:handler portfolio-web.controllers/app}
+  :plugins [[lein-ring "0.12.6"]]
   :main cim-portfolio.core
   :aot [cim-portfolio.core]
   :target-path "target/%s"
