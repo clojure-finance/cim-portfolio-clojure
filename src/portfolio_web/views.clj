@@ -144,18 +144,18 @@
     [:div.graph [:div {:id "portfolio-performance-by-day" :class "miscChart" :data-plot (json/write-str (data :portfolio-one-dollar-performance-graph))}]]]
 
    [:div.card.full-width
-    [:h2 "30-Day Annualized EWMA Rolling Volatility of Portfolio (λ = 0.94)"]
+    [:h2 "30-Day Annualized EWMA Rolling Volatility of Portfolio (lambda = 0.94)"]
     [:div.graph [:div {:id "rolling-ewma-volatility" :class "miscChart"
                        :data-plot (json/write-str (data :default-rolling-ewma-volatility-figs))
                        :data-alt-plot (json/write-str (data :alternative-rolling-ewma-volatility-figs))}]]
-    [:button {:id "lambdaSwitch"} "Switch to λ = 0.97"]]
+    [:button {:id "lambdaSwitch"} "Switch to lambda = 0.97"]]
 
    [:div.card.full-width
-    [:h2 "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.94)"]
+    [:h2 "30-Day Annualized Rolling Sharpe Ratio (EWMA lambda = 0.94)"]
     [:div.graph [:div {:id "rolling-sharpe-ratio" :class "miscChart"
                        :data-plot (json/write-str (data :default-rolling-sharpe-ratio-figs))
                        :data-alt-plot (json/write-str (data :alternative-rolling-sharpe-ratio-figs))}]]
-    [:button {:id "sharpeLambdaSwitch"} "Switch to λ = 0.97"]]
+    [:button {:id "sharpeLambdaSwitch"} "Switch to lambda = 0.97"]]
 
    (if (= (data :alpha-beta-figs) "")
      [:div.card.full-width [:h2 "Alpha & Beta (per stock) (Omitted)"]]
@@ -168,10 +168,10 @@
           [:div.graphRow
            [:div.graph [:h4.rolling-alpha-header "Rolling Alpha"]
             [:div {:id (str ticker "-alpha") :class "alphaChart"
-                   :data-plot (json/write-str (some #(when (= (% :name) (str ticker " α")) %) (data :alpha-beta-figs)))}]]
+                   :data-plot (json/write-str (some #(when (= (% :name) (str ticker " a")) %) (data :alpha-beta-figs)))}]]
            [:div.graph [:h4.rolling-beta-header "Rolling Beta"]
             [:div {:id (str ticker "-beta") :class "betaChart"
-                   :data-plot (json/write-str (some #(when (= (% :name) (str ticker " β")) %) (data :alpha-beta-figs)))}]]]])]])
+                   :data-plot (json/write-str (some #(when (= (% :name) (str ticker " b")) %) (data :alpha-beta-figs)))}]]]])]])
 
    (if (= (data :stock-performances-graphs) "")
      [:div.card.full-width [:h2 "Stock Performances (Omitted)"]]
@@ -196,7 +196,7 @@
           [:script {:src "https://cdn.plot.ly/plotly-2.32.0.min.js"}]]
          [:body
           (page-header
-           [:a.back-button {:href "/"} "← Back to Home"]
+           [:a.back-button {:href "/"} "<- Back to Home"]
            [:a.nav-link {:href "/news"} "News Analysis"])
           [:main
            (portfolio-summary-section data)
@@ -205,6 +205,26 @@
 
 ;; ─── News Analysis pages ──────────────────────────────────────────────────────
 
+(defn- stance-badge-class [stance]
+  (case (str/lower-case (or stance ""))
+    "bullish" "stance-bullish"
+    "bearish" "stance-bearish"
+    "stance-neutral"))
+
+(defn- risk-badge-class [risk]
+  (case (str/lower-case (or risk ""))
+    "high"   "risk-high"
+    "medium" "risk-medium"
+    "low"    "risk-low"
+    "risk-medium"))
+
+(defn- time-badge-class [ts]
+  (case (str/lower-case (or ts ""))
+    "breaking"  "time-breaking"
+    "recent"    "time-recent"
+    "evergreen" "time-evergreen"
+    "time-recent"))
+
 (defn news-page
   ([] (news-page nil))
   ([error-msg]
@@ -212,171 +232,249 @@
          [:html {:lang "en"}
           [:head
            [:meta {:charset "UTF-8"}]
-           [:title "News Analysis — CIM Portfolio Tool"]
-           [:link {:rel "stylesheet" :href "/styles.css"}]
-           [:style "
-.news-form-card { background: #fff; border-radius: 8px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,.1); max-width: 640px; }
-.provider-group { display: flex; gap: 20px; margin: 8px 0 16px; }
-.provider-group label { display: flex; align-items: center; gap: 6px; font-weight: 500; cursor: pointer; }
-.field-group { margin-bottom: 16px; }
-.field-group label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.9rem; }
-.field-group input, .field-group select { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box; }
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.error-banner { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }
-.hint { font-size: 0.8rem; color: #6b7280; margin-top: 3px; }
-.submit-btn { background: #1d4ed8; color: #fff; border: none; padding: 11px 24px; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
-.submit-btn:hover { background: #1e40af; }
-.loading-msg { display: none; text-align: center; color: #6b7280; margin-top: 10px; font-style: italic; }
-"]]
+           [:title "AI News Intelligence -- CIM Portfolio Tool"]
+           [:link {:rel "stylesheet" :href "/styles.css"}]]
           [:body
-           (page-header [:a.nav-link {:href "/"} "← Portfolio Analysis"])
+           (page-header [:a.nav-link {:href "/"} "Portfolio Analysis"])
+
+           ;; Hero section -- full width, outside the white container
+           [:section.news-hero
+            [:h2 "AI News Intelligence"]
+            [:p.hero-subtitle "Real-time financial news analysis powered by large language models"]
+            [:div.news-features
+             (for [feat ["Sentiment Analysis" "Market Impact (1-10)" "Investment Stance"
+                         "Risk Assessment" "Key Quote Extraction" "Sector Mapping"
+                         "Entity Recognition" "Actionable Insights"]]
+               [:span.news-feature-chip feat])]]
+
            [:div.container
-            [:h2 "AI News Analysis"]
-            [:p "Enter your API keys and search query to fetch and analyze news articles using an LLM."]
-            (when error-msg
-              [:div.error-banner error-msg])
-            [:div.news-form-card
-             [:form {:method "post" :action "/analyze-news"
-                     :id "news-form"
-                     :onsubmit "document.getElementById('loading-msg').style.display='block'"}
+            (when error-msg [:div.news-error error-msg])
 
-              ;; LLM Provider
-              [:div.field-group
-               [:label "LLM Provider"]
-               [:div.provider-group
-                [:label [:input {:type "radio" :name "llm-provider" :value "openrouter" :checked true}] "OpenRouter"]
-                [:label [:input {:type "radio" :name "llm-provider" :value "deepseek"}] "DeepSeek (direct)"]]]
+            [:form {:method "post" :action "/analyze-news" :id "news-form"
+                    :onsubmit "document.getElementById('news-loading').style.display='block';document.getElementById('news-submit-btn').disabled=true;"}
 
-              ;; API Keys
+             ;; Provider cards
+             [:div.news-section
+              [:div.news-section-header "LLM Provider"]
+              [:div.provider-cards
+               [:label.provider-card.active
+                {:id "card-openrouter"
+                 :onclick "document.getElementById('card-openrouter').classList.add('active');document.getElementById('card-deepseek').classList.remove('active');"}
+                [:input {:type "radio" :name "llm-provider" :value "openrouter" :checked true}]
+                [:div
+                 [:div.provider-card-name "OpenRouter"]
+                 [:div.provider-card-desc "100+ models including free tiers"]]]
+               [:label.provider-card
+                {:id "card-deepseek"
+                 :onclick "document.getElementById('card-deepseek').classList.add('active');document.getElementById('card-openrouter').classList.remove('active');"}
+                [:input {:type "radio" :name "llm-provider" :value "deepseek"}]
+                [:div
+                 [:div.provider-card-name "DeepSeek"]
+                 [:div.provider-card-desc "High-performance reasoning, direct API"]]]]]
+
+             ;; API keys
+             [:div.news-section
+              [:div.news-section-header "API Credentials"]
               [:div.field-group
                [:label "Newsdata.io API Key"]
                [:input {:type "password" :name "newsdata-api-key" :required true :placeholder "pub_..."}]
-               [:p.hint "Get a free key at newsdata.io (200 requests/day)"]]
-
+               [:div.field-hint "Free key at newsdata.io -- 200 requests/day"]]
               [:div.field-group
                [:label "LLM API Key"]
                [:input {:type "password" :name "llm-api-key" :required true :placeholder "sk-..."}]
-               [:p.hint "OpenRouter key: openrouter.ai  |  DeepSeek key: platform.deepseek.com"]]
+               [:div.field-hint "OpenRouter: openrouter.ai  |  DeepSeek: platform.deepseek.com"]]]
 
-              ;; Model
+             ;; Model selection
+             [:div.news-section
+              [:div.news-section-header "Model"]
               [:div.field-group
-               [:label "Model"]
+               [:label "Select Model"]
                [:select {:name "model"}
                 [:optgroup {:label "OpenRouter (free)"}
-                 (for [m news/free-models]
-                   [:option {:value m} m])]
+                 (for [m news/free-models] [:option {:value m} m])]
                 [:optgroup {:label "DeepSeek (direct)"}
-                 (for [m news/deepseek-models]
-                   [:option {:value m} m])]]]
+                 (for [m news/deepseek-models] [:option {:value m} m])]]]]
 
-              ;; Search parameters
-              [:div.field-row
-               [:div.field-group
-                [:label "Search Query / Ticker"]
-                [:input {:type "text" :name "query" :placeholder "e.g. Apple, NVDA earnings"}]
-                [:p.hint "Leave blank to use country/language defaults"]]
-               [:div.field-group
-                [:label "Max Articles (1–10)"]
-                [:input {:type "number" :name "max-articles" :value "3" :min "1" :max "10"}]]]
-
-              [:div.field-row
+             ;; Search parameters
+             [:div.news-section
+              [:div.news-section-header "Search Parameters"]
+              [:div.field-group
+               [:label "Search Query"]
+               [:input {:type "text" :name "query"
+                        :placeholder "e.g. AAPL earnings, Federal Reserve, AI stocks"}]
+               [:div.field-hint "Company names, tickers, or topics -- leave blank for top headlines"]]
+              [:div.field-row-2
                [:div.field-group
                 [:label "Country Code"]
-                [:input {:type "text" :name "country" :value "us" :placeholder "us"}]]
+                [:input {:type "text" :name "country" :value "us" :placeholder "us"}]
+                [:div.field-hint "ISO country code"]]
                [:div.field-group
                 [:label "Language Code"]
-                [:input {:type "text" :name "language" :value "en" :placeholder "en"}]]]
+                [:input {:type "text" :name "language" :value "en" :placeholder "en"}]
+                [:div.field-hint "ISO language code"]]]
+              [:div.field-row-2
+               [:div.field-group
+                [:label "Max Articles (1-10)"]
+                [:input {:type "number" :name "max-articles" :value "3" :min "1" :max "10"}]]
+               [:div.field-group
+                [:label "Request Delay (ms)"]
+                [:input {:type "number" :name "delay" :value "1000" :min "500" :max "10000"}]
+                [:div.field-hint "Increase if hitting rate limits"]]]]
 
-              ;; Delay between requests
-              [:div.field-group
-               [:label "Delay Between Articles (ms)"]
-               [:input {:type "number" :name "delay" :value "1000" :min "500" :max "10000"}]
-               [:p.hint "Increase if hitting rate limits"]]
-
-              [:button.submit-btn {:type "submit"} "Analyze News"]
-              [:p#loading-msg.loading-msg "Analyzing... this may take 1–3 minutes. Please wait."]]]]]]))))
-
-(defn sentiment-color [sentiment]
-  (case (str/lower-case (or sentiment ""))
-    "positive" "#d1fae5"
-    "negative" "#fee2e2"
-    "neutral"  "#f3f4f6"
-    "#f3f4f6"))
+             ;; Submit
+             [:div.news-submit-section
+              [:button#news-submit-btn.news-submit-btn {:type "submit"} "Run AI Analysis"]
+              [:p#news-loading.news-loading
+               "Analyzing articles... this may take 1-3 minutes. Please wait."]]]]]]))))
 
 (defn news-results-page [results error-msg]
   (str (h/html
         [:html {:lang "en"}
          [:head
           [:meta {:charset "UTF-8"}]
-          [:title "News Results — CIM Portfolio Tool"]
-          [:link {:rel "stylesheet" :href "/styles.css"}]
-          [:style "
-.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-.article-card { background: #fff; border-radius: 8px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.1); border-left: 5px solid #e5e7eb; }
-.article-card.positive { border-left-color: #10b981; }
-.article-card.negative { border-left-color: #ef4444; }
-.article-card.neutral  { border-left-color: #6b7280; }
-.article-card.failed   { border-left-color: #f59e0b; opacity: .8; }
-.article-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px; }
-.article-title a { color: #1d4ed8; text-decoration: none; }
-.article-title a:hover { text-decoration: underline; }
-.article-meta { font-size: 0.82rem; color: #6b7280; margin-bottom: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
-.badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; }
-.badge-positive { background: #d1fae5; color: #065f46; }
-.badge-negative { background: #fee2e2; color: #991b1b; }
-.badge-neutral  { background: #f3f4f6; color: #374151; }
-.badge-failed   { background: #fef3c7; color: #92400e; }
-.tldr { font-size: 0.95rem; font-style: italic; color: #374151; margin-bottom: 10px; border-left: 3px solid #d1d5db; padding-left: 12px; }
-.summary { font-size: 0.93rem; color: #374151; line-height: 1.6; margin-bottom: 10px; }
-.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.tag { background: #eff6ff; color: #1d4ed8; border-radius: 4px; padding: 2px 8px; font-size: 0.78rem; }
-.entity-tag { background: #f5f3ff; color: #6d28d9; border-radius: 4px; padding: 2px 8px; font-size: 0.78rem; }
-.stats-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
-.stat-box { background: #fff; border-radius: 8px; padding: 14px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); text-align: center; }
-.stat-box .num { font-size: 1.6rem; font-weight: 700; }
-.stat-box .label { font-size: 0.8rem; color: #6b7280; }
-.back-link { display: inline-block; margin-bottom: 20px; color: #1d4ed8; text-decoration: none; font-weight: 500; }
-.back-link:hover { text-decoration: underline; }
-.error-banner { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; padding: 12px 16px; border-radius: 6px; }
-"]]
+          [:title "News Intelligence Results -- CIM Portfolio Tool"]
+          [:link {:rel "stylesheet" :href "/styles.css"}]]
          [:body
-          (page-header [:a.nav-link {:href "/news"} "← New Analysis"] [:a.nav-link {:href "/"} "Portfolio"])
+          (page-header [:a.nav-link {:href "/news"} "New Analysis"] [:a.nav-link {:href "/"} "Portfolio"])
           [:div.container
            (if error-msg
-             [:div.error-banner error-msg]
+             [:div.news-error error-msg]
              (let [total      (count results)
                    successful (count (filter :success results))
                    pos        (count (filter #(= "Positive" (:sentiment %)) results))
-                   neg        (count (filter #(= "Negative" (:sentiment %)) results))]
+                   neg        (count (filter #(= "Negative" (:sentiment %)) results))
+                   neu        (count (filter #(= "Neutral"  (:sentiment %)) results))]
                [:div
-                ;; Summary stats
-                [:div.stats-bar
-                 [:div.stat-box [:div.num total]      [:div.label "Articles"]]
-                 [:div.stat-box [:div.num successful]  [:div.label "Analysed"]]
-                 [:div.stat-box [:div.num pos]          [:div.label "Positive"]]
-                 [:div.stat-box [:div.num neg]          [:div.label "Negative"]]]
+                [:a.results-back {:href "/news"} "<- Run New Analysis"]
+                [:h2.results-page-title "Analysis Complete"]
+                [:p.results-page-subtitle
+                 (str total " articles fetched -- " successful " successfully analyzed by LLM")]
+
+                ;; 5-stat dashboard
+                [:div.dashboard-grid
+                 [:div.dash-stat.d-total    [:div.dash-stat-num total]     [:div.dash-stat-label "Articles"]]
+                 [:div.dash-stat.d-analyzed [:div.dash-stat-num successful] [:div.dash-stat-label "Analyzed"]]
+                 [:div.dash-stat.d-positive [:div.dash-stat-num pos]        [:div.dash-stat-label "Positive"]]
+                 [:div.dash-stat.d-negative [:div.dash-stat-num neg]        [:div.dash-stat-label "Negative"]]
+                 [:div.dash-stat.d-neutral  [:div.dash-stat-num neu]        [:div.dash-stat-label "Neutral"]]]
+
+                ;; Sentiment distribution bars
+                (when (pos? successful)
+                  [:div.sentiment-distribution-card
+                   [:h4 "Sentiment Distribution"]
+                   [:div.sentiment-dist-row
+                    [:span.sentiment-dist-label "Positive"]
+                    [:div.sentiment-dist-bar
+                     [:div.sentiment-dist-fill-pos
+                      {:style (str "width:" (int (* 100 (/ pos (max 1 total)))) "%")}]]
+                    [:span.sentiment-dist-count pos]]
+                   [:div.sentiment-dist-row
+                    [:span.sentiment-dist-label "Negative"]
+                    [:div.sentiment-dist-bar
+                     [:div.sentiment-dist-fill-neg
+                      {:style (str "width:" (int (* 100 (/ neg (max 1 total)))) "%")}]]
+                    [:span.sentiment-dist-count neg]]
+                   [:div.sentiment-dist-row
+                    [:span.sentiment-dist-label "Neutral"]
+                    [:div.sentiment-dist-bar
+                     [:div.sentiment-dist-fill-neu
+                      {:style (str "width:" (int (* 100 (/ neu (max 1 total)))) "%")}]]
+                    [:span.sentiment-dist-count neu]]])
 
                 ;; Article cards
                 (for [r results]
-                  (let [sentiment-lc (str/lower-case (or (:sentiment r) "neutral"))
-                        card-class   (if (:success r) sentiment-lc "failed")]
-                    [:div.article-card {:class card-class}
-                     [:h3.article-title
-                      (if (:link r)
-                        [:a {:href (:link r) :target "_blank" :rel "noopener"} (:title r)]
-                        (:title r))]
-                     [:div.article-meta
-                      (when (:published r) [:span (:published r)])
-                      (when (:category r)  [:span (:category r)])
-                      (when (:bias r)      [:span (str "Bias: " (:bias r))])
-                      (when (:target-audience r) [:span (str "For: " (:target-audience r))])]
-                     [:span.badge {:class (str "badge-" (if (:success r) sentiment-lc "failed"))}
-                      (or (:sentiment r) "Unknown")]
-                     (when (and (:success r) (:tldr r))
-                       [:p.tldr (:tldr r)])
-                     (when (:summary r)
-                       [:p.summary (:summary r)])
-                     (when (seq (:keywords r))
-                       [:div.tags (for [k (:keywords r)] [:span.tag k])])
-                     (when (seq (:entities r))
-                       [:div.tags (for [e (:entities r)] [:span.entity-tag e])])]))]))]]])))
+                  (let [sent-lc   (str/lower-case (or (:sentiment r) "neutral"))
+                        hdr-class (if (:success r) sent-lc "failed")
+                        impact    (or (:market-impact r) 0)
+                        stance    (:investment-stance r)
+                        risk      (:risk-level r)
+                        time-sens (:time-sensitivity r)
+                        sectors   (or (:affected-sectors r) [])
+                        key-quote (:key-quote r)
+                        insight   (:actionable-insight r)]
+                    [:div.news-article-card
+
+                     ;; Colored header
+                     [:div.article-card-header {:class hdr-class}
+                      [:div.article-header-left
+                       [:h3.article-header-title
+                        (if (:link r)
+                          [:a {:href (:link r) :target "_blank" :rel "noopener"} (:title r)]
+                          (:title r))]
+                       [:div.article-header-meta
+                        (when (:published r)       [:span (:published r)])
+                        (when (:category r)        [:span (:category r)])
+                        (when (seq time-sens)
+                          [:span.time-badge {:class (time-badge-class time-sens)} time-sens])
+                        (when (:bias r)            [:span (str "Bias: " (:bias r))])
+                        (when (:target-audience r) [:span (str "For: " (:target-audience r))])]]
+                      [:div.article-header-badges
+                       [:span.sentiment-badge {:class (if (:success r) sent-lc "failed")}
+                        (or (:sentiment r) "Unknown")]
+                       (when (seq stance)
+                         [:span.stance-badge {:class (stance-badge-class stance)}
+                          (case (str/lower-case stance)
+                            "bullish" "Bullish"
+                            "bearish" "Bearish"
+                            stance)])
+                       (when (seq risk)
+                         [:span.risk-badge {:class (risk-badge-class risk)}
+                          (str "Risk: " risk)])]]
+
+                     ;; Body
+                     [:div.article-card-body
+
+                      ;; TL;DR callout
+                      (when (and (:success r) (seq (:tldr r)))
+                        [:div.tldr-callout (:tldr r)])
+
+                      ;; Summary
+                      (when (seq (:summary r))
+                        [:p.summary-text (:summary r)])
+
+                      ;; Market impact bar
+                      (when (and (:success r) (number? impact) (pos? impact))
+                        [:div.impact-row
+                         [:span.impact-label "Market Impact"]
+                         [:div.impact-bar-track
+                          [:div.impact-bar-fill {:style (str "width:" (* impact 10) "%")}]]
+                         [:span.impact-score (str impact " / 10")]])
+
+                      ;; Key quote
+                      (when (and (:success r) (seq key-quote))
+                        [:div.key-quote-block
+                         [:div.key-quote-label "Key Quote"]
+                         [:div.key-quote-text (str "\"" key-quote "\"")]])
+
+                      ;; Actionable insight
+                      (when (and (:success r) (seq insight))
+                        [:div.insight-block
+                         [:div.insight-label "Actionable Insight"]
+                         [:div.insight-text insight]])
+
+                      ;; Affected sectors
+                      (when (seq sectors)
+                        [:div.sectors-row
+                         [:span.sectors-label "Sectors:"]
+                         (for [s sectors] [:span.sector-chip s])])
+
+                      ;; Keywords
+                      (when (seq (:keywords r))
+                        [:div.tags-row
+                         [:span.tags-label "Keywords:"]
+                         (for [k (:keywords r)] [:span.kw-tag k])])
+
+                      ;; Entities
+                      (when (seq (:entities r))
+                        [:div.tags-row
+                         [:span.tags-label "Entities:"]
+                         (for [e (:entities r)] [:span.ent-tag e])])]
+
+                     ;; Footer
+                     [:div.article-card-footer
+                      (if (seq (:published r))
+                        [:span (str "Published: " (:published r))]
+                        [:span ""])
+                      (when (:link r)
+                        [:a {:href (:link r) :target "_blank" :rel "noopener"}
+                         "Read Full Article ->"])]]))]))]]])))
