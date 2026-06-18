@@ -19,9 +19,11 @@ jobs:
           java-version: 21
 
       - name: Install Leiningen
-        uses: DeLaGuardo/setup-clojure@12
-        with:
-          lein: latest
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -o lein
+          chmod +x lein
+          sudo mv lein /usr/local/bin/lein
+          lein version
 
       - name: Download dependencies
         run: lein deps
