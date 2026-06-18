@@ -240,12 +240,7 @@
            ;; Hero section -- full width, outside the white container
            [:section.news-hero
             [:h2 "AI News Intelligence"]
-            [:p.hero-subtitle "Real-time financial news analysis powered by large language models"]
-            [:div.news-features
-             (for [feat ["Sentiment Analysis" "Market Impact (1-10)" "Investment Stance"
-                         "Risk Assessment" "Key Quote Extraction" "Sector Mapping"
-                         "Entity Recognition" "Actionable Insights"]]
-               [:span.news-feature-chip feat])]]
+            [:p.hero-subtitle "Real-time financial news analysis powered by large language models"]]
 
            [:div.container
             (when error-msg [:div.news-error error-msg])
@@ -312,14 +307,9 @@
                 [:label "Language Code"]
                 [:input {:type "text" :name "language" :value "en" :placeholder "en"}]
                 [:div.field-hint "ISO language code"]]]
-              [:div.field-row-2
-               [:div.field-group
-                [:label "Max Articles (1-10)"]
-                [:input {:type "number" :name "max-articles" :value "3" :min "1" :max "10"}]]
-               [:div.field-group
-                [:label "Request Delay (ms)"]
-                [:input {:type "number" :name "delay" :value "1000" :min "500" :max "10000"}]
-                [:div.field-hint "Increase if hitting rate limits"]]]]
+              [:div.field-group
+               [:label "Max Articles (1-10)"]
+               [:input {:type "number" :name "max-articles" :value "3" :min "1" :max "10"}]]]
 
              ;; Submit
              [:div.news-submit-section
