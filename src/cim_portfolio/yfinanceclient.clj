@@ -90,4 +90,9 @@
   (let [now-str (epoch-to-date (quot (System/currentTimeMillis) 1000))]
     (get-ticker-price-with-end ticker date now-str)))
 
+(defn convert-currency
+  "Returns the price unchanged (assumes USD input). Full FX conversion not available in pure-Clojure build."
+  ([_ticker ticker-price] ticker-price)
+  ([_ticker ticker-price _target-currency] ticker-price))
+
 
