@@ -1,0 +1,33 @@
+name: Build & Test
+
+on:
+  push:
+    branches: ["feature/news-analysis-merge"]
+  pull_request:
+    branches: ["web-application"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Leiningen
+        uses: DeLaGuardo/setup-clojure@12
+        with:
+          lein: latest
+
+      - name: Download dependencies
+        run: lein deps
+
+      - name: Compile
+        run: lein compile
+
+      - name: Run tests
+        run: lein test
