@@ -1,0 +1,277 @@
+body { 
+  font-family: Arial, sans-serif; 
+  margin: 0; 
+  background: #f4f6f8; 
+}
+
+header { 
+  background: #2c3e50;
+  color: white;
+  padding: 1rem;
+  position: relative;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+} 
+
+/* Clickable title link */
+.title-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-block;
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+    font-weight: inherit;
+}
+
+.title-link:hover {
+    text-decoration: underline;
+}
+
+.title-link:focus {
+    outline: 2px solid #9fd3ff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* General */
+
+.container {
+  max-width: 800px; 
+  margin: 2rem auto;
+  background: white; 
+  padding: 2rem; 
+  border-radius: 8px;
+}
+    
+input, button { 
+  margin: 0.5rem 0; 
+  padding: 0.5rem; 
+  width: 100%; 
+}
+    
+button { 
+  background: #3498db; 
+  color: white; 
+  border: none; 
+  cursor: pointer; 
+}
+
+button:hover { 
+  background: #2980b9; 
+}
+    
+.results { 
+  margin-top: 2rem; 
+}
+
+canvas { 
+  width: 100%; 
+  height: 400px; 
+}
+
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  box-sizing: border-box;
+}
+
+.label-h3 {
+  display: block;        /* ensures it behaves like a heading */
+  font-size: 1.17em;     /* typical <h3> size */
+  font-weight: bold;     /* headings are bold */
+  margin-top: 1em;       /* spacing above */
+  margin-bottom: 0.5em;  /* spacing below */
+}
+
+.input-choice {
+  display: flex;
+  justify-content: space-around;
+  margin: 1rem 0;
+}
+
+.input-choice label {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.input-choice input[type="radio"] {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  width: auto;
+  flex-shrink: 0;
+}
+
+/* Checkbox container */
+.checkbox-container {
+  margin: 1rem 0;
+}
+
+.checkbox-container label {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  width: auto;
+  flex-shrink: 0;
+}
+
+/* Manual and file input containers */
+.manual-input,
+.file-input {
+  margin: 1rem 0;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Metrics container using flexbox for 3 columns */
+.metrics-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.metric {
+  flex: 1 0 30%;        /* roughly 3 per row */
+  background: #ecf0f1;  /* light gray background */
+  padding: 0.75rem;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.metric-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.1em;
+  color: #2c3e50;
+}
+
+/* Example-fill button and label (updated: subtler label + compact inline button) */
+.example-controls {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.example-label {
+  font-size: 0.85em;
+  color: #6c757d; /* muted gray */
+  font-weight: normal;
+  margin-right: 0.25rem;
+}
+
+.example-button {
+  display: inline-block;
+  width: auto; /* override global button width */
+  min-width: 0;
+  background: transparent;
+  color: #3498db; /* primary color */
+  border: 1px solid #3498db;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9em;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.example-button:hover {
+  background: #3498db;
+  color: white;
+}
+
+.example-data {
+  display: none; /* hidden, read by JS */
+}
+
+/* GitHub link styling */
+.github-container {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.github-link {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #24292e; /* GitHub dark */
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  font-size: 0.95rem;
+}
+
+.github-link:hover {
+  background: #000;
+  text-decoration: none;
+}
+
+.github-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  flex: 0 0 18px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.15rem;
+  }
+  .github-link {
+    position: static;
+    transform: none;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+  }
+}
+.github-link svg path {
+  fill: currentColor;
+}
+
+.github-link:focus {
+  outline: 2px solid #9fd3ff;
+  outline-offset: 2px;
+}
+
+/* Navigation links in header */
+.top-nav {
+  margin-top: 0.3rem;
+}
+
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.88rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.45);
+  margin: 0 0.25rem;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.18);
+}

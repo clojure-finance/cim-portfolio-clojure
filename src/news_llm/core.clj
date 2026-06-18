@@ -12,6 +12,9 @@
 ;; API endpoints
 (def newsdata-url "https://newsdata.io/api/1/news")
 (def openrouter-url "https://openrouter.ai/api/v1/chat/completions")
+(def deepseek-url "https://api.deepseek.com/chat/completions")
+
+(def deepseek-models ["deepseek-chat" "deepseek-reasoner"])
 
 ;; Configuration constants
 (def default-config
@@ -265,33 +268,38 @@
                         str/trim)]
         (or (re-find #"(?s)\{.*\}" cleaned) cleaned)))))
 
-;; Call single LLM model (internal helper)
-(defn call-llm-single [api-key prompt model]
-  (try
-    (let [body {:model model
-                :messages [{:role "system"
-                            :content "You are a concise news analyst. Return ONLY valid JSON with these exact fields: summary, tldr, sentiment, bias, keywords, entities, category, target_audience. No markdown."}
-                           {:role "user"
-                            :content prompt}]}
-          resp (http/post openrouter-url
-                          {:headers {"Authorization" (str "Bearer " api-key)
-                                     "Content-Type" "application/json"}
-                           :body (json/encode body)
-                           :as :json
-                           :timeout 60000
-                           :throw-exceptions false})
-          status (:status resp)
-          text (extract-llm-content resp)]
-      {:status status :text text :model model :body (:body resp)})
-    (catch Exception e
-      {:status -1 :error (.getMessage e) :model model})))
+;; Call single LLM model (internal helper) — accepts optional llm-url
+(defn call-llm-single
+  ([api-key prompt model] (call-llm-single api-key prompt model openrouter-url))
+  ([api-key prompt model llm-url]
+   (try
+     (let [body {:model model
+                 :messages [{:role "system"
+                             :content "You are a concise news analyst. Return ONLY valid JSON with these exact fields: summary, tldr, sentiment, bias, keywords, entities, category, target_audience. No markdown."}
+                            {:role "user"
+                             :content prompt}]}
+           resp (http/post llm-url
+                           {:headers {"Authorization" (str "Bearer " api-key)
+                                      "Content-Type" "application/json"}
+                            :body (json/encode body)
+                            :as :json
+                            :timeout 60000
+                            :throw-exceptions false})
+           status (:status resp)
+           text (extract-llm-content resp)]
+       {:status status :text text :model model :body (:body resp)})
+     (catch Exception e
+       {:status -1 :error (.getMessage e) :model model}))))
 
-;; Call LLM with model fallback: try primary model first, switch to fallback on 429
-(defn call-llm [api-key prompt model fallback-model retries]
+;; Call LLM with model fallback — accepts optional llm-url
+(defn call-llm
+  ([api-key prompt model fallback-model retries]
+   (call-llm api-key prompt model fallback-model retries openrouter-url))
+  ([api-key prompt model fallback-model retries llm-url]
   (loop [current-model model
          remaining-models (if fallback-model [fallback-model] [])
          attempts retries]
-    (let [{:keys [status text error body]} (call-llm-single api-key prompt current-model)]
+    (let [{:keys [status text error body]} (call-llm-single api-key prompt current-model llm-url)]
       (cond
         ;; Success
         (and (= status 200) text (str/includes? text "{"))
@@ -327,7 +335,7 @@
         ;; Final failure
         :else
         (do (log-error (format "All models failed. Last status: %d" status))
-            "{\"summary\":\"API Error\",\"sentiment\":\"Neutral\",\"keywords\":[],\"category\":\"Unknown\",\"tldr\":\"Unable to analyze\",\"bias\":\"N/A\",\"entities\":[],\"target_audience\":\"N/A\"}")))))
+            "{\"summary\":\"API Error\",\"sentiment\":\"Neutral\",\"keywords\":[],\"category\":\"Unknown\",\"tldr\":\"Unable to analyze\",\"bias\":\"N/A\",\"entities\":[],\"target_audience\":\"N/A\"}"))))))
 
 ;; Local TF-IDF based embedding for text 
 (defonce vocabulary (atom {}))
@@ -362,8 +370,11 @@
       (log-warn (format "TF-IDF embedding failed: %s" (.getMessage e)))
       (into [] (take 100 (repeatedly #(rand 0.5)))))))
 
-;; Analyze one article with rate limiting
-(defn analyze-article [api-key article model fallback-model delay max-retries embedding-url similar-threshold]
+;; Analyze one article with rate limiting — accepts optional llm-url
+(defn analyze-article
+  ([api-key article model fallback-model delay max-retries embedding-url similar-threshold]
+   (analyze-article api-key article model fallback-model delay max-retries embedding-url similar-threshold openrouter-url))
+  ([api-key article model fallback-model delay max-retries embedding-url similar-threshold llm-url]
   (Thread/sleep (long delay))
   (let [full-content (when (:link article) (fetch-full-content (:link article)))
         article-with-content (if full-content
@@ -394,16 +405,14 @@
                                      :vector embedding
                                      :embedding_source embedding-source
                                      :created_at (System/currentTimeMillis)}))
-        raw (call-llm api-key (build-prompt article-with-content) model fallback-model max-retries)]
+        raw (call-llm api-key (build-prompt article-with-content) model fallback-model max-retries llm-url)]
     (try
       (let [parsed (json/decode raw true)
-            ;; Validate essential fields
-            valid-summary (and (:summary parsed) 
-                               (not (contains? #{"Invalid" "API Error" "Exception" "Empty" "Failed"} (:summary parsed))))]            
+            valid-summary (and (:summary parsed)
+                               (not (contains? #{"Invalid" "API Error" "Exception" "Empty" "Failed"} (:summary parsed))))]
         {:title (:title article)
          :link (:link article)
          :published (:pubDate article)
-         ;; Core 8 fields from prompt
          :summary (or (:summary parsed) "No summary available")
          :tldr (or (:tldr parsed) "N/A")
          :sentiment (or (:sentiment parsed) "Neutral")
@@ -412,9 +421,8 @@
          :entities (or (:entities parsed) [])
          :category (or (:category parsed) "General")
          :target-audience (or (:target_audience parsed) "General")
-         ;; System fields
          :story-id story-id
-         :similar similar 
+         :similar similar
          :embedding-source embedding-source
          :success valid-summary})
       (catch Exception e
@@ -433,7 +441,7 @@
          :target-audience "N/A"
          :similar similar
          :embedding-source embedding-source
-         :success false}))))
+         :success false})))))
 
 ;; Output formatters
 (defn format-txt [results]
