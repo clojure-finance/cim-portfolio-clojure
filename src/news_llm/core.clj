@@ -161,7 +161,7 @@
           (take max-articles results))))
     (catch Exception e
       (log-error (format "Failed to fetch news: %s" (.getMessage e)))
-      [])))
+      (throw (ex-info (str "Newsdata.io API error: " (.getMessage e)) {} e))))
 
 ;; Fetch full content from URL using Jina Reader (LLM-friendly)
 (defn fetch-full-content [url]
