@@ -151,14 +151,19 @@
                          {:query-params query-params
                           :as :json
                           :throw-exceptions true})
-          results (-> resp :body :results)]
-      (if (empty? results)
-        (do
-          (log-warn "No articles found")
-          [])
-        (do
-          (log-success (format "Fetched %d articles" (count results)))
-          (take max-articles results))))
+          body    (:body resp)
+          status  (:status body)
+          results (:results body)]
+      (if (= status "error")
+        (throw (ex-info (str "Newsdata.io error: " (:message body)
+                             " (code: " (:code body) ")") {}))
+        (if (empty? results)
+          (do
+            (log-warn "No articles found")
+            [])
+          (do
+            (log-success (format "Fetched %d articles" (count results)))
+            (take max-articles results)))))
     (catch Exception e
       (log-error (format "Failed to fetch news: %s" (.getMessage e)))
       (throw (ex-info (str "Newsdata.io API error: " (.getMessage e)) {} e)))))

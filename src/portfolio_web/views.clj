@@ -309,7 +309,8 @@
                 [:div.field-hint "ISO language code"]]]
               [:div.field-group
                [:label "Max Articles (1-10)"]
-               [:input {:type "number" :name "max-articles" :value "3" :min "1" :max "10"}]]]
+               [:input {:type "number" :name "max-articles" :value "3" :min "1" :max "10"}]
+               [:div.field-hint "Recommended: 3 or fewer to avoid server timeout"]]]
 
              ;; Submit
              [:div.news-submit-section
