@@ -72,11 +72,17 @@
           (let [articles (news/fetch-news newsdata-key country language max-articles query)]
             (if (empty? articles)
               (views/news-results-page [] "No articles found for your query. Try a different search term.")
-              (let [results (mapv (fn [article]
-                                    (news/analyze-article
-                                     llm-key article model nil delay-ms 2 nil 0.7 llm-url))
-                                  articles)]
-                (views/news-results-page results nil))))
+              (let [results (->> articles
+                                (mapv (fn [article]
+                                        (try
+                                          (news/analyze-article
+                                           llm-key article model nil delay-ms 2 nil 0.7 llm-url)
+                                          (catch Exception _
+                                            nil))))
+                                (filterv some?))]
+                (if (empty? results)
+                  (views/news-results-page [] "LLM analysis failed for all articles. Please check your LLM API key.")
+                  (views/news-results-page results nil)))))
           (catch Exception e
             (views/news-page (str "Error: " (.getMessage e))))))))
    "text/html"))
