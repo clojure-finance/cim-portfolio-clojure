@@ -60,6 +60,8 @@ Python objects are linked to the JVM, allowing Clojure to run the yfinanceclient
 
 Set the `CIM_PORTFOLIO_PYTHON` environment variable to the path of your Python interpreter (e.g. `~/miniconda3/envs/cim-portfolio/bin/python`); it must have the packages above installed.
 
+If your interpreter's shared library is not on the system loader path — typical for pyenv installs, where an older system libpython can get loaded instead (symptoms: `ModuleNotFoundError` for installed packages, or `undefined symbol` errors from C extensions) — also set `CIM_PORTFOLIO_LIBPYTHON` to the matching `libpython3.x.so` (e.g. `~/.pyenv/versions/3.12.11/lib/libpython3.12.so`). pyenv users: build with `PYTHON_CONFIGURE_OPTS="--enable-shared"` so this library exists.
+
 
 ## Usage (Running Locally)
 
