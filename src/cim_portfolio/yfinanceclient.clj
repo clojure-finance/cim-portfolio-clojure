@@ -2,22 +2,20 @@
 ;;; ### Requires python, yfinance etc. to be installed on local machine
 (ns cim_portfolio.yfinanceclient
   (:require [libpython-clj2.require :refer [require-python]]
-            [libpython-clj2.python :refer [py. py.. py.-] :as py] 
+            [libpython-clj2.python :refer [py. py.. py.-] :as py]
             [clojure.data.json :as json]
-            [clj-yfinance.core :as yf] 
-            [clojure-finance.ecbjure.fx :as fx]
-  )
-  (:import  (java.time Instant LocalDate ZoneOffset))
-)
+            [clj-yfinance.core :as yf]
+            [clojure-finance.ecbjure.fx :as fx])
+  (:import  (java.time Instant LocalDate ZoneOffset)))
 
-(py/initialize! :python-executable "/home/edward/miniconda3/envs/cim-portfolio/bin/python")
+(py/initialize! :python-executable (or (System/getenv "CIM_PORTFOLIO_PYTHON")
+                                       "/home/edward/miniconda3/envs/cim-portfolio/bin/python"))
 
 ;; Fetch latest rates from ECB
 (def c (fx/make-converter))
 
 ;; (require-python '[yfinance :as yf]
 ;;                 '[datetime :as dt])
-
 
 ;; Test if yfinance working through clojure-python wrapper
 ;; (yf/download "AAPL" "2025-01-15" :progress false :auto_adjust false)
@@ -119,17 +117,15 @@ def convert_currency(ticker, ticker_price, target_currency='USD'):
 (def convert-currency-wrapper (:convert_currency (:globals pythonWrapper)))
 
 (defn python-get-ticker-price-all [ticker date]
-  (json/read-str (get-ticker-price-all-wrapper ticker date))
-)
+  (json/read-str (get-ticker-price-all-wrapper ticker date)))
 
 (defn python-get-ticker-price-with-end [ticker start_date end_date]
-  (json/read-str (get-ticker-price-with-end-wrapper ticker start_date end_date))
-  )
+  (json/read-str (get-ticker-price-with-end-wrapper ticker start_date end_date)))
 
-(defn python-convert-currency 
+(defn python-convert-currency
   ([ticker ticker_price target_currency] (convert-currency-wrapper ticker ticker_price target_currency))
   ([ticker ticker_price] (convert-currency-wrapper ticker ticker_price) ;; No target currency defaults to USD
-   )) 
+                         ))
 
 (defn convert-currency
   ([ticker ticker-price target-currency] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c ticker-price stock-currency target-currency)))
@@ -138,22 +134,22 @@ def convert_currency(ticker, ticker_price, target_currency='USD'):
 
 (defn get-ticker-price-all [ticker date]
   (let [yf-response (yf/fetch-historical ticker :start (.toEpochSecond (.atStartOfDay (LocalDate/parse date) ZoneOffset/UTC)) ;; Convert date string, e.g. 2026-01-31, to Epoch Seconds
-                                         :interval "1d")
+                                         :interval "1d"
+                                         :auto-adjust true) ;; Prices are adjusted for dividends (and splits), like the Python wrapper's auto_adjust=True
         stock-currency (:currency (yf/fetch-info ticker))
         ticker-prices (pop ;; For some reason, the last datapoint is duplicated 
-                               (vec 
-                                (map #(vector (str (.toLocalDate (.atZone (Instant/ofEpochSecond (:timestamp %)) ZoneOffset/UTC))) ;; Convert Seconds since Epoch to a Date String, e.g. 2026-01-31 
-                                              (fx/convert c (:open %) stock-currency "USD") 
-                                              (fx/convert c (:close %) stock-currency "USD")) 
-                                     yf-response))) 
-        ]
-    ticker-prices)
-  )
+                       (vec
+                        (map #(vector (str (.toLocalDate (.atZone (Instant/ofEpochSecond (:timestamp %)) ZoneOffset/UTC))) ;; Convert Seconds since Epoch to a Date String, e.g. 2026-01-31 
+                                      (fx/convert c (:open %) stock-currency "USD")
+                                      (fx/convert c (:close %) stock-currency "USD"))
+                             yf-response)))]
+    ticker-prices))
 
 (defn get-ticker-price-with-end [ticker start-date end-date]
   (let [yf-response (yf/fetch-historical ticker :start (.toEpochSecond (.atStartOfDay (LocalDate/parse start-date) ZoneOffset/UTC)) ;; Convert date string, e.g. 2026-01-31, to Epoch Seconds
-                                         :end (.toEpochSecond (.atStartOfDay (LocalDate/parse end-date) ZoneOffset/UTC)) 
-                                         :interval "1d")
+                                         :end (.toEpochSecond (.atStartOfDay (LocalDate/parse end-date) ZoneOffset/UTC))
+                                         :interval "1d"
+                                         :auto-adjust true) ;; Prices are adjusted for dividends (and splits), like the Python wrapper's auto_adjust=True
         stock-currency (:currency (yf/fetch-info ticker))
         ticker-prices (pop ;; For some reason, the last datapoint is duplicated 
                        (vec
@@ -164,8 +160,8 @@ def convert_currency(ticker, ticker_price, target_currency='USD'):
     ticker-prices))
 
 ;; Test if function is working + price is converted to USD
+(comment
+  (get-ticker-price-all "0700.HK" "2025-01-25")
 
-(get-ticker-price-all "0700.HK" "2025-01-25")
-
-(get-ticker-price-with-end "0700.HK" "2025-01-25" (.toString (java.time.LocalDate/now)))
+  (get-ticker-price-with-end "0700.HK" "2025-01-25" (.toString (java.time.LocalDate/now))))
 

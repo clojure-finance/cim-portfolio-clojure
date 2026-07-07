@@ -10,36 +10,32 @@
 ;; Computes arithmetic, log, and cumulative log return for a given list of prices
 (defn calculate-returns [prices]
   (let [price-changes (map #(if (zero? (first %)) ;; Edge case if price is 0 at some point
-                              1 
-                              (double (/ (second %) (first %)))) 
+                              1
+                              (double (/ (second %) (first %))))
                            (partition 2 1 prices))
         arithmetic-returns (mapv #(- % 1.0) price-changes)
         log-returns (mapv #(Math/log %) price-changes)
         cumulative-log-return (reduce + log-returns)
         cumulative-arithmetic-return (- (Math/exp cumulative-log-return) 1)]
-    {
-     :cumulative-log-return cumulative-log-return
+    {:cumulative-log-return cumulative-log-return
      :cumulative-arithmetic-return cumulative-arithmetic-return
      :arithmetic-returns arithmetic-returns
-     :log-returns log-returns
-     }))
+     :log-returns log-returns}))
 
 ;; Variation of the above function - additionally associates the returns with their corresponding date
 (defn calculate-returns-with-corresponding-date [prices dates]
   (let [price-changes (map #(if (zero? (first %)) ;; Edge case which can happen when at some point, portfolio is empty
-                               1
-                               (double (/ (second %) (first %)))) ;; Next Day (or next date in data) price divided by Current Day Price
+                              1
+                              (double (/ (second %) (first %)))) ;; Next Day (or next date in data) price divided by Current Day Price
                            (partition 2 1 prices));; This transforms a 1D array to a 2D array with a sliding window of size=2 and increment=1
         arithmetic-returns (mapv #(- % 1.0) price-changes) ;; Calculate arithmetic returns from day x to day x+1, day x+1 to day x+2, ...
         log-returns (mapv #(Math/log %) price-changes)
         cumulative-log-return (reduce + log-returns)
         cumulative-arithmetic-return (- (Math/exp cumulative-log-return) 1)]
-    {
-     :cumulative-log-return cumulative-log-return
+    {:cumulative-log-return cumulative-log-return
      :cumulative-arithmetic-return cumulative-arithmetic-return
      :arithmetic-returns (util/sort-map-by-date (zipmap (rest dates) arithmetic-returns))
-     :log-returns (util/sort-map-by-date (zipmap (rest dates) log-returns))
-     }))
+     :log-returns (util/sort-map-by-date (zipmap (rest dates) log-returns))}))
 
 ;; DEPRECATED AS THE BELOW IS WRONG, weights should never be applied to log returns, it should be applied to arithmetic returns.
 ;; Additionally, weights should be calculated using the current market price of each stock, not the initial cash investment into each stock.
@@ -67,7 +63,7 @@
 
 ;; DEPRECATED (will replace all use of this function with set-of-portfolio-log-returns-and-weights soon)
 ;; This function calculates the cumulative portfolio return for a static portfolio (no change in the underlying stocks or quantity)
-(defn calculate-portfolio-return-and-weights-for-given-date [portfolio start-date end-date] 
+(defn calculate-portfolio-return-and-weights-for-given-date [portfolio start-date end-date]
   ;; portfolio: The previous portfolio composition before the latest buy/sell order {"NVDA" 10000, "MSFT" 5000, "B" -12500, ...}
   ;; start-date: The trade date for the previous buy/sell order "YYYY-MM-DD"
   ;; end-date: The trade date for the new buy/sell order "YYYY-MM-DD"
@@ -94,32 +90,30 @@
 
         ;; Current portfolio value
         current-portfolio-value (reduce + (vals current-market-values))
-        
+
         ;; Get the current stock weights
-        stock-weights (if 
+        stock-weights (if
                        (zero? current-portfolio-value) ;; Take care of edge case when there are no stocks in portfolio 
-                        (into {} 
-                              (map (fn [[ticker value]] 
-                                     [ticker (double 0)]) 
-                                   current-market-values)) 
-                        (into {} 
-                              (map (fn [[ticker value]] 
-                                     [ticker (/ value current-portfolio-value)]) 
-                                   current-market-values))) 
-        
-        
-        ;; Get the portfolio cumulative return
+                        (into {}
+                              (map (fn [[ticker value]]
+                                     [ticker (double 0)])
+                                   current-market-values))
+                        (into {}
+                              (map (fn [[ticker value]]
+                                     [ticker (/ value current-portfolio-value)])
+                                   current-market-values)))
+
+;; Get the portfolio cumulative return
         portfolio-cumulative-return (if (zero? initial-portfolio-value) ;; edge case where portfolio value is 0
                                       0 ;; undefined
                                       (- (/ current-portfolio-value initial-portfolio-value) 1))]
-        
-        {:portfolio-cumulative-return portfolio-cumulative-return 
-         :stock-weights stock-weights
-         :initial-portfolio-value initial-portfolio-value
-         :current-portfolio-value current-portfolio-value
-         :current-stock-holdings current-market-values
-         :all-ticker-prices prices-until-end-date}
-        ))
+
+    {:portfolio-cumulative-return portfolio-cumulative-return
+     :stock-weights stock-weights
+     :initial-portfolio-value initial-portfolio-value
+     :current-portfolio-value current-portfolio-value
+     :current-stock-holdings current-market-values
+     :all-ticker-prices prices-until-end-date}))
 
 ;; DEPRECATED, This function calculates the cumulative portfolio return using log returns for a fixed portfolio, returning information about the portfolio
 ;; Multiple variables are returned to prevent the need to fetch to yfinance multiple times, which causes increased computation time and risks rate limiting
@@ -152,7 +146,7 @@
                                             [d (into {} ;; Date is set as key
                                                      (map (fn [[ticker prices]]
                                                             [ticker ;; Ticker is inner map's key
-                                                             (if (= d start-date) 
+                                                             (if (= d start-date)
                                                                (* (first (get prices d)) (get portfolio ticker)) ;; Multiply opening price of stock at trade date by the amount in portfolio to get holding value
                                                                (* (last (get prices d)) (get portfolio ticker))) ;; Multiply closing price of stock at trade date by the amount in portfolio to get holding value
                                                              ])
@@ -161,7 +155,7 @@
                                           all-trade-dates)) ;; For each trade date 
 
         ;; Get total portfolio value by date
-        portfolio-value-by-date (util/sort-map-by-date 
+        portfolio-value-by-date (util/sort-map-by-date
                                  (into {}
                                        (map (fn [[d holdings]]
                                               [d (reduce + (vals holdings))])
@@ -177,13 +171,12 @@
                                                                [ticker (/ (get (get holding-values-by-date d) ticker) portfolio-value)]) ;; Divides the stock holdings on date "d", by the total portfolio value on date "d"
                                                              (keys portfolio)))])
                                              portfolio-value-by-date))
-        
+
         portfolio-returns-with-date (calculate-returns-with-corresponding-date (vals portfolio-value-by-date) (keys portfolio-value-by-date)) ;; When using this function, arguments have to be ordered by time
         ]
     {:stock-weights portfolio-weights-by-date
      :portfolio-returns portfolio-returns-with-date ;; Contains arithmetic and log returns and cumulative returns
      :all-ticker-prices prices-until-end-date-enhanced}))
-
 
 ;; This function calculates the log returns for a set of portfolios over time (portfolio-composition-by-date), returning information about each portfolio while they existed
 ;; Multiple variables are returned to prevent the need to fetch to yfinance multiple times, which causes increased computation time and risks rate limiting
@@ -219,22 +212,20 @@
         ;;                                            (assoc sorted-prices (first tickers) 
         ;;                                                   (util/sort-map-by-date (get prices-until-end-date-enhanced (first tickers)))))))
 
-
-        ;; Get all trade dates between start of portfolio and today
+;; Get all trade dates between start of portfolio and today
         ;; Returns a collection of date Strings (i.e. "yyyy-MM-dd")
         all-trade-dates (keys ;; Return the dates 
                          (reduce ;; Find the ticker with the most number of data, and return the corresponding data
-                          (fn [best curr] 
-                            (if (> (count curr) (count best)) 
+                          (fn [best curr]
+                            (if (> (count curr) (count best))
                               curr best))
-                          {} 
+                          {}
                           (vals sorted-prices-until-end-date-enhanced))) ;; Get all the ticker prices from the newest portfolio
 
         ;; Get all portfolio-composition-by-date execution dates (already converted into java.time.LocalDate)
         all-trade-execution-dates (map date-parser (keys portfolio-composition-by-date)) ;; Take All Order Execution Dates
 
-
-        ;; Function to get the latest order execution date before an input date (input-date is a String, not java.time.LocalDate)
+;; Function to get the latest order execution date before an input date (input-date is a String, not java.time.LocalDate)
         ;; If there are no order execution dates earlier than the input date, then return earliest order execution date
         get-nearest-execution-date (fn [input-date]
                                      (.toString ;; Result will be a java.time.LocalDate, so convert to String
@@ -293,18 +284,15 @@
                                                            (map (fn [ticker]
                                                                   [ticker (double 0)])
                                                                 ;; (keys (get portfolio-composition-by-date latest-execution-date))
-                                                                (keys sorted-prices-until-end-date-enhanced)
-                                                                ))
+                                                                (keys sorted-prices-until-end-date-enhanced)))
                                                      (into {}
                                                            (map (fn [ticker]
                                                                   [ticker (/ (get (get holding-values-by-date d) ticker) portfolio-value)]) ;; Divides the stock holdings on date "d", by the total portfolio value on date "d"
                                                                 ;; (keys (get portfolio-composition-by-date latest-execution-date)) ;; Newest Portfolio should contain all past and current tickers
-                                                                (keys sorted-prices-until-end-date-enhanced)
-                                                                )))]) 
+                                                                (keys sorted-prices-until-end-date-enhanced))))])
                                               portfolio-value-by-date)))
 
-
-        ;; This variable holds all of the time-series log returns of the portfolio
+;; This variable holds all of the time-series log returns of the portfolio
         ;; On the trade date when a new order execution happens, we need to replace return with 0 because the portfolio changes. There is no return on these dates since there is a change in the portfolio composition.
         portfolio-log-returns-by-date (reduce
                                        (fn [m d]
@@ -330,7 +318,7 @@
 
         ;; This variable holds all of the time-series log returns of the portfolio from start-date to end-date, in the form of a time-sorted map with trade dates as keys, and log returns as values.
         ;; On the trade date when a new order execution happens, we don't have to replace return with 0 because cash is included in portfolio.
-        portfolio-log-returns-by-date 
+        portfolio-log-returns-by-date
         (util/sort-map-by-date
          (into {} ;; This will make it unsorted
 
@@ -341,20 +329,13 @@
                        (or (.isBefore (date-parser date) (date-parser end-date)) (.isEqual (date-parser date) (date-parser end-date)))))
 
                 (:log-returns (calculate-returns-with-corresponding-date (map #(second %) portfolio-value-by-day) (map #(first %) portfolio-value-by-day))) ;; When using this function, arguments have to be ordered by time
-                )))
-        
-        
-        
-        ]
-
-    {:portfolio-log-returns portfolio-log-returns-by-date
-     }))
-
+                )))]
+    {:portfolio-log-returns portfolio-log-returns-by-date}))
 
 ;; Calculates cumulative return UP TILL a given date
 (defn get-cumulative-return-till-given-date [cumulative-returns date]
   (util/sum-up-to-key date cumulative-returns) ;; Sum all log returns until a date
-)
+  )
 
 ;; Only calculates portfolio return up till a given date
 ;; DEPRECATED AS THE BELOW IS WRONG, weights should never be applied to log returns, it should be applied to arithmetic returns.
@@ -366,40 +347,30 @@
          (map (fn [[security invested]]
                 (let [weight (/ invested total-investment)
                       return (get-cumulative-return-till-given-date (:log-returns (get returns security)) date) ;; They sum all log returns for each security until a given date
-                     ]
+                      ]
                   (* weight return))))
          (apply +)))) ;; Add up all the weighted returns to get the weighted average return
 
 ; Calculates the annualized return of the portfolio (accepts the starting value, ending value of portfolio, the start and end date)
 (defn calculate-annualized-return [starting-value ending-value start-date end-date]
   (let [return (/ (- ending-value starting-value) starting-value)
-        number-of-days (util/number-of-days-between start-date end-date)
-       ]
-    (- (math/pow (+ 1 return) (/ 365 number-of-days)) 1)
-  )
-)
+        number-of-days (util/number-of-days-between start-date end-date)]
+    (- (math/pow (+ 1 return) (/ 365 number-of-days)) 1)))
 
 ; Calculates the volatility of a given list of prices (expected input: portfolio value list)
 (defn volatility [prices]
   (let [daily-returns (:arithmetic-returns (calculate-returns prices))
-        volatility (* 100 (util/std-dev daily-returns))
-       ]
-    volatility
-  )
-)
+        volatility (* 100 (util/std-dev daily-returns))]
+    volatility))
 
 ; Calculates the annualized volatility for a given sliding window-size (using the historical standard deviation method)
 (defn rolling-annualized-volatility [prices window-size]
   (let [returns (:arithmetic-returns (calculate-returns prices))
-        scaling-factor (Math/sqrt 252)
-       ]
+        scaling-factor (Math/sqrt 252)]
     (->> returns
          (partition window-size 1)
          (map util/std-dev)
-      	 (map #(* 100 % scaling-factor))
-    )
-  )
-)
+         (map #(* 100 % scaling-factor)))))
 
 ;; Calculates the "Annualized" Rolling EWMA volatility (standard deviation) for a given sliding window-size
 ;; Prices here are the Portfolio values by date (I assume is already sorted), and follow the following structure:
@@ -409,7 +380,7 @@
 (defn ewma-rolling-volatility [prices window-size alpha]
   (let [returns (:arithmetic-returns (calculate-returns prices))
         returns-squared (map #(* % %) returns)
-    
+
         ;; Calculate the weights that will be applied to each squared return in a window
         ;; The size of vector "weights" will be the same as the size of the window 
         applied-weights (loop
@@ -453,20 +424,15 @@
              (rest sliding-window) ;; Remove first window
              (conj ewma-rolling-portfolio-variance
                    (reduce + ;; Sum all products in each window
-                                 (map * (first sliding-window) reversed-applied-weights)) ;; Multiply each element in first window, with the corresponding weight
-                   )
-             ))) 
-        
-        ;; Rolling EWMA Standard Deviation (just square root the previous variable)
+                           (map * (first sliding-window) reversed-applied-weights)) ;; Multiply each element in first window, with the corresponding weight
+                   ))))
+;; Rolling EWMA Standard Deviation (just square root the previous variable)
         rolling-ewma-sd (map #(Math/sqrt %) rolling-ewma-variance)
 
         ;; Annualized EWMA Standard Deviation (just multiply by sqrt 252)
-        annualized-rolling-ewma-sd (map #(* (Math/sqrt 252) %) rolling-ewma-sd)
-        ]
-        
-        (vec annualized-rolling-ewma-sd)
-        
-        ))
+        annualized-rolling-ewma-sd (map #(* (Math/sqrt 252) %) rolling-ewma-sd)]
+
+    (vec annualized-rolling-ewma-sd)))
 
 ;; Calculates the annualized rolling sharpe ratio, intended to be used with a measure of annualized rolling volatility with the same size for the sliding window
 
@@ -475,10 +441,8 @@
         rolling-returns (partition window-size 1 returns)
         rolling-average-returns (map #(/ (reduce + %) window-size) rolling-returns)
         annualized-rolling-average-returns (map #(* 252 %) rolling-average-returns)
-        rolling-sharpe-ratio (map / annualized-rolling-average-returns volatility)
-        ] 
-    rolling-sharpe-ratio
-    ))
+        rolling-sharpe-ratio (map / annualized-rolling-average-returns volatility)]
+    rolling-sharpe-ratio))
 
 ;;; ### Portfolio Processing Section
 
@@ -513,18 +477,18 @@
                                              prices)))])
                        complete-stock-prices))]
         [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) (util/sort-map-by-date portfolio-value) current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices-enhanced] ;; When no more rows, return final values
-        ) 
+        )
       (let [[date action amount ticker set-price] (first data)
-           
+
             ;; Java Datetime related functions
             date-formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd")
             date-parser (fn [d] (java.time.LocalDate/parse d date-formatter))
-           
+
             ticker-prices (filter ;; Filter ticker prices such that only data on the trade date and after is taken  
                            (fn [[d open-price close-price]]
                              (or (.isEqual (date-parser d) (date-parser date))
                                  (.isAfter (date-parser d) (date-parser date))))
-           
+
                            ;; Obtain stock price data (Please check if vector is ordered by date) 
                            (if (= (get complete-stock-prices ticker "") "") ;; Check if we have fetched this ticker previously 
                              (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for only one of the tickers from the trade date until today 
@@ -574,43 +538,41 @@
                        complete-stock-prices) ;; Keep previously fetched stock price data
                      (rest data)))
             (recur cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices (rest data))) ;; If negative amount, ignore
-          
+
           (= (clojure.string/lower-case action) "sell")
           (let [price (if (nil? set-price) (second (first ticker-prices)) (Double. set-price))
                 currPrice (nth (last ticker-prices) 2)
-                prices (map second ticker-prices)
+                prices (mapv #(nth % 2) ticker-prices)       ; Extracts the closing prices from ticker-prices (trade date to today), same as the buy branch — only the trade itself happens at the open
                 amounts (repeatedly (count prices) #(Double. amount))
                 ;; trading-dates (mapv #(first %) ticker-prices)
                 ]
             (recur (+ cash (* (Double. amount) price))
                    (assoc portfolio ticker (- (get portfolio ticker 0) (Double. amount)))
                    (assoc portfolio-composition-by-date executed-date (assoc portfolio ticker (- (get portfolio ticker 0) (Double. amount))))
-                   (merge-with + portfolio-value (zipmap (map first ticker-prices) 
+                   (merge-with + portfolio-value (zipmap (map first ticker-prices)
                                                          (map #(- (* (Double. amount) price) %) (map * prices amounts)))) ;; PnL for each trading day relative to trade date (short) = Market value of the holdings on the trade date - Market value of each holding for trading days after the trade date 
                    (- current-value (* (Double. amount) currPrice))
-                   
+
                   ;;  (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates))
                    (assoc cash-invested ticker (- (get cash-invested ticker 0) (* (Double. amount) price)))
-                   (assoc cash-invested-by-date executed-date (assoc cash-invested ticker (- (get cash-invested ticker 0) (* (Double. amount) price)))) 
+                   (assoc cash-invested-by-date executed-date (assoc cash-invested ticker (- (get cash-invested ticker 0) (* (Double. amount) price))))
                    ;; Be careful of signage, sell orders should "increase" cash 
-                   (assoc change-in-cash-by-date executed-date  
+                   (assoc change-in-cash-by-date executed-date
                           (if (empty? change-in-cash-by-date)
-                          
+
                             ;; If this is the first trade, just put in the initial investment
                             (+ 0 (* (Double. amount) price))
 
                             ;; Add new trade notional to most recent cash change
-                            (+ (get change-in-cash-by-date 
+                            (+ (get change-in-cash-by-date
                             ;; Get most recent trade date 
-                                    (.toString 
+                                    (.toString
                                      (reduce #(if (> (.compareTo %1 %2) 0) %1 %2) ;; .compareTo returns a positive integer if %1 is greater than %0, zero if they are equal, otherwise negative integer  
-                                             (map date-parser 
-                                                  (keys change-in-cash-by-date)))) 0
-                                  ) (* (Double. amount) price)
-                              ) 
-                          ))
+                                             (map date-parser
+                                                  (keys change-in-cash-by-date)))) 0) (* (Double. amount) price))))
+
                    (if (= (get complete-stock-prices ticker "") "") ;; Check if we have to store new stock prices into map 
                      (assoc complete-stock-prices ticker ticker-prices)
-                     complete-stock-prices) 
+                     complete-stock-prices)
                    (rest data))) ;; Remove the first row
           )))))
