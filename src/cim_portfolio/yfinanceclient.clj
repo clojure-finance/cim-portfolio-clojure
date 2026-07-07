@@ -2,16 +2,14 @@
 ;;; ### Requires python, yfinance etc. to be installed on local machine
 (ns cim_portfolio.yfinanceclient
   (:require [libpython-clj2.require :refer [require-python]]
-            [libpython-clj2.python :refer [py. py.. py.-] :as py] 
-            [clojure.data.json :as json]
-  )
-)
+            [libpython-clj2.python :refer [py. py.. py.-] :as py]
+            [clojure.data.json :as json]))
 
-(py/initialize! :python-executable "/home/edward/miniconda3/envs/cim-portfolio/bin/python")
+(py/initialize! :python-executable (or (System/getenv "CIM_PORTFOLIO_PYTHON")
+                                       "/home/edward/miniconda3/envs/cim-portfolio/bin/python"))
 
 ;; (require-python '[yfinance :as yf]
 ;;                 '[datetime :as dt])
-
 
 ;; Test if yfinance working through clojure-python wrapper
 ;; (yf/download "AAPL" "2025-01-15" :progress false :auto_adjust false)
@@ -25,7 +23,7 @@ def get_ticker_price_all(ticker, date):
     count = 0
     while True:
         count += 1
-        data = yf.download(ticker, start=date, progress=False, auto_adjust=False) # This might only be 1 month
+        data = yf.download(ticker, start=date, progress=False, auto_adjust=True) # Adjusted for dividends, consistent with get_ticker_price_with_end
         if len(data) > 0:
             break
         if count >= 10:
@@ -72,12 +70,10 @@ def get_ticker_price_with_end(ticker, start_date, end_date):
 (def get-ticker-price-with-end-wrapper (:get_ticker_price_with_end (:globals pythonWrapper)))
 
 (defn get-ticker-price-all [ticker date]
-  (json/read-str (get-ticker-price-all-wrapper ticker date))
-)
+  (json/read-str (get-ticker-price-all-wrapper ticker date)))
 
 (defn get-ticker-price-with-end [ticker start_date end_date]
-  (json/read-str (get-ticker-price-with-end-wrapper ticker start_date end_date))
-  )
+  (json/read-str (get-ticker-price-with-end-wrapper ticker start_date end_date)))
 ;; Test if function is working + price is converted to USD
 
 (get-ticker-price-all "0700.HK" "2025-01-25")

@@ -1,7 +1,7 @@
 (ns cim_portfolio.plot
-  (:require [scicloj.kindly.v4.kind :as kind]
-            [clojure.string :as str]
-            [clojure.data.json :as json]))
+  (:require [clojure.string :as str]
+            [clojure.data.json :as json]
+            [nextjournal.clerk :as clerk]))
 
 ;; Generate a UUID
 (defn- uuid [] (str (java.util.UUID/randomUUID)))
@@ -22,7 +22,7 @@
                :y (map second plot-data)
                :type "scatter"
                :mode "lines"}]
-    (kind/plotly {:data [trace]
+    (clerk/plotly {:data [trace]
                    :layout {:xaxis {:title x-title
                                      :title_standoff 40} ; Increase space between x-axis title and values
                             :yaxis {:title y-title
