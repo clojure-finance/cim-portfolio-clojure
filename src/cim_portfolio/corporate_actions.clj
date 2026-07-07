@@ -12,16 +12,18 @@
 ;;; and user-supplied prices are in TODAY'S (post-split) units, consistent with
 ;;; the split-adjusted prices fetched from Yahoo.
 (ns cim_portfolio.corporate-actions
-  (:require [clj-yfinance.core :as yf])
+  (:require [cim_portfolio.util :as util]
+            [clj-yfinance.core :as yf])
   (:import (java.time LocalDate ZoneOffset)))
 
 (defn- trade-day-end
-  "Epoch seconds of the last second of `date-str` (\"yyyy-MM-dd\", UTC).
-   Split timestamps mark the market open of the effective date, so comparing
-   against the END of the trade day excludes splits effective on the trade date
-   itself — trades executed that day are already in post-split units."
+  "Epoch seconds of the last second of the trade date (UTC). `date-str` accepts
+   any format understood by util/parse-date. Split timestamps mark the market
+   open of the effective date, so comparing against the END of the trade day
+   excludes splits effective on the trade date itself — trades executed that
+   day are already in post-split units."
   [date-str]
-  (dec (.toEpochSecond (.atStartOfDay (.plusDays (LocalDate/parse date-str) 1) ZoneOffset/UTC))))
+  (dec (.toEpochSecond (.atStartOfDay (.plusDays (LocalDate/parse (util/parse-date date-str)) 1) ZoneOffset/UTC))))
 
 (defn fetch-splits
   "Fetch split events for every distinct ticker in the trades table (header row
@@ -52,7 +54,7 @@
                                              (trade-day-end date))]
       (if (== factor 1.0)
         row
-        (cond-> (assoc row 2 (str (* factor (Double/parseDouble amount))))
+        (cond-> (assoc (vec row) 2 (str (* factor (Double/parseDouble amount))))
           price (assoc 4 (str (/ (Double/parseDouble price) factor))))))))
 
 (defn adjust-trades-for-splits
