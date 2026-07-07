@@ -1,19 +1,18 @@
 (ns cim_portfolio.regression
-    (:require 
+  (:require
     ;;  [cim_portfolio.plot :as plot]
-              [cim_portfolio.portfoliofunctions :as portfolio]
-              [fastmath.ml.regression :as reg] 
-              [libpython-clj2.python :refer [py. py.. py.-] :as py]
-              [clojure.data.json :as json]
-    ))
+   [cim_portfolio.portfoliofunctions :as portfolio]
+   [fastmath.ml.regression :as reg]
+   [libpython-clj2.python :refer [py. py.. py.-] :as py]
+   [clojure.data.json :as json]))
 
-(py/initialize! :python-executable "/home/edward/miniconda3/envs/cim-portfolio/bin/python")
+(py/initialize! :python-executable (or (System/getenv "CIM_PORTFOLIO_PYTHON")
+                                       "/home/edward/miniconda3/envs/cim-portfolio/bin/python"))
 
 (defn calculate-regression [stock-returns market-returns] ;; both returns are 1D sequences
-    (reg/lm
-        stock-returns
-        (map vector market-returns)
-    ))
+  (reg/lm
+   stock-returns
+   (map vector market-returns)))
 
 (defn rolling-capm-regression [complete-stock-returns complete-market-returns window-size]
   (let [stock-windows (partition window-size 1 complete-stock-returns)
@@ -22,14 +21,13 @@
         alpha-seq (map :intercept rolling-regression)
         beta-seq (map :beta rolling-regression)]
 
-        {:alpha alpha-seq
-         :beta beta-seq}
-  ))
+    {:alpha alpha-seq
+     :beta beta-seq}))
 
 ;; Define simple python script to get sample data (for now)
 
-(def get-python-data (py/run-simple-string 
-"from datetime import datetime, timedelta
+(def get-python-data (py/run-simple-string
+                      "from datetime import datetime, timedelta
 import yfinance as yf
 
 # Both are already in USD
@@ -100,13 +98,11 @@ market_data = snp_data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
         stock-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date stock-prices stock-dates)))
         market-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date market-prices market-dates)))
         plotted-dates (subvec (vec stock-dates) 252)
-        model (rolling-capm-regression stock-returns market-returns 252) 
-        ]
+        model (rolling-capm-regression stock-returns market-returns 252)]
     (-> {}
         (assoc :plotted-dates plotted-dates)
         (assoc :plotted-alpha (vec (model :alpha)))
-        (assoc :plotted-beta (vec (map first (model :beta))))
-        )))
+        (assoc :plotted-beta (vec (map first (model :beta)))))))
 
 ;; Testing said function
 
