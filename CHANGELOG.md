@@ -9,7 +9,9 @@ All notable changes to this project will be documented in this file. This change
   (fixes phantom losses and inverted positions for pre-split trades, e.g. the
   SBS 5:1 split effective 2026-05-07)
 - `CIM_PORTFOLIO_PYTHON` environment variable to configure the Python interpreter
-  path (previously hardcoded)
+  path (previously hardcoded), and `CIM_PORTFOLIO_LIBPYTHON` to pin the matching
+  libpython shared library (needed e.g. for pyenv installs, where the system
+  libpython would otherwise be loaded and break C-extension imports)
 - AI news analysis feature: `/news` form page and `/analyze-news` route
 - LLM-powered article analysis via DeepSeek and OpenRouter APIs
 - 15-field extraction per article: sentiment, tldr, summary, bias, keywords, entities,
