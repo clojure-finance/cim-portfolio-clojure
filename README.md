@@ -112,6 +112,8 @@ KEY DEPENDENCY: clj-python/libpython-clj
 libpython-clj (https://github.com/clj-python/libpython-clj) is a key requirement to run Python code within Clojure.
 Python objects are linked to the JVM, allowing Clojure to run the yfinanceclient.clj file that enables scraping data from Python's yfinance package.
 
+Set the `CIM_PORTFOLIO_PYTHON` environment variable to the path of your Python interpreter (e.g. `~/miniconda3/envs/cim-portfolio/bin/python`); it must have the packages above installed.
+
 
 ## Usage (Running Locally)
 
@@ -129,9 +131,11 @@ Python objects are linked to the JVM, allowing Clojure to run the yfinanceclient
 
 Format of portfolio file (in csv):
 
-Date (YYYY-MM-DD)   |   Action (buy/sell)   |   Number of units bought/sold    |    Ticker
+Date (YYYY-MM-DD)   |   Action (buy/sell)   |   Number of units bought/sold    |    Ticker    |    Price (optional; the actual per-unit price paid/received)
 
 (refer to testPortfolio.csv)
+
+Record trades exactly as they happened: units and prices as of the trade date. Stock splits are handled automatically — trade data is normalized to post-split units before analysis, consistent with Yahoo Finance's split-adjusted price history.
 
 ## Options
 
