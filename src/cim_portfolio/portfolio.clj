@@ -8,6 +8,7 @@
 (ns cim_portfolio.portfolio
   (:require [cim_portfolio.util :as util]
             [cim_portfolio.yfinanceclient :as client]
+            [cim_portfolio.corporate-actions :as actions]
             [cim_portfolio.plot :as plot]
             [clojure.math :as math]
             [clojure.pprint :refer [pprint]]
@@ -31,7 +32,7 @@
 
 ;; ### Portfolio Performance
 
-(let [data (util/read-multiple-csv input-files)
+(let [data (actions/adjust-trades-for-splits (util/read-multiple-csv input-files)) ;; Normalize share amounts to post-split units, consistent with Yahoo's split-adjusted prices
       [cash portfolio portfolio-value current-value cash-invested cash-invested-by-date stock-performance] (portfolio/analyze-portfolio data)
       sorted-portfolio-value 	(map #(vector (first %) (+ (:starting-cash portfolio-options) (second %)))
                                    (util/sort-map-by-date portfolio-value))
@@ -47,37 +48,37 @@
 
   ;; Portfolio Basic Performance
   (str "Current Portfolio Value: $" (format "%.2f" current-portfolio-value)
-        " [Cash: ~$" (format "%.2f" (+ (:starting-cash portfolio-options) cash))
-        "| Stocks: ~$" (format "%.2f" (- current-portfolio-value (+ (:starting-cash portfolio-options) cash))) "] \n\n"
-  
-        "Annualized Return of portfolio: " (format "%.2f" (* annualized-return 100)) "%\n\n"
-  
-        "Volatility of portfolio: " (format "%.4f" volatility) "%\n\n"
-        "Annualized volatility of portfolio: " (format "%.4f" (* (Math/sqrt 252) volatility)) "%\n\n"
-  
-        "Portfolio (units held/shorted of each stock): " (pr-str portfolio) "\n\n"
-        "Cash invested in each stock: " (pr-str cash-invested) "\n\n"
-        "Cumulative Portfolio Return: " (pr-str cumulative-portfolio-return) "\n\n"
-  
-        "----------------------------------\n"
-        (if (:show-cumulative-portfolio-return-by-day view-options)
-          (str "Portfolio Return by date: \n" (pr-str returns-by-date) "\n")
-          "")
-        "----------------------------------\n\n"
-  
-        "----------------------------------\n"
-        "Portfolio Value Day-by-Day: \n"
-        (if (:show-portfolio-value-by-day view-options)
-          (str (clojure.string/join "\n" (map #(str (first %) " " (format "%.2f" (second %))) sorted-portfolio-value)) "\n")
-          "Omitting...\n")
-        "----------------------------------\n\n"
-  
-        "----------------------------------\n"
-        "Individual Stock Performance: \n"
-        (if (:show-individual-stock-performance-by-day view-options)
-          (with-out-str (clojure.pprint/pprint stock-performance))
-          "Omitting...\n")
-        "----------------------------------\n"))
+       " [Cash: ~$" (format "%.2f" (+ (:starting-cash portfolio-options) cash))
+       "| Stocks: ~$" (format "%.2f" (- current-portfolio-value (+ (:starting-cash portfolio-options) cash))) "] \n\n"
+
+       "Annualized Return of portfolio: " (format "%.2f" (* annualized-return 100)) "%\n\n"
+
+       "Volatility of portfolio: " (format "%.4f" volatility) "%\n\n"
+       "Annualized volatility of portfolio: " (format "%.4f" (* (Math/sqrt 252) volatility)) "%\n\n"
+
+       "Portfolio (units held/shorted of each stock): " (pr-str portfolio) "\n\n"
+       "Cash invested in each stock: " (pr-str cash-invested) "\n\n"
+       "Cumulative Portfolio Return: " (pr-str cumulative-portfolio-return) "\n\n"
+
+       "----------------------------------\n"
+       (if (:show-cumulative-portfolio-return-by-day view-options)
+         (str "Portfolio Return by date: \n" (pr-str returns-by-date) "\n")
+         "")
+       "----------------------------------\n\n"
+
+       "----------------------------------\n"
+       "Portfolio Value Day-by-Day: \n"
+       (if (:show-portfolio-value-by-day view-options)
+         (str (clojure.string/join "\n" (map #(str (first %) " " (format "%.2f" (second %))) sorted-portfolio-value)) "\n")
+         "Omitting...\n")
+       "----------------------------------\n\n"
+
+       "----------------------------------\n"
+       "Individual Stock Performance: \n"
+       (if (:show-individual-stock-performance-by-day view-options)
+         (with-out-str (clojure.pprint/pprint stock-performance))
+         "Omitting...\n")
+       "----------------------------------\n"))
 
 ;; ### Visualization
 ;; #### Portfolio Value
