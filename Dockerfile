@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y \
 # Install required Python packages
 RUN pip3 install yfinance>=0.2.54 CurrencyConverter --break-system-packages
 
+# Point the Clojure-Python bridge at the container's interpreter
+ENV CIM_PORTFOLIO_PYTHON=/usr/bin/python3
+
 # Install Leiningen (Clojure build tool)
 RUN apt-get update && apt-get install -y curl
 RUN curl -o /usr/local/bin/lein https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein \
