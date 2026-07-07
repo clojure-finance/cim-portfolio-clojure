@@ -137,8 +137,9 @@ def convert_currency(ticker, ticker_price, target_currency='USD'):
                          ))
 
 (defn convert-currency
-  ([ticker ticker-price target-currency] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c ticker-price stock-currency target-currency)))
-  ([ticker ticker-price] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c ticker-price stock-currency "USD"))) ;; No target currency defaults to USD 
+  ;; Accepts the price as a number or a string (trade files carry strings), like the Python wrapper's float() coercion did
+  ([ticker ticker-price target-currency] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c (Double/parseDouble (str ticker-price)) stock-currency target-currency)))
+  ([ticker ticker-price] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c (Double/parseDouble (str ticker-price)) stock-currency "USD"))) ;; No target currency defaults to USD
   )
 
 (defn get-ticker-price-all [ticker date]
