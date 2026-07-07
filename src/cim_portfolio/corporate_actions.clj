@@ -34,7 +34,7 @@
   (into {}
         (map (fn [ticker]
                [ticker (:splits (yf/fetch-dividends-splits ticker :period "max"))]))
-        (distinct (map #(nth % 3) (rest trades)))))
+        (distinct (keep #(when (<= 4 (count %)) (nth % 3)) (rest trades))))) ;; Skip malformed rows, like adjust-trade does
 
 (defn adjust-trade
   "Adjust a single trade row [date action amount ticker & [price]] (strings, as
