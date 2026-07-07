@@ -1,12 +1,21 @@
 ;;; # Clojure Wrapper over Python's yfinance API 
 ;;; ### Requires python, yfinance etc. to be installed on local machine
 (ns cim_portfolio.yfinanceclient
-  (:require [libpython-clj2.require :refer [require-python]]
-            [libpython-clj2.python :refer [py. py.. py.-] :as py]
+  ;; NOTE: do not require libpython-clj2.require here — merely loading it runs a
+  ;; bare (py/initialize!) via libpython-clj2.metadata, which would initialize
+  ;; python with auto-detected settings BEFORE the configured initialize! below
+  ;; (CIM_PORTFOLIO_PYTHON / CIM_PORTFOLIO_LIBPYTHON would be silently ignored)
+  (:require [libpython-clj2.python :refer [py. py.. py.-] :as py]
             [clojure.data.json :as json]))
 
-(py/initialize! :python-executable (or (System/getenv "CIM_PORTFOLIO_PYTHON")
-                                       "/home/edward/miniconda3/envs/cim-portfolio/bin/python"))
+;; CIM_PORTFOLIO_LIBPYTHON should point at the matching libpython .so when the
+;; interpreter's shared library is not on the system loader path (e.g. pyenv
+;; installs, where an older system libpython would otherwise be loaded)
+(let [python-exe (or (System/getenv "CIM_PORTFOLIO_PYTHON")
+                     "/home/edward/miniconda3/envs/cim-portfolio/bin/python")]
+  (if-let [libpython (System/getenv "CIM_PORTFOLIO_LIBPYTHON")]
+    (py/initialize! :python-executable python-exe :library-path libpython)
+    (py/initialize! :python-executable python-exe)))
 
 ;; (require-python '[yfinance :as yf]
 ;;                 '[datetime :as dt])
