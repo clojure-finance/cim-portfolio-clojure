@@ -30,6 +30,9 @@ All notable changes to this project will be documented in this file. This change
   sell trades); trades themselves still execute at the open
 - Native price fetching (clj-yfinance) is dividend-adjusted again (`:auto-adjust`),
   restoring parity with the Python wrapper's `auto_adjust=True`
+- Native `convert-currency` crashed with a ClassCastException when trades carried a
+  user-supplied price (the CSV string reached ecbjure's `fx/convert` uncoerced; the
+  Python wrapper used to coerce with `float()`)
 
 ### Removed
 - Backup and disabled source files (core_backup.clj, debug_scraper.clj.disabled, etc.)
