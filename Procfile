@@ -1,1 +1,1 @@
-web: java -jar cim_portfolio-0.1.1-standalone.jar $PORT
+web: java -jar target/uberjar/cim_portfolio-standalone.jar $PORT

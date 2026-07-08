@@ -19,8 +19,15 @@ All notable changes to this project will be documented in this file. This change
 ### Changed
 - DeepSeek set as default LLM provider and model (deepseek-chat)
 - Default output directory for CLI mode changed from hardcoded path to `reports/`
+- Heroku deploys now build from source via the Clojure buildpack (`:uberjar-name`
+  is pinned so the Procfile path is version-independent; Java runtime bumped to 21,
+  matching the Dockerfile and CI) instead of running a committed jar
 
 ### Fixed
+- Rolling alpha/beta and stock-performance charts render again: a UI-redesign commit
+  had replaced the Greek α/β with ASCII a/b in the trace-name lookup, producing null
+  chart data that made Plotly abort rendering of all subsequent charts (and the
+  volatility/Sharpe λ toggles); the chart loop now also skips missing datasets
 - Sell orders now value the daily PnL series at closing prices, matching buy orders
   (previously opening prices, which skewed portfolio value and returns on days with
   sell trades); trades themselves still execute at the open
@@ -41,16 +48,9 @@ All notable changes to this project will be documented in this file. This change
 - Backup and disabled source files (core_backup.clj, debug_scraper.clj.disabled, etc.)
 - Broken server files with missing dependencies
 - Experimental macroexpand-demos directory
-
-## [0.1.1] - 2023-12-21
-### Changed
-- Documentation on how to make the widgets.
-
-### Removed
-- `make-widget-sync` - we're all async, all the time.
-
-### Fixed
-- Fixed widget maker to keep working when daylight savings switches over.
+- Build artifacts from version control (the pre-built standalone jar and the
+  compiled `classes/` directory); they remain in git history but are no longer
+  tracked
 
 ## 0.1.0 - 2023-12-21
 ### Added
