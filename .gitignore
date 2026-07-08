@@ -1,5 +1,7 @@
 temp/
 .lein-repl-history
+.lein-failures
+.claude/settings.local.json*
 .clerk/
 config.edn
 **/.calva
