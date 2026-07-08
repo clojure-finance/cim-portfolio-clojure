@@ -254,14 +254,14 @@
               [:div.provider-cards
                [:label.provider-card.active
                 {:id "card-deepseek"
-                 :onclick "document.getElementById('card-deepseek').classList.add('active');document.getElementById('card-openrouter').classList.remove('active');"}
+                 :onclick "selectProvider('deepseek');"}
                 [:input {:type "radio" :name "llm-provider" :value "deepseek" :checked true}]
                 [:div
                  [:div.provider-card-name "DeepSeek"]
                  [:div.provider-card-desc "High-performance reasoning, direct API"]]]
                [:label.provider-card
                 {:id "card-openrouter"
-                 :onclick "document.getElementById('card-openrouter').classList.add('active');document.getElementById('card-deepseek').classList.remove('active');"}
+                 :onclick "selectProvider('openrouter');"}
                 [:input {:type "radio" :name "llm-provider" :value "openrouter"}]
                 [:div
                  [:div.provider-card-name "OpenRouter"]
@@ -284,11 +284,12 @@
               [:div.news-section-header "Model"]
               [:div.field-group
                [:label "Select Model"]
-               [:select {:name "model"}
-                [:optgroup {:label "DeepSeek (direct)"}
+               [:select {:name "model" :id "model-select"}
+                [:optgroup {:label "DeepSeek (direct)" :id "models-deepseek"}
                  (for [m news/deepseek-models] [:option {:value m} m])]
-                [:optgroup {:label "OpenRouter (free)"}
-                 (for [m news/free-models] [:option {:value m} m])]]]]
+                [:optgroup {:label "OpenRouter (free)" :id "models-openrouter"}
+                 (for [m news/free-models] [:option {:value m} m])]]
+               [:div.field-hint "Models are filtered to match the selected provider"]]]
 
              ;; Search parameters
              [:div.news-section
@@ -316,7 +317,22 @@
              [:div.news-submit-section
               [:button#news-submit-btn.news-submit-btn {:type "submit"} "Run AI Analysis"]
               [:p#news-loading.news-loading
-               "Analyzing articles... this may take 1-3 minutes. Please wait."]]]]]]))))
+               "Analyzing articles... this may take 1-3 minutes. Please wait."]]]]
+
+           ;; Keep provider cards and model dropdown in sync: a model from the
+           ;; wrong provider is rejected with HTTP 400 by the API.
+           [:script
+            (str "function selectProvider(p) {"
+                 "  document.getElementById('card-deepseek').classList.toggle('active', p === 'deepseek');"
+                 "  document.getElementById('card-openrouter').classList.toggle('active', p === 'openrouter');"
+                 "  var ds = document.getElementById('models-deepseek');"
+                 "  var op = document.getElementById('models-openrouter');"
+                 "  ds.disabled = (p !== 'deepseek');"
+                 "  op.disabled = (p === 'deepseek');"
+                 "  document.getElementById('model-select').value ="
+                 "    (p === 'deepseek' ? ds : op).firstElementChild.value;"
+                 "}"
+                 "selectProvider(document.querySelector('input[name=\"llm-provider\"]:checked').value);")]]]))))
 
 (defn news-results-page [results error-msg]
   (str (h/html
@@ -414,6 +430,16 @@
 
                      ;; Body
                      [:div.article-card-body
+
+                      ;; Error details for failed analyses
+                      (when (and (not (:success r))
+                                 (or (:error-status r) (seq (:error-message r))))
+                        [:div.news-error
+                         (str "LLM analysis failed"
+                              (when-let [s (:error-status r)]
+                                (when (pos? s) (str " (HTTP " s ")")))
+                              (when (seq (:error-message r))
+                                (str ": " (:error-message r))))])
 
                       ;; TL;DR callout
                       (when (and (:success r) (seq (:tldr r)))
