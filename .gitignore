@@ -6,4 +6,9 @@ config.edn
 .lsp/
 .clj-kondo/
 target/
+classes/
+docs/
 lein_deps_output.txt
+.lein-failures
+.DS_Store
+*.jar
