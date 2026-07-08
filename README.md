@@ -43,24 +43,8 @@ Ensure that the following are installed:
 - Java
 - Clojure (install via homebrew on MacOS)
 - Leiningen (install via homebrew on MacOS)
-- Python 2/3 + pip 
 
-Run the following command to install the yfinance package and currency converter package:
-`pip install yfinance CurrencyConverter`
-
-CurrencyConverter: https://pypi.org/project/CurrencyConverter/
-yFinance: https://pypi.org/project/yfinance/
-
-If you're using Python3, run the above command with `pip3` instead on your Terminal.
-Verify that these packages are installed and can be run in a python environment.
-
-KEY DEPENDENCY: clj-python/libpython-clj
-libpython-clj (https://github.com/clj-python/libpython-clj) is a key requirement to run Python code within Clojure.
-Python objects are linked to the JVM, allowing Clojure to run the yfinanceclient.clj file that enables scraping data from Python's yfinance package.
-
-Set the `CIM_PORTFOLIO_PYTHON` environment variable to the path of your Python interpreter (e.g. `~/miniconda3/envs/cim-portfolio/bin/python`); it must have the packages above installed.
-
-If your interpreter's shared library is not on the system loader path — typical for pyenv installs, where an older system libpython can get loaded instead (symptoms: `ModuleNotFoundError` for installed packages, or `undefined symbol` errors from C extensions) — also set `CIM_PORTFOLIO_LIBPYTHON` to the matching `libpython3.x.so` (e.g. `~/.pyenv/versions/3.12.11/lib/libpython3.12.so`). pyenv users: build with `PYTHON_CONFIGURE_OPTS="--enable-shared"` so this library exists.
+Market data is fetched natively via [clj-yfinance](https://github.com/clojure-finance/clj-yfinance), and currency conversion uses ECB rates via [ecbjure](https://github.com/clojure-finance/ecbjure) — no Python installation is required.
 
 
 ## Usage (Running Locally)
