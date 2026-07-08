@@ -21,7 +21,7 @@
                  [hiccup "1.0.5"]
                  ;; Portfolio data sources
                  [com.github.clojure-finance/clj-yfinance "0.1.7"]
-                 [com.github.clojure-finance/ecbjure "0.1.4"]
+                 [com.github.clojure-finance/ecbjure "0.1.5"]
                  ;; News analysis
                  [clj-http/clj-http "3.12.3"]
                  [cheshire/cheshire "5.11.0"]
