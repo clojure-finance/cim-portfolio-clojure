@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   chartDivs.forEach(div => {
     const plotData = JSON.parse(div.dataset.plot);
+    if (plotData == null) return; // A missing dataset must not abort rendering of the remaining charts
     Plotly.newPlot(div.id, [plotData]);
   });
 
