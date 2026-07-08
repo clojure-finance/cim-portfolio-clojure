@@ -5,13 +5,13 @@
             [clojure-finance.ecbjure.fx :as fx])
   (:import  (java.time Instant LocalDate ZoneOffset)))
 
-;; Fetch latest rates from ECB
-(def c (fx/make-converter))
+;; Fetch latest rates from ECB on first use (a delay, so no network I/O at namespace load/AOT compile)
+(def c (delay (fx/make-converter)))
 
 (defn convert-currency
   ;; Accepts the price as a number or a string (trade files carry strings)
-  ([ticker ticker-price target-currency] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c (Double/parseDouble (str ticker-price)) stock-currency target-currency)))
-  ([ticker ticker-price] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert c (Double/parseDouble (str ticker-price)) stock-currency "USD"))) ;; No target currency defaults to USD
+  ([ticker ticker-price target-currency] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert @c (Double/parseDouble (str ticker-price)) stock-currency target-currency)))
+  ([ticker ticker-price] (let [stock-currency (:currency (yf/fetch-info ticker))] (fx/convert @c (Double/parseDouble (str ticker-price)) stock-currency "USD"))) ;; No target currency defaults to USD
   )
 
 (defn get-ticker-price-all [ticker date]
@@ -25,8 +25,8 @@
         ticker-prices (pop ;; For some reason, the last datapoint is duplicated
                        (vec
                         (map #(vector (str (.toLocalDate (.atZone (Instant/ofEpochSecond (:timestamp %)) ZoneOffset/UTC))) ;; Convert Seconds since Epoch to a Date String, e.g. 2026-01-31
-                                      (fx/convert c (:open %) stock-currency "USD")
-                                      (fx/convert c (:close %) stock-currency "USD"))
+                                      (fx/convert @c (:open %) stock-currency "USD")
+                                      (fx/convert @c (:close %) stock-currency "USD"))
                              yf-response)))]
     ticker-prices))
 
@@ -40,8 +40,8 @@
         ticker-prices (pop ;; For some reason, the last datapoint is duplicated
                        (vec
                         (map #(vector (str (.toLocalDate (.atZone (Instant/ofEpochSecond (:timestamp %)) ZoneOffset/UTC))) ;; Convert Seconds since Epoch to a Date String, e.g. 2026-01-31
-                                      (fx/convert c (:open %) stock-currency "USD")
-                                      (fx/convert c (:close %) stock-currency "USD"))
+                                      (fx/convert @c (:open %) stock-currency "USD")
+                                      (fx/convert @c (:close %) stock-currency "USD"))
                              yf-response)))]
     ticker-prices))
 
