@@ -9,7 +9,6 @@
                  [org.clojure/data.json "2.5.1"]
                  [org.clojure/tools.cli "1.1.230"]
                  [clj-time "0.15.2"]
-                 [clj-python/libpython-clj "2.025"]
                  [nrepl "1.0.0"]
                  [io.github.nextjournal/clerk "0.18.1150" :exclusions [hiccup]]
                  [org.slf4j/slf4j-api "2.0.9"]

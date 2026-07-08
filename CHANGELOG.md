@@ -8,10 +8,6 @@ All notable changes to this project will be documented in this file. This change
   analysis, consistent with Yahoo Finance's split-adjusted price history
   (fixes phantom losses and inverted positions for pre-split trades, e.g. the
   SBS 5:1 split effective 2026-05-07)
-- `CIM_PORTFOLIO_PYTHON` environment variable to configure the Python interpreter
-  path (previously hardcoded), and `CIM_PORTFOLIO_LIBPYTHON` to pin the matching
-  libpython shared library (needed e.g. for pyenv installs, where the system
-  libpython would otherwise be loaded and break C-extension imports)
 - AI news analysis feature: `/news` form page and `/analyze-news` route
 - LLM-powered article analysis via DeepSeek and OpenRouter APIs
 - 15-field extraction per article: sentiment, tldr, summary, bias, keywords, entities,
@@ -35,6 +31,13 @@ All notable changes to this project will be documented in this file. This change
   Python wrapper used to coerce with `float()`)
 
 ### Removed
+- The Python/yfinance dependency: the embedded Python wrapper in `yfinanceclient.clj`
+  and the load-time Python demo code in `regression.clj` were unused legacy paths —
+  all production data flows are Clojure-native (clj-yfinance for prices, ecbjure for
+  FX, fastmath for CAPM regression). Dropped `libpython-clj` from project.clj, the
+  Python layers from the Dockerfile, `requirements.txt`/`runtime.txt`, and the
+  `CIM_PORTFOLIO_PYTHON`/`CIM_PORTFOLIO_LIBPYTHON` environment variables introduced
+  earlier in this cycle. No Python installation is needed to build, run, or deploy.
 - Backup and disabled source files (core_backup.clj, debug_scraper.clj.disabled, etc.)
 - Broken server files with missing dependencies
 - Experimental macroexpand-demos directory
