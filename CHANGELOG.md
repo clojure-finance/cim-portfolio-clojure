@@ -1,24 +1,39 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+This branch is the Clerk-notebook variant of cim_portfolio (see the
+`web-application` branch for the Ring web app, which keeps its own change log).
+
 ## [Unreleased]
-### Changed
-- Add a new arity to `make-widget-async` to provide a different widget shape.
+### Added
+- Automatic stock-split adjustment of trade data (`cim_portfolio.corporate-actions`):
+  share amounts and user-supplied prices are normalized to post-split units before
+  analysis, consistent with Yahoo Finance's split-adjusted price history (fixes
+  phantom losses and inverted positions for pre-split trades), with unit tests
+  for the adjustment layer
+- Malformed trade rows in input CSVs are rejected with a clear error instead of
+  failing later in the analysis
 
-## [0.1.1] - 2023-12-21
 ### Changed
-- Documentation on how to make the widgets.
-
-### Removed
-- `make-widget-sync` - we're all async, all the time.
+- Market data and split events are fetched natively via
+  [clj-yfinance](https://github.com/clojure-finance/clj-yfinance) and currency
+  conversion uses ECB rates via
+  [ecbjure](https://github.com/clojure-finance/ecbjure); the Python/yfinance
+  dependency (libpython-clj and the `CIM_PORTFOLIO_PYTHON`/`CIM_PORTFOLIO_LIBPYTHON`
+  env vars) is removed entirely
+- Build artifacts (`target/`, `classes/`, `docs/`, jars) are no longer tracked in git
 
 ### Fixed
-- Fixed widget maker to keep working when daylight savings switches over.
+- `lein uberjar` and `lein repl` no longer hang when ECB's rates endpoint stalls
+  mid-transfer: ecbjure is bumped to 0.1.5 (adds connect/read timeouts, so a
+  stalled fetch throws instead of blocking forever) and the FX converter in
+  `yfinanceclient.clj` is built lazily (a `delay` derefed at the call sites)
+- Sell orders now value the daily PnL series at closing prices, matching buy
+  orders; native price fetching is dividend-adjusted (`:auto-adjust`), restoring
+  parity with the old Python wrapper's `auto_adjust=True`
+- `lein test` is green again: the lein-template boilerplate `core_test.clj`
+  (with its deliberate `(is (= 0 1))` failure) is removed — the real tests live
+  in `corporate_actions_test.clj`
 
-## 0.1.0 - 2023-12-21
-### Added
-- Files from the new template.
-- Widget maker public API - `make-widget-sync`.
-
-[Unreleased]: https://sourcehost.site/your-name/cim_portfolio/compare/0.1.1...HEAD
-[0.1.1]: https://sourcehost.site/your-name/cim_portfolio/compare/0.1.0...0.1.1
+### Removed
+- `test/.DS_Store` from version control (already gitignored)
