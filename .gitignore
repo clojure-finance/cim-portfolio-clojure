@@ -8,3 +8,8 @@ config.edn
 target/
 lein_deps_output.txt
 .nrepl-port
+classes/
+docs/
+.lein-failures
+.DS_Store
+*.jar
