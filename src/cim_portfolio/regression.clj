@@ -1,18 +1,8 @@
 (ns cim_portfolio.regression
   (:require [cim_portfolio.plot :as plot]
             [cim_portfolio.portfoliofunctions :as portfolio]
-            [fastmath.ml.regression :as reg]
-            [libpython-clj2.python :refer [py. py.. py.-] :as py]
-            [clojure.data.json :as json]))
-
-;; CIM_PORTFOLIO_LIBPYTHON should point at the matching libpython .so when the
-;; interpreter's shared library is not on the system loader path (e.g. pyenv
-;; installs, where an older system libpython would otherwise be loaded)
-(let [python-exe (or (System/getenv "CIM_PORTFOLIO_PYTHON")
-                     "/home/edward/miniconda3/envs/cim-portfolio/bin/python")]
-  (if-let [libpython (System/getenv "CIM_PORTFOLIO_LIBPYTHON")]
-    (py/initialize! :python-executable python-exe :library-path libpython)
-    (py/initialize! :python-executable python-exe)))
+            [cim_portfolio.yfinanceclient :as client]
+            [fastmath.ml.regression :as reg]))
 
 (defn calculate-regression [stock-returns market-returns] ;; both returns are 1D sequences
   (reg/lm
@@ -29,29 +19,11 @@
     {:alpha alpha-seq
      :beta beta-seq}))
 
-;; Define simple python script to get sample data (for now)
+;; Fetch sample data (NVDA vs the S&P 500, both already in USD) via the native client
 
-(def get-python-data (py/run-simple-string
-                      "from datetime import datetime, timedelta
-import yfinance as yf
+(def stock-data (client/get-ticker-price-with-end "NVDA" "2022-09-01" "2025-09-01"))
 
-# Both are already in USD
-
-nvidia_data = yf.download('NVDA', start='2022-09-01', end='2025-09-01')
-snp_data = stock_data = yf.download('^GSPC', start='2022-09-01', end='2025-09-01') 
-
-nvidia_data.reset_index(inplace=True)
-snp_data.reset_index(inplace=True)
-
-nvidia_data['Date'] = nvidia_data['Date'].dt.strftime('%Y-%m-%d')
-snp_data['Date'] = snp_data['Date'].dt.strftime('%Y-%m-%d')
-
-stock_data = nvidia_data[['Date', 'Open', 'Close']].to_json(orient = 'values')
-market_data = snp_data[['Date', 'Open', 'Close']].to_json(orient = 'values')"))
-
-(def stock-data (json/read-str (:stock_data (:globals get-python-data))))
-
-(def market-data (json/read-str (:market_data (:globals get-python-data))))
+(def market-data (client/get-ticker-price-with-end "^GSPC" "2022-09-01" "2025-09-01"))
 
 ;; They are the same size 
 
