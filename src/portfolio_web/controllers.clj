@@ -43,6 +43,31 @@
    (res/response (views/news-page nil))
    "text/html"))
 
+;; Keep the model consistent with the selected provider: a DeepSeek model name
+;; sent to OpenRouter (or vice versa) is rejected with HTTP 400.
+(defn- normalize-model [provider model]
+  (let [deepseek? (some #{model} news/deepseek-models)]
+    (cond
+      (and (= provider "deepseek") (not deepseek?)) (first news/deepseek-models)
+      (and (= provider "openrouter") deepseek?)     (first news/free-models)
+      :else model)))
+
+(defn- llm-failure-message [provider {:keys [error-status error-message]}]
+  (let [provider-name (if (= provider "deepseek") "DeepSeek" "OpenRouter")
+        hint (case error-status
+               402 (str "Your " provider-name " account has insufficient balance — top up at "
+                        (if (= provider "deepseek") "platform.deepseek.com" "openrouter.ai")
+                        " or switch provider.")
+               401 (str provider-name " rejected the API key. Double-check the LLM API key.")
+               429 (str provider-name " is rate-limiting requests. Wait a minute and retry, or pick another model.")
+               400 (str provider-name " rejected the request — often a model that doesn't exist on this provider.")
+               -1  (str "Could not reach " provider-name " — network error from the server.")
+               nil)]
+    (str "LLM analysis failed for all articles"
+         (when (and error-status (pos? error-status)) (str " (HTTP " error-status ")"))
+         (when (seq error-message) (str ": " error-message))
+         (if hint (str " — " hint) ". Please check your LLM API key."))))
+
 (defn analyze-news-handler [request]
   (res/content-type
    (res/response
@@ -57,7 +82,7 @@
           language     (get params "language" "en")
           max-articles (try (Integer/parseInt (get params "max-articles" "3"))
                             (catch Exception _ 3))
-          model        (get params "model" (first news/deepseek-models))
+          model        (normalize-model provider (get params "model" (first news/deepseek-models)))
           delay-ms     (try (Long/parseLong (get params "delay" "1000"))
                             (catch Exception _ 1000))]
       (cond
@@ -73,15 +98,23 @@
             (if (empty? articles)
               (views/news-results-page [] "No articles found for your query. Try a different search term.")
               (let [results (->> articles
-                                (mapv (fn [article]
-                                        (try
-                                          (news/analyze-article
-                                           llm-key article model nil delay-ms 2 nil 0.7 llm-url)
-                                          (catch Exception _
-                                            nil))))
-                                (filterv some?))]
-                (if (empty? results)
+                                 (mapv (fn [article]
+                                         (try
+                                           (news/analyze-article
+                                            llm-key article model nil delay-ms 2 nil 0.7 llm-url)
+                                           (catch Exception _
+                                             nil))))
+                                 (filterv some?))]
+                (cond
+                  (empty? results)
                   (views/news-results-page [] "LLM analysis failed for all articles. Please check your LLM API key.")
+
+                  (not-any? :success results)
+                  (views/news-results-page
+                   [] (llm-failure-message provider (or (some #(when (:error-status %) %) results)
+                                                        (first results))))
+
+                  :else
                   (views/news-results-page results nil)))))
           (catch Exception e
             (views/news-page (str "Error: " (.getMessage e))))))))

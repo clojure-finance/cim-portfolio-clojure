@@ -115,8 +115,8 @@
 (defn format-similar [similar]
   (if (seq similar)
     (str/join "; " (map (fn [{:keys [title similarity]}]
-                           (format "%s (%.2f)" (or title "N/A") similarity))
-                         similar))
+                          (format "%s (%.2f)" (or title "N/A") similarity))
+                        similar))
     "None"))
 
 ;; Generate timestamp string for unique filenames
@@ -172,58 +172,58 @@
 (defn fetch-full-content [url]
   (try
     (log-info (format "Attempting to fetch content from: %s" url))
-    
+
     ;; 1. Try Jina Reader (Updated Headers & Robustness)
     (log-info "Strategy 1: Jina Reader")
     (let [jina-url (str "https://r.jina.ai/" url)
-          resp (try 
+          resp (try
                  (http/get jina-url
                            {:headers {"User-Agent" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                                       "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
                             :timeout 30000
                             :throw-exceptions false
                             :insecure? true}) ;; Ignore SSL certificate issues
-                 (catch Exception _ 
+                 (catch Exception _
                    (log-warn (str "Jina request failed"))
                    {:status 500}))]
-      
-      (if (and (= 200 (:status resp)) 
+
+      (if (and (= 200 (:status resp))
                (not (str/blank? (:body resp)))
                (> (count (:body resp)) 150))
-        (do 
+        (do
           (log-success (format "Jina success! Extracted %d chars" (count (:body resp))))
           (:body resp))
-        
+
         (do
-          (log-warn (format "Jina failed (Status: %s). Switching to Strategy 2..." 
+          (log-warn (format "Jina failed (Status: %s). Switching to Strategy 2..."
                             (:status resp)))
-          
+
           ;; 2. Fallback: clj-http -> Jsoup (Better HTTP client than Jsoup native)
           (log-info "Strategy 2: Simulating Browser Request (clj-http)")
           (try
             (let [resp (http/get url
-                                {:headers {"User-Agent" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
-                                           "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
-                                           "Accept-Language" "en-US,en;q=0.9"
-                                           "Upgrade-Insecure-Requests" "1"}
-                                 :timeout 30000
-                                 :throw-exceptions false
-                                 :insecure? true
-                                 :follow-redirects true})
+                                 {:headers {"User-Agent" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+                                            "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+                                            "Accept-Language" "en-US,en;q=0.9"
+                                            "Upgrade-Insecure-Requests" "1"}
+                                  :timeout 30000
+                                  :throw-exceptions false
+                                  :insecure? true
+                                  :follow-redirects true})
                   html (:body resp)]
-                  
+
               (if (and (= 200 (:status resp)) (not (str/blank? html)))
                 (let [doc (Jsoup/parse html)
                       ;; Aggressive clutter removal
                       _ (.remove (.select doc "script, style, nav, header, footer, iframe, .ad, .advertisement, .social-share, .menu, .cookie-banner, .sidebar, #comments, form, svg, noscript, .hidden"))
                       text (-> (.body doc) .text)]
-                  
+
                   (if (> (count text) 150)
-                    (do 
+                    (do
                       (log-success (format "Strategy 2 success! Extracted %d chars" (count text)))
                       text)
-                    (do 
-                      (log-warn "Strategy 2 content too short/empty.") 
+                    (do
+                      (log-warn "Strategy 2 content too short/empty.")
                       nil)))
                 (do
                   (log-warn (format "Strategy 2 HTTP failed (Status: %s)" (:status resp)))
@@ -243,7 +243,7 @@
                   (str (subs raw-content 0 4000) "\n...[Content Truncated]...")
                   raw-content)
         ;; Escape/Clean content to ensure valid JSON string construction (though json/encode handles most)
-        clean-content (str/replace content #"[^\x20-\x7E\n\r\t]" "")] 
+        clean-content (str/replace content #"[^\x20-\x7E\n\r\t]" "")]
     (str "Analyze the following financial news article and return ONLY valid JSON.\n"
          "Required JSON fields (return ALL 15):\n"
          "{\"summary\": \"2-3 sentence detailed summary\", "
@@ -268,23 +268,33 @@
 (defn extract-llm-content [resp]
   (let [body (:body resp)
         ;; Try multiple response structures
-        content (or 
+        content (or
                   ;; Standard OpenAI format: body.choices[0].message.content
-                  (-> body :choices first :message :content)
+                 (-> body :choices first :message :content)
                   ;; Alternative: body.choices[0].text
-                  (-> body :choices first :text)
+                 (-> body :choices first :text)
                   ;; Direct content in body
-                  (:content body)
+                 (:content body)
                   ;; If body is a string (some APIs return raw)
-                  (when (string? body) body)
+                 (when (string? body) body)
                   ;; Try error message for debugging
-                  (-> body :error :message))]
+                 (-> body :error :message))]
     (when content
       (let [cleaned (-> content
                         (str/replace #"```json" "")
                         (str/replace #"```" "")
                         str/trim)]
         (or (re-find #"(?s)\{.*\}" cleaned) cleaned)))))
+
+;; Pull the provider's human-readable error message out of a non-200 response.
+;; clj-http leaves error bodies as raw strings (:as :json only coerces 2xx),
+;; so handle both map and string bodies.
+(defn api-error-message [body]
+  (let [m (cond (map? body) body
+                (string? body) (try (json/decode body true) (catch Exception _ nil))
+                :else nil)]
+    (when-let [msg (or (get-in m [:error :message]) (:message m))]
+      (str msg))))
 
 ;; Call single LLM model (internal helper) — accepts optional llm-url
 (defn call-llm-single
@@ -314,46 +324,52 @@
   ([api-key prompt model fallback-model retries]
    (call-llm api-key prompt model fallback-model retries openrouter-url))
   ([api-key prompt model fallback-model retries llm-url]
-  (loop [current-model model
-         remaining-models (if fallback-model [fallback-model] [])
-         attempts retries]
-    (let [{:keys [status text error body]} (call-llm-single api-key prompt current-model llm-url)]
-      (cond
+   (loop [current-model model
+          remaining-models (if fallback-model [fallback-model] [])
+          attempts retries]
+     (let [{:keys [status text error body]} (call-llm-single api-key prompt current-model llm-url)]
+       (cond
         ;; Success
-        (and (= status 200) text (str/includes? text "{"))
-        (do (log-success (format "LLM response received [%s]" current-model))
-            text)
-        
+         (and (= status 200) text (str/includes? text "{"))
+         (do (log-success (format "LLM response received [%s]" current-model))
+             text)
+
         ;; Rate limited (429) - try fallback model immediately
-        (and (= status 429) (seq remaining-models))
-        (do (log-warn (format "Model %s rate limited (429), switching to fallback: %s" 
-                              current-model (first remaining-models)))
-            (recur (first remaining-models) (rest remaining-models) retries))
-        
+         (and (= status 429) (seq remaining-models))
+         (do (log-warn (format "Model %s rate limited (429), switching to fallback: %s"
+                               current-model (first remaining-models)))
+             (recur (first remaining-models) (rest remaining-models) retries))
+
         ;; Rate limited but no fallback - retry with delay
-        (and (= status 429) (> attempts 0))
-        (do (log-warn (format "Rate limited, waiting 5s before retry... (%d left)" attempts))
-            (Thread/sleep 5000)
-            (recur current-model remaining-models (dec attempts)))
-        
+         (and (= status 429) (> attempts 0))
+         (do (log-warn (format "Rate limited, waiting 5s before retry... (%d left)" attempts))
+             (Thread/sleep 5000)
+             (recur current-model remaining-models (dec attempts)))
+
         ;; Other error with retries
-        (and (> attempts 0) (not= status 200))
-        (do (log-warn (format "LLM error (status %d), retrying... (%d left)" status attempts))
-            (Thread/sleep 2000)
-            (recur current-model remaining-models (dec attempts)))
-        
+         (and (> attempts 0) (not= status 200))
+         (do (log-warn (format "LLM error (status %d), retrying... (%d left)" status attempts))
+             (Thread/sleep 2000)
+             (recur current-model remaining-models (dec attempts)))
+
         ;; Exception - try fallback
-        error
-        (do (log-error (format "LLM Exception: %s" error))
-            (if (seq remaining-models)
-              (do (log-warn (format "Trying fallback model: %s" (first remaining-models)))
-                  (recur (first remaining-models) (rest remaining-models) retries))
-              "{\"summary\":\"Exception\",\"sentiment\":\"Neutral\",\"keywords\":[],\"category\":\"Unknown\",\"tldr\":\"Error occurred\",\"bias\":\"N/A\",\"entities\":[],\"target_audience\":\"N/A\"}"))
-        
+         error
+         (do (log-error (format "LLM Exception: %s" error))
+             (if (seq remaining-models)
+               (do (log-warn (format "Trying fallback model: %s" (first remaining-models)))
+                   (recur (first remaining-models) (rest remaining-models) retries))
+               (json/encode {:summary "Exception" :sentiment "Neutral" :keywords [] :category "Unknown"
+                             :tldr "Error occurred" :bias "N/A" :entities [] :target_audience "N/A"
+                             :error_status status :error_message error})))
+
         ;; Final failure
-        :else
-        (do (log-error (format "All models failed. Last status: %d" status))
-            "{\"summary\":\"API Error\",\"sentiment\":\"Neutral\",\"keywords\":[],\"category\":\"Unknown\",\"tldr\":\"Unable to analyze\",\"bias\":\"N/A\",\"entities\":[],\"target_audience\":\"N/A\"}"))))))
+         :else
+         (let [api-msg (api-error-message body)]
+           (log-error (format "All models failed. Last status: %d%s"
+                              status (if api-msg (str " — " api-msg) "")))
+           (json/encode {:summary "API Error" :sentiment "Neutral" :keywords [] :category "Unknown"
+                         :tldr "Unable to analyze" :bias "N/A" :entities [] :target_audience "N/A"
+                         :error_status status :error_message api-msg})))))))
 
 ;; Local TF-IDF based embedding for text 
 (defonce vocabulary (atom {}))
@@ -373,16 +389,16 @@
                     (str/split #"\W+")
                     (->> (filter #(> (count %) 2)))
                     (vec))
-          word-freq (frequencies words) 
-          embedding (into [] 
-                          (take 100 
-                            (concat 
-                              (map (fn [w] 
-                                     (let [tf (/ (get word-freq w 0) (count words))
-                                           idf (Math/log (/ @doc-count (inc (get @vocabulary w 1))))]
-                                       (* tf idf))) 
-                                   (take 50 words))
-                              (map #(Math/abs (double (hash %))) words))))]
+          word-freq (frequencies words)
+          embedding (into []
+                          (take 100
+                                (concat
+                                 (map (fn [w]
+                                        (let [tf (/ (get word-freq w 0) (count words))
+                                              idf (Math/log (/ @doc-count (inc (get @vocabulary w 1))))]
+                                          (* tf idf)))
+                                      (take 50 words))
+                                 (map #(Math/abs (double (hash %))) words))))]
       embedding)
     (catch Exception e
       (log-warn (format "TF-IDF embedding failed: %s" (.getMessage e)))
@@ -393,94 +409,96 @@
   ([api-key article model fallback-model delay max-retries embedding-url similar-threshold]
    (analyze-article api-key article model fallback-model delay max-retries embedding-url similar-threshold openrouter-url))
   ([api-key article model fallback-model delay max-retries embedding-url similar-threshold llm-url]
-  (Thread/sleep (long delay))
-  (let [full-content (when (:link article) (fetch-full-content (:link article)))
-        article-with-content (if full-content
-                               (assoc article :full-content full-content)
-                               article)
-        text (str (:title article-with-content) " " (or (:full-content article-with-content) (:description article-with-content) ""))
+   (Thread/sleep (long delay))
+   (let [full-content (when (:link article) (fetch-full-content (:link article)))
+         article-with-content (if full-content
+                                (assoc article :full-content full-content)
+                                article)
+         text (str (:title article-with-content) " " (or (:full-content article-with-content) (:description article-with-content) ""))
         ;; Persist raw article for later offline processing
-        _ (do (ensure-dir "data")
-              (spit "data/articles.jsonl" (str (json/encode {:title (:title article)
+         _ (do (ensure-dir "data")
+               (spit "data/articles.jsonl" (str (json/encode {:title (:title article)
                                                               :content (or (:full-content article-with-content) (:description article-with-content) "")
                                                               :link (:link article)
                                                               :published (:pubDate article)}) "\n") :append true))
         ;; Build vocab for TF-IDF fallback
-        _ (build-vocab text)
-        doc2vec-vec (infer-embedding embedding-url text)
-        _ (when-not doc2vec-vec (swap! doc-count inc))
-        embedding (or doc2vec-vec (get-tfidf-embedding text))
-        embedding-source (if doc2vec-vec "doc2vec" "tfidf-fallback") 
-        existing-index (when embedding (load-embedding-index))
-        similar (when embedding (find-similar embedding existing-index similar-threshold 5))
-        story-id (when embedding (try (news-llm.clustering/assign-or-create embedding) (catch Exception _ nil)))
-        record-id (or story-id (str "story-" (java.util.UUID/randomUUID)))
-        _ (when embedding
-            (save-embedding-record! {:id record-id
-                                     :title (:title article)
-                                     :link (:link article)
-                                     :published (:pubDate article)
-                                     :vector embedding
-                                     :embedding_source embedding-source
-                                     :created_at (System/currentTimeMillis)}))
-        raw (call-llm api-key (build-prompt article-with-content) model fallback-model max-retries llm-url)]
-    (try
-      (let [parsed (json/decode raw true)
-            valid-summary (and (:summary parsed)
-                               (not (contains? #{"Invalid" "API Error" "Exception" "Empty" "Failed"} (:summary parsed))))]
-        {:title (:title article)
-         :link (:link article)
-         :published (:pubDate article)
-         :summary (or (:summary parsed) "No summary available")
-         :tldr (or (:tldr parsed) "N/A")
-         :sentiment (or (:sentiment parsed) "Neutral")
-         :bias (or (:bias parsed) "Unknown")
-         :keywords (or (:keywords parsed) [])
-         :entities (or (:entities parsed) [])
-         :category (or (:category parsed) "General")
-         :target-audience (or (:target_audience parsed) "General")
-         :market-impact (when-let [v (:market_impact parsed)] (try (int v) (catch Exception _ nil)))
-         :investment-stance (or (:investment_stance parsed) "Neutral")
-         :time-sensitivity (or (:time_sensitivity parsed) "Recent")
-         :affected-sectors (or (:affected_sectors parsed) [])
-         :key-quote (or (:key_quote parsed) "")
-         :risk-level (or (:risk_level parsed) "Medium")
-         :actionable-insight (or (:actionable_insight parsed) "")
-         :story-id story-id
-         :similar similar
-         :embedding-source embedding-source
-         :success valid-summary})
-      (catch Exception e
-        (log-error (format "JSON parse error for: %s" (:title article)))
-        (log-warn (format "Raw response (first 200 chars): %.200s" raw))
-        {:title (:title article)
-         :link (:link article)
-         :published (:pubDate article)
-         :summary "Parse error"
-         :tldr "Unable to parse LLM response"
-         :sentiment "Neutral"
-         :bias "Unknown"
-         :keywords []
-         :entities []
-         :category "Unknown"
-         :target-audience "N/A"
-         :market-impact nil
-         :investment-stance "Neutral"
-         :time-sensitivity "Recent"
-         :affected-sectors []
-         :key-quote ""
-         :risk-level "Medium"
-         :actionable-insight ""
-         :similar similar
-         :embedding-source embedding-source
-         :success false})))))
+         _ (build-vocab text)
+         doc2vec-vec (infer-embedding embedding-url text)
+         _ (when-not doc2vec-vec (swap! doc-count inc))
+         embedding (or doc2vec-vec (get-tfidf-embedding text))
+         embedding-source (if doc2vec-vec "doc2vec" "tfidf-fallback")
+         existing-index (when embedding (load-embedding-index))
+         similar (when embedding (find-similar embedding existing-index similar-threshold 5))
+         story-id (when embedding (try (news-llm.clustering/assign-or-create embedding) (catch Exception _ nil)))
+         record-id (or story-id (str "story-" (java.util.UUID/randomUUID)))
+         _ (when embedding
+             (save-embedding-record! {:id record-id
+                                      :title (:title article)
+                                      :link (:link article)
+                                      :published (:pubDate article)
+                                      :vector embedding
+                                      :embedding_source embedding-source
+                                      :created_at (System/currentTimeMillis)}))
+         raw (call-llm api-key (build-prompt article-with-content) model fallback-model max-retries llm-url)]
+     (try
+       (let [parsed (json/decode raw true)
+             valid-summary (and (:summary parsed)
+                                (not (contains? #{"Invalid" "API Error" "Exception" "Empty" "Failed"} (:summary parsed))))]
+         {:title (:title article)
+          :link (:link article)
+          :published (:pubDate article)
+          :summary (or (:summary parsed) "No summary available")
+          :tldr (or (:tldr parsed) "N/A")
+          :sentiment (or (:sentiment parsed) "Neutral")
+          :bias (or (:bias parsed) "Unknown")
+          :keywords (or (:keywords parsed) [])
+          :entities (or (:entities parsed) [])
+          :category (or (:category parsed) "General")
+          :target-audience (or (:target_audience parsed) "General")
+          :market-impact (when-let [v (:market_impact parsed)] (try (int v) (catch Exception _ nil)))
+          :investment-stance (or (:investment_stance parsed) "Neutral")
+          :time-sensitivity (or (:time_sensitivity parsed) "Recent")
+          :affected-sectors (or (:affected_sectors parsed) [])
+          :key-quote (or (:key_quote parsed) "")
+          :risk-level (or (:risk_level parsed) "Medium")
+          :actionable-insight (or (:actionable_insight parsed) "")
+          :story-id story-id
+          :similar similar
+          :embedding-source embedding-source
+          :error-status (:error_status parsed)
+          :error-message (:error_message parsed)
+          :success valid-summary})
+       (catch Exception e
+         (log-error (format "JSON parse error for: %s" (:title article)))
+         (log-warn (format "Raw response (first 200 chars): %.200s" raw))
+         {:title (:title article)
+          :link (:link article)
+          :published (:pubDate article)
+          :summary "Parse error"
+          :tldr "Unable to parse LLM response"
+          :sentiment "Neutral"
+          :bias "Unknown"
+          :keywords []
+          :entities []
+          :category "Unknown"
+          :target-audience "N/A"
+          :market-impact nil
+          :investment-stance "Neutral"
+          :time-sensitivity "Recent"
+          :affected-sectors []
+          :key-quote ""
+          :risk-level "Medium"
+          :actionable-insight ""
+          :similar similar
+          :embedding-source embedding-source
+          :success false})))))
 
 ;; Output formatters
 (defn format-txt [results]
   (apply str
          (for [result results]
            (let [{:keys [title link published summary tldr sentiment bias keywords entities category target-audience
-                        similar embedding-source success]} result]
+                         similar embedding-source success]} result]
              (str "═══════════════════════════════════════════════════════════════════════════════\n"
                   "TITLE: " title "\n"
                   "LINK: " (or link "N/A") "\n"
@@ -515,7 +533,7 @@
                        sentiment
                        (or bias "")
                        (or target-audience "")
-                       (str/join "; " keywords) 
+                       (str/join "; " keywords)
                        (str/join "; " (or entities []))
                        (str/escape (format-similar similar) {"\"" "\"\""})
                        (or embedding-source "")
@@ -606,30 +624,30 @@
 ;; Main entry point
 (defn -main [& args]
   (let [{:keys [options summary errors]} (parse-opts args cli-options)]
-    
+
     ;; Handle help or errors
     (when (:help options)
       (println "News Analysis Tool")
       (println summary)
       (System/exit 0))
-    
+
     (when errors
       (doseq [error errors]
         (log-error error))
       (System/exit 1))
-    
+
     ;; Validate API keys
     (let [api-keys (validate-api-keys)
           {:keys [country language max-articles output-dir delay model fallback-model symbol query embedding-url similarity-threshold]} options
           output-format (:format options)
           search-query (or query symbol)
           start-time (System/currentTimeMillis)]
-      
+
       (log-info "Starting news analysis...")
       (log-info (clojure.core/format "Primary model: %s" model))
       (when fallback-model
         (log-info (clojure.core/format "Fallback model: %s" fallback-model)))
-      
+
       ;; Fetch news
       (let [news (fetch-news (:newsdata api-keys) country language max-articles search-query)]
         (if (empty? news)
@@ -645,7 +663,7 @@
                             news))
                   elapsed (- (System/currentTimeMillis) start-time)
                   filename (save-results results output-dir output-format)]
-              
+
               (println) ; New line after progress bar
               (print-stats results elapsed)
               (log-success (clojure.core/format "Results saved to: %s" filename)))))))))
