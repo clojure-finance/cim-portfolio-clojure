@@ -36,6 +36,16 @@ All notable changes to this project will be documented in this file. This change
 - Native `convert-currency` crashed with a ClassCastException when trades carried a
   user-supplied price (the CSV string reached ecbjure's `fx/convert` uncoerced; the
   Python wrapper used to coerce with `float()`)
+- "API Error" news cards now surface the provider's real error message and HTTP
+  status (e.g. DeepSeek 402 Insufficient Balance); when every article fails, a
+  status-specific banner explains the cause (balance, key, rate limit, model
+  mismatch, network), and the model dropdown is filtered per provider so a
+  DeepSeek model can't be submitted to OpenRouter or vice versa
+- `lein uberjar` and `lein repl` no longer hang when ECB's rates endpoint stalls
+  mid-transfer: ecbjure is bumped to 0.1.5 (adds connect/read timeouts, so a
+  stalled fetch throws instead of blocking forever) and the FX converter in
+  `yfinanceclient.clj` is built lazily (a `delay` derefed at the call sites), so
+  namespace load / AOT compilation performs no network I/O at all
 
 ### Removed
 - The Python/yfinance dependency: the embedded Python wrapper in `yfinanceclient.clj`
