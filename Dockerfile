@@ -1,18 +1,6 @@
 # Use an official OpenJDK runtime as the base image
 FROM eclipse-temurin:21 AS base
 
-# Install Python and pip
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install required Python packages
-RUN pip3 install yfinance>=0.2.54 CurrencyConverter --break-system-packages
-
-# Point the Clojure-Python bridge at the container's interpreter
-ENV CIM_PORTFOLIO_PYTHON=/usr/bin/python3
-
 # Install Leiningen (Clojure build tool)
 RUN apt-get update && apt-get install -y curl
 RUN curl -o /usr/local/bin/lein https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein \
