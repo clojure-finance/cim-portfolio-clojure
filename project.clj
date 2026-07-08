@@ -32,5 +32,6 @@
   :main cim-portfolio.core
   :aot [cim-portfolio.core]
   :target-path "target/%s"
+  :uberjar-name "cim_portfolio-standalone.jar"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

@@ -8,3 +8,6 @@ config.edn
 .lsp/
 .clj-kondo/
 target/
+classes/
+*.jar
+.DS_Store
