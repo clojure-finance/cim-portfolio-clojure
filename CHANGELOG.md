@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file. This change
   platform.deepseek.com, as it remains visible in git history)
 
 ### Added
+- The news form remembers both API keys in the browser (localStorage): they are
+  saved on submit and pre-filled on later visits, so they no longer have to be
+  retyped every time
 - Automatic stock-split adjustment of trade data (`cim_portfolio.corporate-actions`):
   share amounts and user-supplied prices are normalized to post-split units before
   analysis, consistent with Yahoo Finance's split-adjusted price history
@@ -53,6 +56,13 @@ All notable changes to this project will be documented in this file. This change
   namespace load / AOT compilation performs no network I/O at all
 
 ### Removed
+- Stale API-key plumbing that the web app never read: the `NEWSDATA_API_KEY`/
+  `DEEPSEEK_API_KEY` env-var instructions in the README (and their docker-compose
+  passthrough), plus the launcher-script warnings about them — the web UI takes
+  both keys from the `/news` form. The env vars remain in use by the CLI/notebook
+  code paths only.
+- The dead `news_llm_newsdata` auto-start block from both launcher scripts: it
+  pointed at a sibling project that no longer exists and nothing references
 - The Python/yfinance dependency: the embedded Python wrapper in `yfinanceclient.clj`
   and the load-time Python demo code in `regression.clj` were unused legacy paths —
   all production data flows are Clojure-native (clj-yfinance for prices, ecbjure for

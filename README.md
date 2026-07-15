@@ -17,37 +17,24 @@ The Portfolio Analyzer works out of the box. To use the AI News Analyzer, you ad
    - **DeepSeek** (default, recommended) — [platform.deepseek.com](https://platform.deepseek.com)
    - **OpenRouter** (100+ models, free tiers available) — [openrouter.ai](https://openrouter.ai)
 
+You enter both keys directly in the `/news` form — no environment variables or config
+files needed. After your first analysis run, the browser remembers the keys
+(localStorage) and pre-fills them on later visits.
+
 ### Option 1: Run with Docker Compose (Recommended)
 
-1. **Set your API keys** in your environment or a `.env` file:
-   ```bash
-   export NEWSDATA_API_KEY="your_key_here"
-   export DEEPSEEK_API_KEY="your_key_here"
-   ```
-   *(Windows PowerShell: `$env:NEWSDATA_API_KEY="your_key"`)*
-
-2. **Start the service**:
+1. **Start the service**:
    ```bash
    docker-compose up --build
    ```
 
-3. **Access the App**:
+2. **Access the App**:
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Option 2: Run Locally (Non-Docker)
 
 1. **Install Dependencies**: Java (JDK 21+), Leiningen.
-2. **Set Environment Variables**:
-   ```bash
-   # Mac/Linux
-   export NEWSDATA_API_KEY="your_key"
-   export DEEPSEEK_API_KEY="your_key"
-   
-   # Windows (CMD)
-   set NEWSDATA_API_KEY=your_key
-   set DEEPSEEK_API_KEY=your_key
-   ```
-3. **Run the App**:
+2. **Run the App**:
    ```bash
    # Mac/Linux
    ./run_web_app.sh
@@ -85,7 +72,9 @@ The dashboard shows the most relevant statistics about your portfolio performanc
 
 ## AI News Analyzer
 
-Open [http://localhost:3000/news](http://localhost:3000/news), pick an LLM provider and model, and submit a topic. Each fetched article is analyzed into a 15-field breakdown (sentiment, summary, market impact, investment stance, risk level, actionable insight, and more), displayed on a results dashboard with sentiment distribution and per-article cards. If the provider returns an error (e.g. an exhausted balance or an invalid key), the real API error is surfaced in the UI.
+Open [http://localhost:3000/news](http://localhost:3000/news), enter your API keys, pick an LLM provider and model, and submit a topic. Each fetched article is analyzed into a 15-field breakdown (sentiment, summary, market impact, investment stance, risk level, actionable insight, and more), displayed on a results dashboard with sentiment distribution and per-article cards. If the provider returns an error (e.g. an exhausted balance or an invalid key), the real API error is surfaced in the UI.
+
+The API keys are only ever held in your browser and sent with the analysis request — the server does not store them. After the first analysis run your browser remembers them (localStorage) and pre-fills the form on later visits.
 
 ### Bugs
 
@@ -111,10 +100,10 @@ Deployment is a plain `git push` — Heroku builds the app from source at deploy
    ```bash
    heroku config:set LEIN_BUILD_TASK="do clean, uberjar"
    ```
-4. Set the API keys for the AI News Analyzer as config vars:
-   ```bash
-   heroku config:set NEWSDATA_API_KEY="your_key" DEEPSEEK_API_KEY="your_key"
-   ```
+
+No API-key config vars are needed: the AI News Analyzer takes the keys from the
+web form (the deployed web app never reads `NEWSDATA_API_KEY`/`DEEPSEEK_API_KEY`;
+those env vars are only used by the CLI/notebook code paths).
 
 ### Deploying a new version
 
