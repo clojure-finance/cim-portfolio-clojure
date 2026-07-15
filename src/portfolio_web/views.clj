@@ -277,7 +277,8 @@
               [:div.field-group
                [:label "LLM API Key"]
                [:input {:type "password" :name "llm-api-key" :required true :placeholder "sk-..."}]
-               [:div.field-hint "OpenRouter: openrouter.ai  |  DeepSeek: platform.deepseek.com"]]]
+               [:div.field-hint "OpenRouter: openrouter.ai  |  DeepSeek: platform.deepseek.com"]]
+              [:div.field-hint "Keys are remembered in this browser after the first analysis run."]]
 
              ;; Model selection
              [:div.news-section
@@ -332,7 +333,23 @@
                  "  document.getElementById('model-select').value ="
                  "    (p === 'deepseek' ? ds : op).firstElementChild.value;"
                  "}"
-                 "selectProvider(document.querySelector('input[name=\"llm-provider\"]:checked').value);")]]]))))
+                 "selectProvider(document.querySelector('input[name=\"llm-provider\"]:checked').value);"
+                 ;; Remember API keys in this browser so they don't have to be
+                 ;; retyped on every visit (localStorage is per-browser and can
+                 ;; be unavailable, e.g. in private windows -- hence try/catch).
+                 "var keyFields = ['newsdata-api-key', 'llm-api-key'].map(function(n) {"
+                 "  return document.querySelector('input[name=\"' + n + '\"]');"
+                 "});"
+                 "try {"
+                 "  keyFields.forEach(function(f) {"
+                 "    f.value = localStorage.getItem(f.name) || f.value;"
+                 "  });"
+                 "} catch (e) {}"
+                 "document.getElementById('news-form').addEventListener('submit', function() {"
+                 "  try {"
+                 "    keyFields.forEach(function(f) { localStorage.setItem(f.name, f.value); });"
+                 "  } catch (e) {}"
+                 "});")]]]))))
 
 (defn news-results-page [results error-msg]
   (str (h/html
