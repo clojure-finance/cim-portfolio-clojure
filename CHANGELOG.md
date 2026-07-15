@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Security
+- Removed a hardcoded DeepSeek API key from `run_web_app.bat` (it had been committed
+  and public on GitHub since May 2026 — the key itself must be revoked/rotated at
+  platform.deepseek.com, as it remains visible in git history)
+
 ### Added
 - Automatic stock-split adjustment of trade data (`cim_portfolio.corporate-actions`):
   share amounts and user-supplied prices are normalized to post-split units before
