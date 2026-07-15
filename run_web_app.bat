@@ -2,7 +2,6 @@
 setlocal
 echo Starting CIM Portfolio News Analyzer...
 
-set DEEPSEEK_API_KEY=sk-540c170dec0a4d90ac2abbc2bfc62b07
 set PORT=3000
 set NEWS_APP_URL=http://localhost:3100
 
