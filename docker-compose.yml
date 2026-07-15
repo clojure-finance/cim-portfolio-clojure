@@ -5,9 +5,6 @@ services:
     build: .
     ports:
       - "3000:3000"
-    environment:
-      - NEWSDATA_API_KEY=${NEWSDATA_API_KEY}
-      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
     volumes:
       - ./data:/app/data
       - ./reports:/app/reports
