@@ -104,6 +104,11 @@
       [cash portfolio portfolio-value current-value cash-invested cash-invested-by-date stock-performance]
       (let [[date action amount ticker] (first data)
             ticker-prices (client/get-ticker-price-all ticker (util/parse-date date))
+            _ (when (empty? ticker-prices) ;; Unknown/delisted ticker, failed fetch, or trade date after the last available quote — without this, nil prices NPE further down
+                (throw (ex-info (str "No price data found for ticker \"" ticker
+                                     "\" on or after " date
+                                     ". Check that the ticker symbol is correct and the trade date is not in the future.")
+                                {:ticker ticker :date date})))
             executed-date (first (first ticker-prices))				; gets the date the buy/sell order is executed
             ]
         (cond
