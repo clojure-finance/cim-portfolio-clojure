@@ -51,7 +51,7 @@
        " [Cash: ~$" (format "%.2f" (+ (:starting-cash portfolio-options) cash))
        "| Stocks: ~$" (format "%.2f" (- current-portfolio-value (+ (:starting-cash portfolio-options) cash))) "] \n\n"
 
-       "Annualized Return of portfolio: " (format "%.2f" (* annualized-return 100)) "%\n\n"
+       "Annualized Return of portfolio: " (if annualized-return (str (format "%.2f" (* annualized-return 100)) "%") "n/a — not enough history") "\n\n"
 
        "Volatility of portfolio: " (format "%.4f" volatility) "%\n\n"
        "Annualized volatility of portfolio: " (format "%.4f" (* (Math/sqrt 252) volatility)) "%\n\n"
