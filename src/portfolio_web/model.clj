@@ -80,7 +80,7 @@
               one-year-from-two-weeks-ago (.minusDays two-weeks-ago 365)
               one-year-from-three-weeks-ago (.minusDays three-weeks-ago 365)
               one-year-from-four-weeks-ago (.minusDays four-weeks-ago 365)
-              one-year-from-five-weeks-ago  (.minusDays five-weeks-ago 365)
+              one-year-from-five-weeks-ago (.minusDays five-weeks-ago 365)
 
               ;; Complete data related to portfolio-composition-by-date from oldest date to today
               set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights-without-cash portfolio-composition-by-date complete-stock-prices)
@@ -116,7 +116,7 @@
               cumulative-return-one-week-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-one-week-ago) (.toString one-week-ago))
               cumulative-return-two-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-two-weeks-ago) (.toString two-weeks-ago))
               cumulative-return-three-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-three-weeks-ago) (.toString three-weeks-ago))
-              cumulative-return-four-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString  one-year-from-four-weeks-ago) (.toString four-weeks-ago))
+              cumulative-return-four-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-four-weeks-ago) (.toString four-weeks-ago))
               cumulative-return-five-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-five-weeks-ago) (.toString five-weeks-ago))
 
               ;; Other Variables
@@ -177,7 +177,7 @@
               one-year-from-two-weeks-ago (.minusDays two-weeks-ago 365)
               one-year-from-three-weeks-ago (.minusDays three-weeks-ago 365)
               one-year-from-four-weeks-ago (.minusDays four-weeks-ago 365)
-              one-year-from-five-weeks-ago  (.minusDays five-weeks-ago 365)
+              one-year-from-five-weeks-ago (.minusDays five-weeks-ago 365)
 
               ;; Complete data related to portfolio-composition-by-date from oldest date to today
               set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights portfolio-composition-by-date
@@ -216,7 +216,7 @@
               cumulative-return-one-week-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-one-week-ago) (.toString one-week-ago))
               cumulative-return-two-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-two-weeks-ago) (.toString two-weeks-ago))
               cumulative-return-three-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-three-weeks-ago) (.toString three-weeks-ago))
-              cumulative-return-four-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString  one-year-from-four-weeks-ago) (.toString four-weeks-ago))
+              cumulative-return-four-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-four-weeks-ago) (.toString four-weeks-ago))
               cumulative-return-five-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-five-weeks-ago) (.toString five-weeks-ago))]
 
           {:today (.toString today)
@@ -498,7 +498,7 @@
      :stocks (- current-portfolio-value (+ starting-cash cash))
      :unique-tickers unique-tickers
 
-     :annualized-portfolio-return (* annualized-return 100)
+     :annualized-portfolio-return (when annualized-return (* annualized-return 100))
      :portfolio-volatility volatility
      :annualized-portfolio-volatility (when volatility (* (math/sqrt 252) volatility))
 
