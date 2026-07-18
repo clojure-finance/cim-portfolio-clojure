@@ -43,4 +43,5 @@ This branch is the Clerk-notebook variant of cim_portfolio (see the
   in `corporate_actions_test.clj`
 
 ### Removed
+- The lein-template `doc/intro.md` placeholder ("TODO: write great documentation")
 - `test/.DS_Store` from version control (already gitignored)
