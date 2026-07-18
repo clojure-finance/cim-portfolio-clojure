@@ -352,10 +352,12 @@
          (apply +)))) ;; Add up all the weighted returns to get the weighted average return
 
 ; Calculates the annualized return of the portfolio (accepts the starting value, ending value of portfolio, the start and end date)
+; Returns nil when the period is shorter than one full day — annualizing a same-day value is undefined (and used to divide by zero)
 (defn calculate-annualized-return [starting-value ending-value start-date end-date]
   (let [return (/ (- ending-value starting-value) starting-value)
         number-of-days (util/number-of-days-between start-date end-date)]
-    (- (math/pow (+ 1 return) (/ 365 number-of-days)) 1)))
+    (when (pos? number-of-days)
+      (- (math/pow (+ 1 return) (/ 365 number-of-days)) 1))))
 
 ; Calculates the volatility of a given list of prices (expected input: portfolio value list)
 (defn volatility [prices]
@@ -499,16 +501,16 @@
                                      "\" on or after " date
                                      ". Check that the ticker symbol is correct and the trade date is not in the future.")
                                 {:ticker ticker :date date})))
-            executed-date (first (first ticker-prices))				; gets the date the buy/sell order is executed
+            executed-date (first (first ticker-prices)) ; gets the date the buy/sell order is executed
             set-price (if (nil? set-price) set-price (str (client/convert-currency ticker set-price))) ;; Converts the inputted price into USD (by default) if not in USD, this returns a string for consistency
             ]
         (cond
           (= (clojure.string/lower-case action) "buy")
           (if (pos? (Double. amount))
-            (let [price (if (nil? set-price) (second (first ticker-prices)) (Double. set-price))         ; Gets open price of trading day OR the set-price if available
-                  currPrice (nth (last ticker-prices) 2)				; Gets adj close price of latest day
-                  prices (mapv #(nth % 2) ticker-prices)       			; Extracts the closing prices from ticker-prices (trade date to today)
-                  amounts (repeatedly (count prices) #(Double. amount))	; Repeats amount for num of trading days (trade date to today)
+            (let [price (if (nil? set-price) (second (first ticker-prices)) (Double. set-price)) ; Gets open price of trading day OR the set-price if available
+                  currPrice (nth (last ticker-prices) 2) ; Gets adj close price of latest day
+                  prices (mapv #(nth % 2) ticker-prices) ; Extracts the closing prices from ticker-prices (trade date to today)
+                  amounts (repeatedly (count prices) #(Double. amount)) ; Repeats amount for num of trading days (trade date to today)
                   ;; trading-dates (mapv #(first %) ticker-prices) ;; List of trading dates
                   ]
               (recur (- cash (* (Double. amount) price)) ;; Cash spent to buy stocks = - (Amount of stocks * Market price of stock when traded)
@@ -547,7 +549,7 @@
           (= (clojure.string/lower-case action) "sell")
           (let [price (if (nil? set-price) (second (first ticker-prices)) (Double. set-price))
                 currPrice (nth (last ticker-prices) 2)
-                prices (mapv #(nth % 2) ticker-prices)       ; Extracts the closing prices from ticker-prices (trade date to today), same as the buy branch — only the trade itself happens at the open
+                prices (mapv #(nth % 2) ticker-prices) ; Extracts the closing prices from ticker-prices (trade date to today), same as the buy branch — only the trade itself happens at the open
                 amounts (repeatedly (count prices) #(Double. amount))
                 ;; trading-dates (mapv #(first %) ticker-prices)
                 ]

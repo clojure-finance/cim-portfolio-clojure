@@ -46,6 +46,9 @@ All notable changes to this project will be documented in this file. This change
   - portfolios with fewer than three days of history show "n/a — not enough
     history" for annualized volatility instead of crashing with a divide-by-zero
     in the sample standard deviation (which now returns 0.0 for sub-2-point input)
+  - a portfolio whose first trade is dated today shows "n/a — not enough history"
+    for the annualized return instead of a divide-by-zero error (annualizing a
+    same-day value is undefined)
   - any other analysis error renders a friendly banner and logs the stack trace,
     instead of Jetty's default error page
 - Uploading a CSV without a header line no longer silently discards its first

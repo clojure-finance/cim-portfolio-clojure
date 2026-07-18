@@ -95,7 +95,7 @@
    [:div.card
     [:h2 "Performance Metrics"]
     [:div.metrics
-     [:div.metric [:span "Annualized Return of Portfolio:"] [:span#annualReturn (format "%.2f%%" (data :annualized-portfolio-return))]]
+     [:div.metric [:span "Annualized Return of Portfolio:"] [:span#annualReturn (if-let [v (data :annualized-portfolio-return)] (format "%.2f%%" v) "n/a — not enough history")]]
      [:div.metric [:span "Annualized Volatility of Portfolio:"] [:span#annualVolatility (if-let [v (data :annualized-portfolio-volatility)] (format "%.2f%%" v) "n/a — not enough history")]]
      [:div.metric [:span "1-Year Cumulative Portfolio Return:"]
       [:span#cumulativeReturn (format "%.2f%%" (* 100 (:one-year-cumulative-return-from-today (data :past-five-weeks-1y-cumulative-return-incl-cash))))]]]]
@@ -217,15 +217,15 @@
 
 (defn- risk-badge-class [risk]
   (case (str/lower-case (or risk ""))
-    "high"   "risk-high"
+    "high" "risk-high"
     "medium" "risk-medium"
-    "low"    "risk-low"
+    "low" "risk-low"
     "risk-medium"))
 
 (defn- time-badge-class [ts]
   (case (str/lower-case (or ts ""))
-    "breaking"  "time-breaking"
-    "recent"    "time-recent"
+    "breaking" "time-breaking"
+    "recent" "time-recent"
     "evergreen" "time-evergreen"
     "time-recent"))
 
@@ -367,11 +367,11 @@
           [:div.container
            (if error-msg
              [:div.news-error error-msg]
-             (let [total      (count results)
+             (let [total (count results)
                    successful (count (filter :success results))
-                   pos        (count (filter #(= "Positive" (:sentiment %)) results))
-                   neg        (count (filter #(= "Negative" (:sentiment %)) results))
-                   neu        (count (filter #(= "Neutral"  (:sentiment %)) results))]
+                   pos (count (filter #(= "Positive" (:sentiment %)) results))
+                   neg (count (filter #(= "Negative" (:sentiment %)) results))
+                   neu (count (filter #(= "Neutral" (:sentiment %)) results))]
                [:div
                 [:a.results-back {:href "/news"} "<- Run New Analysis"]
                 [:h2.results-page-title "Analysis Complete"]
@@ -380,11 +380,11 @@
 
                 ;; 5-stat dashboard
                 [:div.dashboard-grid
-                 [:div.dash-stat.d-total    [:div.dash-stat-num total]     [:div.dash-stat-label "Articles"]]
+                 [:div.dash-stat.d-total [:div.dash-stat-num total] [:div.dash-stat-label "Articles"]]
                  [:div.dash-stat.d-analyzed [:div.dash-stat-num successful] [:div.dash-stat-label "Analyzed"]]
-                 [:div.dash-stat.d-positive [:div.dash-stat-num pos]        [:div.dash-stat-label "Positive"]]
-                 [:div.dash-stat.d-negative [:div.dash-stat-num neg]        [:div.dash-stat-label "Negative"]]
-                 [:div.dash-stat.d-neutral  [:div.dash-stat-num neu]        [:div.dash-stat-label "Neutral"]]]
+                 [:div.dash-stat.d-positive [:div.dash-stat-num pos] [:div.dash-stat-label "Positive"]]
+                 [:div.dash-stat.d-negative [:div.dash-stat-num neg] [:div.dash-stat-label "Negative"]]
+                 [:div.dash-stat.d-neutral [:div.dash-stat-num neu] [:div.dash-stat-label "Neutral"]]]
 
                 ;; Sentiment distribution bars
                 (when (pos? successful)
@@ -411,15 +411,15 @@
 
                 ;; Article cards
                 (for [r results]
-                  (let [sent-lc   (str/lower-case (or (:sentiment r) "neutral"))
+                  (let [sent-lc (str/lower-case (or (:sentiment r) "neutral"))
                         hdr-class (if (:success r) sent-lc "failed")
-                        impact    (or (:market-impact r) 0)
-                        stance    (:investment-stance r)
-                        risk      (:risk-level r)
+                        impact (or (:market-impact r) 0)
+                        stance (:investment-stance r)
+                        risk (:risk-level r)
                         time-sens (:time-sensitivity r)
-                        sectors   (or (:affected-sectors r) [])
+                        sectors (or (:affected-sectors r) [])
                         key-quote (:key-quote r)
-                        insight   (:actionable-insight r)]
+                        insight (:actionable-insight r)]
                     [:div.news-article-card
 
                      ;; Colored header
@@ -430,11 +430,11 @@
                           [:a {:href (:link r) :target "_blank" :rel "noopener"} (:title r)]
                           (:title r))]
                        [:div.article-header-meta
-                        (when (:published r)       [:span (:published r)])
-                        (when (:category r)        [:span (:category r)])
+                        (when (:published r) [:span (:published r)])
+                        (when (:category r) [:span (:category r)])
                         (when (seq time-sens)
                           [:span.time-badge {:class (time-badge-class time-sens)} time-sens])
-                        (when (:bias r)            [:span (str "Bias: " (:bias r))])
+                        (when (:bias r) [:span (str "Bias: " (:bias r))])
                         (when (:target-audience r) [:span (str "For: " (:target-audience r))])]]
                       [:div.article-header-badges
                        [:span.sentiment-badge {:class (if (:success r) sent-lc "failed")}
