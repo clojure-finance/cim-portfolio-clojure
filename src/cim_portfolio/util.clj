@@ -33,13 +33,9 @@
                                               csv-data
                                               (rest csv-data)))))
                            (apply concat))]
-    combined-data
-))
-
+    combined-data))
 
 (number-of-days-between "2023-10-13" "2024-04-27")
-
-
 
 (def example-input-files ["examples/testPortfolio.csv" "examples/testPortfolio1.csv"])
 
@@ -72,16 +68,11 @@
 
 ;; Helper functions for computing cumulative returns
 (defn sum-up-to-key [key data]
-  (
-   + (get data key 0)		;; Adds data entry of key itself as well
+  (+ (get data key 0)		;; Adds data entry of key itself as well
      (->> (keys data)	;; calculates the sum of entries till key
-       (take-while #(not= % key))
-       (map #(get data % 0))
-       (apply +))
-   )
-  
-)
-
+          (take-while #(not= % key))
+          (map #(get data % 0))
+          (apply +))))
 
 (sum-up-to-key "c" {"a" 1 "b" 2 "c" 3 "d" 4 "e" 5}) ; Output: 6
 
@@ -92,9 +83,15 @@
 
 (defn squares [avg prices] (map #(square (- % avg)) prices))
 
-(defn std-dev [coll]
-  (let [avg (mean coll)
-        squares (squares avg coll)
-        total (count coll)]
-    (Math/sqrt (/ (reduce + squares) (- total 1)))))
+(defn std-dev
+  "Sample standard deviation. Returns 0.0 when coll has fewer than two
+   elements (the sample std-dev is undefined there; 0.0 keeps downstream
+   arithmetic total-safe instead of dividing by zero)."
+  [coll]
+  (if (< (count coll) 2)
+    0.0
+    (let [avg (mean coll)
+          squares (squares avg coll)
+          total (count coll)]
+      (Math/sqrt (/ (reduce + squares) (- total 1))))))
 
