@@ -53,10 +53,12 @@
          (apply +))))
 
 ; Calculates the annualized return of the portfolio (accepts the starting value, ending value of portfolio, the start and end date)
+; Returns nil when the period is shorter than one full day — annualizing a same-day value is undefined (and used to divide by zero)
 (defn calculate-annualized-return [starting-value ending-value start-date end-date]
   (let [return (/ (- ending-value starting-value) starting-value)
         number-of-days (util/number-of-days-between start-date end-date)]
-    (- (math/pow (+ 1 return) (/ 365 number-of-days)) 1)))
+    (when (pos? number-of-days)
+      (- (math/pow (+ 1 return) (/ 365 number-of-days)) 1))))
 
 ; Calculates the volatility of a given list of prices (expected input: portfolio value list)
 (defn volatility [prices]
