@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file. This change
   affected_sectors, key_quote, risk_level, actionable_insight
 - Results dashboard with sentiment distribution, market impact bars, and rich article cards
 - New CSS components for news UI (hero, provider cards, dashboard grid, article cards, badges)
+- Unit tests for the trade-input validator (`portfolio-web.validator-test`): row
+  parsing/trimming, header detection for manual and file input, every per-field
+  error message with line numbering, and the numeric starting-cash guard
 
 ### Changed
 - DeepSeek set as default LLM provider and model (deepseek-chat)
@@ -77,6 +80,7 @@ All notable changes to this project will be documented in this file. This change
   namespace load / AOT compilation performs no network I/O at all
 
 ### Removed
+- The lein-template `doc/intro.md` placeholder ("TODO: write great documentation")
 - Stale API-key plumbing that the web app never read: the `NEWSDATA_API_KEY`/
   `DEEPSEEK_API_KEY` env-var instructions in the README (and their docker-compose
   passthrough), plus the launcher-script warnings about them — the web UI takes
