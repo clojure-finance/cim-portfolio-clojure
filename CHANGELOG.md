@@ -28,7 +28,9 @@ This branch is the Clerk-notebook variant of cim_portfolio (see the
   (typo, delisted symbol, or future-dated trade) instead of a NullPointerException
   on the nil price; `util/std-dev` returns 0.0 for inputs with fewer than two
   points instead of dividing by zero (a portfolio younger than three trading days
-  crashed the volatility calculation)
+  crashed the volatility calculation); `calculate-annualized-return` returns nil
+  for periods shorter than one day instead of dividing by zero, and the notebook
+  prints "n/a — not enough history" for it
 - `lein uberjar` and `lein repl` no longer hang when ECB's rates endpoint stalls
   mid-transfer: ecbjure is bumped to 0.1.5 (adds connect/read timeouts, so a
   stalled fetch throws instead of blocking forever) and the FX converter in
