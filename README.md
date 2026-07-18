@@ -4,7 +4,7 @@ A portfolio analysis program written in Clojure, now featuring **AI-Powered Mark
 
 The web app has two pages:
 
-- **`/` — Portfolio Analyzer**: upload your trade CSVs, set your starting cash, and get a full performance dashboard. No API keys required.
+- **`/` — Portfolio Analyzer**: enter or upload your trades, set your starting cash, and get a full performance dashboard. No API keys required.
 - **`/news` — AI News Analyzer**: fetches real-time market news and uses Large Language Models (LLMs) to provide sentiment analysis, summaries, and investment signals. Requires API keys (see below).
 
 ## 🚀 Quick Start
@@ -48,7 +48,7 @@ files needed. After your first analysis run, the browser remembers the keys
 
 ## Portfolio Analyzer
 
-Open [http://localhost:3000](http://localhost:3000), upload one or more trade CSV files, set your starting cash amount (in USD — it influences your return %, portfolio volatility, etc.), and submit. The results dashboard is generated from your trades and live market data.
+Open [http://localhost:3000](http://localhost:3000), enter your trades manually (one CSV-style row per line) or upload a trade CSV file, set your starting cash amount (in USD — it influences your return %, portfolio volatility, etc.), and submit. The results dashboard is generated from your trades and live market data.
 
 Market data is fetched natively via [clj-yfinance](https://github.com/clojure-finance/clj-yfinance), and currency conversion uses ECB rates via [ecbjure](https://github.com/clojure-finance/ecbjure) — no Python installation is required. An internet connection is needed to fetch prices and FX rates.
 
@@ -57,6 +57,8 @@ Market data is fetched natively via [clj-yfinance](https://github.com/clojure-fi
 Each trade file is a csv with one row per trade:
 
 Date (YYYY-MM-DD)   |   Action (buy/sell)   |   Number of units bought/sold    |    Ticker    |    Price (optional; the actual per-unit price paid/received)
+
+A header line is optional — it is recognized and skipped automatically, whether pasted into the manual form or included in an uploaded file. Rows are validated before analysis; invalid dates, actions, amounts, or prices are rejected with a line-numbered message shown on the form.
 
 Record trades exactly as they happened: units and prices as of the trade date. Stock splits are handled automatically — trade data is normalized to post-split units before analysis, consistent with Yahoo Finance's split-adjusted price history. Sample files are provided in the `examples/` directory (e.g. `examples/testPortfolio.csv`).
 
