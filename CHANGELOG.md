@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file. This change
 - Removed a hardcoded DeepSeek API key from `run_web_app.bat` (it had been committed
   and public on GitHub since May 2026 — the key itself must be revoked/rotated at
   platform.deepseek.com, as it remains visible in git history)
+- The starting-cash form field is parsed as a plain number; it previously went
+  through `read-string`, which evaluates Clojure reader forms (`#=(...)`) from a
+  public, unauthenticated form field
 
 ### Added
 - The news form remembers both API keys in the browser (localStorage): they are
@@ -32,6 +35,21 @@ All notable changes to this project will be documented in this file. This change
   matching the Dockerfile and CI) instead of running a committed jar
 
 ### Fixed
+- The portfolio analyzer no longer answers bad input with a raw 500 page (all three
+  crash classes were being hit by real visitors, per the VPS journal):
+  - trade rows are validated before analysis, with line-numbered messages for
+    invalid dates, actions, amounts, tickers, and prices, shown in a banner on the
+    form page; a pasted or uploaded CSV header line is recognized and skipped
+    (previously a joda-time "Invalid format" crash)
+  - a ticker with no price data (typo, delisted symbol, or future-dated trade) now
+    produces a descriptive error instead of a NullPointerException mid-analysis
+  - portfolios with fewer than three days of history show "n/a — not enough
+    history" for annualized volatility instead of crashing with a divide-by-zero
+    in the sample standard deviation (which now returns 0.0 for sub-2-point input)
+  - any other analysis error renders a friendly banner and logs the stack trace,
+    instead of Jetty's default error page
+- Uploading a CSV without a header line no longer silently discards its first
+  trade row (the parser used to unconditionally strip line 1)
 - Rolling alpha/beta and stock-performance charts render again: a UI-redesign commit
   had replaced the Greek α/β with ASCII a/b in the trace-name lookup, producing null
   chart data that made Plotly abort rendering of all subsequent charts (and the

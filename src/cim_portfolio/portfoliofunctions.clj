@@ -494,6 +494,11 @@
                              (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for only one of the tickers from the trade date until today 
                              (get complete-stock-prices ticker 0)) ;; If already previously fetched, then no need to re-fetch
                            )
+            _ (when (empty? ticker-prices) ;; Unknown/delisted ticker, failed fetch, or trade date after the last available quote — without this, nil prices NPE further down
+                (throw (ex-info (str "No price data found for ticker \"" ticker
+                                     "\" on or after " date
+                                     ". Check that the ticker symbol is correct and the trade date is not in the future.")
+                                {:ticker ticker :date date})))
             executed-date (first (first ticker-prices))				; gets the date the buy/sell order is executed
             set-price (if (nil? set-price) set-price (str (client/convert-currency ticker set-price))) ;; Converts the inputted price into USD (by default) if not in USD, this returns a string for consistency
             ]

@@ -35,10 +35,12 @@
 
 ;; ─── Home page ────────────────────────────────────────────────────────────────
 
-(def html-home-body
+(defn html-home-body [error-msg]
   [:body
    (page-header [:a.nav-link {:href "/news"} "News Analysis"])
    [:div.container
+    (when error-msg ;; Set when /analyze-portfolio rejected the previous submission; may span several lines
+      (into [:div.news-error] (map (fn [line] [:p line]) (str/split-lines error-msg))))
     [:h2 "Provide Your Trades"]
 
     [:div.input-choice
@@ -68,14 +70,16 @@
 
     [:script {:src "/js/home_page.js"}]]])
 
-(defn home-page []
-  (str (h/html
-        [:html {:lang "en"}
-         [:head
-          [:meta {:charset "UTF-8"}]
-          [:title "CIM Portfolio Analysis Tool"]
-          [:link {:rel "stylesheet" :href "/styles.css"}]]
-         html-home-body])))
+(defn home-page
+  ([] (home-page nil))
+  ([error-msg]
+   (str (h/html
+         [:html {:lang "en"}
+          [:head
+           [:meta {:charset "UTF-8"}]
+           [:title "CIM Portfolio Analysis Tool"]
+           [:link {:rel "stylesheet" :href "/styles.css"}]]
+          (html-home-body error-msg)]))))
 
 ;; ─── Portfolio results page ───────────────────────────────────────────────────
 
@@ -92,7 +96,7 @@
     [:h2 "Performance Metrics"]
     [:div.metrics
      [:div.metric [:span "Annualized Return of Portfolio:"] [:span#annualReturn (format "%.2f%%" (data :annualized-portfolio-return))]]
-     [:div.metric [:span "Annualized Volatility of Portfolio:"] [:span#annualVolatility (format "%.2f%%" (data :annualized-portfolio-volatility))]]
+     [:div.metric [:span "Annualized Volatility of Portfolio:"] [:span#annualVolatility (if-let [v (data :annualized-portfolio-volatility)] (format "%.2f%%" v) "n/a — not enough history")]]
      [:div.metric [:span "1-Year Cumulative Portfolio Return:"]
       [:span#cumulativeReturn (format "%.2f%%" (* 100 (:one-year-cumulative-return-from-today (data :past-five-weeks-1y-cumulative-return-incl-cash))))]]]]
 

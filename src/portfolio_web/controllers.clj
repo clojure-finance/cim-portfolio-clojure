@@ -18,22 +18,31 @@
 (defn analysis-handler [request]
   (res/content-type
    (res/response
-    (let [params (:params request)
-          parsed-trades
-          (if (= (get params "trades") "")
-            (validator/parse-file-input
-             {:trades (slurp (:tempfile (get params "trades-file")))
-              :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
-              :show-capm-metrics (get params "show-capm-metrics" "false")
-              :show-stock-performances (get params "show-stock-performances" "false")})
-            (validator/parse-manual-input
-             {:trades (get params "trades")
-              :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
-              :show-capm-metrics (get params "show-capm-metrics" "false")
-              :show-stock-performances (get params "show-stock-performances" "false")}))]
-      (-> parsed-trades
-          (model/process-trades)
-          (views/portfolio-page))))
+    (try
+      (let [params (:params request)
+            parsed-trades
+            (if (= (get params "trades") "")
+              (validator/parse-file-input
+               {:trades (slurp (:tempfile (get params "trades-file")))
+                :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
+                :show-capm-metrics (get params "show-capm-metrics" "false")
+                :show-stock-performances (get params "show-stock-performances" "false")})
+              (validator/parse-manual-input
+               {:trades (get params "trades")
+                :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
+                :show-capm-metrics (get params "show-capm-metrics" "false")
+                :show-stock-performances (get params "show-stock-performances" "false")}))]
+        (-> parsed-trades
+            (model/process-trades)
+            (views/portfolio-page)))
+      (catch clojure.lang.ExceptionInfo e ;; Validation / known data problems: the message is written for the user
+        (views/home-page (.getMessage e)))
+      (catch Exception e ;; Unexpected: keep the stack in the journal, show a generic message instead of a raw 500
+        (.printStackTrace e)
+        (views/home-page (str "Portfolio analysis failed unexpectedly ("
+                              (.getName (class e))
+                              (when (.getMessage e) (str ": " (.getMessage e)))
+                              "). Please check your trades and try again.")))))
    "text/html"))
 
 ;; ─── News Analysis handlers ────────────────────────────────────────────────────
