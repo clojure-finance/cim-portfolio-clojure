@@ -249,7 +249,8 @@
         current-stock-holdings-and-weights {:values (:current-portfolio-holdings one-year-cumulative-returns-past-five-weeks-without-cash)
                                             :weights (:current-portfolio-weights one-year-cumulative-returns-past-five-weeks-without-cash)}
 
-        volatility (portfolio/volatility (map second sorted-portfolio-value))
+        volatility (when (<= 3 (count sorted-portfolio-value)) ;; Sample std-dev needs ≥2 daily returns, i.e. ≥3 value points — nil renders as "n/a" instead of a bogus 0%
+                     (portfolio/volatility (map second sorted-portfolio-value)))
         rolling-annualized-volatility (portfolio/rolling-annualized-volatility (map second portfolio-value-by-day) 21)
 
         ;; Calculates the 30-day Annualized Rolling EWMA Volatility
@@ -499,7 +500,7 @@
 
      :annualized-portfolio-return (* annualized-return 100)
      :portfolio-volatility volatility
-     :annualized-portfolio-volatility (* (math/sqrt 252) volatility)
+     :annualized-portfolio-volatility (when volatility (* (math/sqrt 252) volatility))
 
      :stocks-held-and-shorted portfolio
      :cash-invested cash-invested
