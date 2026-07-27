@@ -29,12 +29,26 @@
     (is (nil? (pf/ewma-rolling-volatility [100] 0.06)))))
 
 (deftest rolling-sharpe-ratio-alignment-test
-  (testing "pairs each 21-day mean return with the EWMA volatility of the window's last day"
-    (let [prices (mapv double (range 100 130)) ;; 30 price points -> 29 daily returns -> 9 complete 21-day windows
+  (testing "yields one value per daily return, aligned with the EWMA volatility series"
+    (let [prices (mapv double (range 100 130)) ;; 30 price points -> 29 daily returns
           vols (pf/ewma-rolling-volatility prices 0.06)
           sharpe (pf/rolling-sharpe-ratio prices vols 21)]
-      (is (= 9 (count sharpe)))
+      (is (= 29 (count sharpe)))
       (is (every? some? sharpe)))))
+
+(deftest rolling-sharpe-ratio-expanding-window-test
+  (testing "the mean return expands over all returns so far, then rolls once 21 have accumulated"
+    (let [prices (mapv double (range 100 130)) ;; 29 daily returns
+          returns (mapv (fn [[a b]] (- (/ b a) 1.0)) (partition 2 1 prices))
+          vols (pf/ewma-rolling-volatility prices 0.06)
+          sharpe (pf/rolling-sharpe-ratio prices vols 21)
+          expected (fn [t] ;; t = number of returns seen so far (1-based)
+                     (let [window (take-last (min t 21) (take t returns))
+                           mean (/ (reduce + window) (count window))]
+                       (/ (* 252 mean) (/ (nth vols (dec t)) 100))))]
+      (is (approx= (expected 1) (first sharpe))) ;; day two: a single return
+      (is (approx= (expected 5) (nth sharpe 4))) ;; mid warm-up: expanding mean over 5 returns
+      (is (approx= (expected 29) (last sharpe)))))) ;; past warm-up: rolling mean over the last 21 returns
 
 (deftest sum-pnl-series-with-forward-fill-test
   (testing "a holding's PnL is carried forward on days its market is closed instead of vanishing"
