@@ -16,6 +16,23 @@
 
 ;; (def portfolio-options {:starting-cash 200000}) ;; Make this dynamic later on 
 
+;; True when any portfolio value that a cumulative-return window depends on is negative.
+;; A return on negative capital is undefined — its log-return is NaN at zero crossings (which
+;; json/write-str refuses to serialize, a 500) and sign-inverted while the book stays net short —
+;; so callers render "n/a" instead of a number. Zero values are fine: an empty portfolio is a
+;; normal state and calculate-returns already treats it as a 0% day.
+;; values-by-day is a seq of [date value] pairs sorted by date; the last entry before start-date
+;; is included in the check because the window's first return is measured from it.
+;; (A gross-exposure denominator — PnL over the sum of |holdings| — would make these windows
+;; well-defined for net-short books instead of n/a; noted in the README as a future extension.)
+(defn window-contains-negative-value? [values-by-day start-date end-date]
+  (let [date-formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd")
+        parse (fn [d] (java.time.LocalDate/parse d date-formatter))
+        not-after-end (filter (fn [[d _]] (not (.isAfter (parse d) (parse end-date)))) values-by-day)
+        before-start (filter (fn [[d _]] (.isBefore (parse d) (parse start-date))) not-after-end)
+        in-window (remove (fn [[d _]] (.isBefore (parse d) (parse start-date))) not-after-end)]
+    (boolean (some (fn [[_ v]] (neg? v)) (concat (take-last 1 before-start) in-window)))))
+
 (defn process-trades [raw-data]
   (let [;; Variables 
 
@@ -37,8 +54,10 @@
 
         cash-invested-by-dates (into [] cash-invested-by-date)
         current-portfolio-value (+ starting-cash (+ cash current-value))
+        ;; End date is the last trading day's DATE — (last (last ...)) passed the day's dollar value, which
+        ;; clj-time silently failed to parse and Joda then treated as "now", so it only worked by accident
         annualized-return (portfolio/calculate-annualized-return starting-cash current-portfolio-value (first (first sorted-portfolio-value))
-                                                                 (last (last sorted-portfolio-value)))
+                                                                 (first (last sorted-portfolio-value)))
 
         ;; Read from bottom to top for this variable to understand it (Deprecated)
         ;; The reason why I incorporated a lot of different data in this one variable is so that we don't have to fetch from yfinance multiple times (preventing rate limits)
@@ -86,6 +105,8 @@
               set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights-without-cash portfolio-composition-by-date complete-stock-prices)
               ;; Complete Log Returns Time-Series from oldest date to today
               portfolio-log-returns (:portfolio-log-returns set-of-portfolio-complete-data)
+              ;; Cash-excluded portfolio values by day ([date value] pairs, sorted) — used to detect windows where the book was net short
+              portfolio-values-excl-cash (:portfolio-value set-of-portfolio-complete-data)
 
               ;; Function to take log returns from start date to end date, and convert to arithmetic returns
               ;; log-returns-by-date is a map of date strings (i.e. yyyy-MM-dd) as keys, and log returns as values. start-date and end-date are date strings.
@@ -109,7 +130,9 @@
                                                                  (reduce + ;; Sum all log returns
                                                                          (vals log-returns-filtered-by-date)))
                                                                 1)]
-                                         cumulative-return))
+                                         ;; nil (rendered as "n/a") when the book was net short anywhere in the window — a return on negative capital is undefined
+                                         (when-not (window-contains-negative-value? portfolio-values-excl-cash start-date-enhanced end-date)
+                                           cumulative-return)))
 
               ;; 1-Year Portfolio Cumulative returns
               cumulative-return-today (get-cumulative-returns portfolio-log-returns (.toString one-year-ago) (.toString today))
@@ -209,7 +232,9 @@
                                                                  (reduce + ;; Sum all log returns
                                                                          (vals log-returns-filtered-by-date)))
                                                                 1)]
-                                         cumulative-return))
+                                         ;; nil (rendered as "n/a") when the with-cash NAV went negative in the window (losses beyond starting cash) — same undefined-return problem as the ex-cash series
+                                         (when-not (window-contains-negative-value? portfolio-value-by-day start-date-enhanced end-date)
+                                           cumulative-return)))
 
               ;; 1-Year Portfolio Cumulative returns
               cumulative-return-today (get-cumulative-returns portfolio-log-returns (.toString one-year-ago) (.toString today))
@@ -331,10 +356,10 @@
            (into {}
                  (map
                   (fn [[date value]]
-                    (if (neg? value)
-                      [date nil] ;; Negative portfolio values will result in NaN when we take the logarithm
+                    (if (pos? value)
                       [date (Math/log
-                             (/ value starting-cash))]) ;; Starting cash should be the initial portfolio value 
+                             (/ value starting-cash))] ;; Starting cash should be the initial portfolio value
+                      [date nil]) ;; Negative values would make the logarithm NaN, zero -Infinity — both unserializable as JSON
                     )
                   portfolio-value-by-day)))
 

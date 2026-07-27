@@ -279,7 +279,7 @@
         portfolio-weights-by-date (util/sort-map-by-date
                                    (into {} ;; This is unsorted, becareful 
                                          (map (fn [[d portfolio-value]]
-                                                [d (if (zero? portfolio-value) ;; Take care of edge case when portfolio value is 0 (no stocks held in portfolio)  
+                                                [d (if (not (pos? portfolio-value)) ;; Edge case when portfolio value is 0 (no stocks held) or negative (net-short book, where value-based weights would have inverted signs)
                                                      (into {}
                                                            (map (fn [ticker]
                                                                   [ticker (double 0)])
@@ -410,11 +410,30 @@
 
 ;;; ### Portfolio Processing Section
 
+;; Each trade contributes a PnL series keyed by ITS ticker's trading dates. Tickers on different
+;; exchange calendars miss each other's dates, so summing the series directly makes a holding's
+;; entire PnL vanish on days its market is closed (phantom drops in portfolio value that
+;; contaminate every downstream statistic). Carry each series' last known PnL forward over the
+;; union of all dates instead, from the series' first date onward.
+(defn sum-pnl-series-with-forward-fill [pnl-series]
+  (let [sorted-series (map util/sort-map-by-date pnl-series)
+        all-dates (sort util/jt-compare-dates (distinct (mapcat keys sorted-series)))
+        fill (fn [pnl-by-date]
+               (first
+                (reduce (fn [[filled last-pnl] d]
+                          (cond
+                            (contains? pnl-by-date d) [(assoc filled d (get pnl-by-date d)) (get pnl-by-date d)]
+                            (some? last-pnl) [(assoc filled d last-pnl) last-pnl]
+                            :else [filled nil])) ;; Date is before this trade existed — contributes nothing
+                        [{} nil]
+                        all-dates)))]
+    (util/sort-map-by-date (apply merge-with + {} (map fill sorted-series)))))
+
 (defn analyze-portfolio [data]
   (loop [cash 0.0 ;; This is the cash spent by buying or obtained by selling so far
          portfolio {}
          portfolio-composition-by-date (array-map) ;; Even if array-maps sort the data by key, they have a limit of sorting up to 8 items, so please use util/sort-map-by-date
-         portfolio-value {}
+         per-trade-pnl-series [] ;; One {date PnL} map per trade, summed with forward-fill at the end so mixed exchange calendars don't drop a holding's PnL on its market's closed days
          current-value 0.0
         ;;  stock-performance {} ;; In the future, may use the commented stock-performance code here and in the below to get the log-returns from trade date.
          cash-invested {}
@@ -440,7 +459,7 @@
                                                [date [opening-price closing-price]])
                                              prices)))])
                        complete-stock-prices))]
-        [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) (util/sort-map-by-date portfolio-value) current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices-enhanced] ;; When no more rows, return final values
+        [cash portfolio (util/sort-map-by-date portfolio-composition-by-date) (sum-pnl-series-with-forward-fill per-trade-pnl-series) current-value cash-invested (util/sort-map-by-date cash-invested-by-date) (util/sort-map-by-date change-in-cash-by-date) complete-stock-prices-enhanced] ;; When no more rows, return final values
         )
       (let [[date action amount ticker set-price] (first data)
 
@@ -478,11 +497,10 @@
               (recur (- cash (* (Double. amount) price)) ;; Cash spent to buy stocks = - (Amount of stocks * Market price of stock when traded)
                      (assoc portfolio ticker (+ (get portfolio ticker 0) (Double. amount))) ;; Updates the current quantity of the stock in the portfolio
                      (assoc portfolio-composition-by-date executed-date (assoc portfolio ticker (+ (get portfolio ticker 0) (Double. amount)))) ;; Save a snapshot of the portfolio composition every order
-                     (merge-with + portfolio-value ;; For each trading date, add the new PnL to the existing PnL at that date
-                                 (zipmap ;; {T PnL, T+1 PnL, ...}
-                                  (map first ticker-prices) ;; Dates for the PnL UNTIL TODAY
-                                  (map #(- % (* (Double. amount) price)) (map * prices amounts)))) ;; PnL for each trading day relative to trade date = Market value of each holding for trading days after the trade date - Market value of the holdings on the trade date
-                     ; Updates portfolio-value with the calculated values
+                     (conj per-trade-pnl-series ;; Collect this trade's PnL series; the series are summed with forward-fill once all trades are processed
+                           (zipmap ;; {T PnL, T+1 PnL, ...}
+                            (map first ticker-prices) ;; Dates for the PnL UNTIL TODAY
+                            (map #(- % (* (Double. amount) price)) (map * prices amounts)))) ;; PnL for each trading day relative to trade date = Market value of each holding for trading days after the trade date - Market value of the holdings on the trade date
                      (+ current-value (* (Double. amount) currPrice)) ;; Current (Latest) market value of stocks
 
                      ;;  (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates)) ;; Returns the day to day arithmetic and log returns; Also the cumulative log returns.; Which trading dates depend on data received from client/get-ticker-price-all
@@ -506,7 +524,7 @@
                        (assoc complete-stock-prices ticker ticker-prices)
                        complete-stock-prices) ;; Keep previously fetched stock price data
                      (rest data)))
-            (recur cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices (rest data))) ;; If negative amount, ignore
+            (recur cash portfolio portfolio-composition-by-date per-trade-pnl-series current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices (rest data))) ;; If negative amount, ignore
 
           (= (clojure.string/lower-case action) "sell")
           (let [price (if (nil? set-price) (second (first ticker-prices)) (Double. set-price))
@@ -518,8 +536,8 @@
             (recur (+ cash (* (Double. amount) price))
                    (assoc portfolio ticker (- (get portfolio ticker 0) (Double. amount)))
                    (assoc portfolio-composition-by-date executed-date (assoc portfolio ticker (- (get portfolio ticker 0) (Double. amount))))
-                   (merge-with + portfolio-value (zipmap (map first ticker-prices)
-                                                         (map #(- (* (Double. amount) price) %) (map * prices amounts)))) ;; PnL for each trading day relative to trade date (short) = Market value of the holdings on the trade date - Market value of each holding for trading days after the trade date 
+                   (conj per-trade-pnl-series (zipmap (map first ticker-prices)
+                                                      (map #(- (* (Double. amount) price) %) (map * prices amounts)))) ;; PnL for each trading day relative to trade date (short) = Market value of the holdings on the trade date - Market value of each holding for trading days after the trade date
                    (- current-value (* (Double. amount) currPrice))
 
                   ;;  (assoc stock-performance ticker (calculate-returns-with-corresponding-date prices trading-dates))
