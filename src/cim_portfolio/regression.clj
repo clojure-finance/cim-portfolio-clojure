@@ -27,9 +27,19 @@
         stock-prices (map #(nth % 2) stock-data)
         market-dates (map first market-data)
         market-prices (map #(nth % 2) market-data)
-        stock-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date stock-prices stock-dates)))
-        market-returns (vals (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date market-prices market-dates)))
-        plotted-dates (subvec (vec stock-dates) 252)
+        stock-returns-by-date (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date stock-prices stock-dates))
+        market-returns-by-date (:arithmetic-returns (portfolio/calculate-returns-with-corresponding-date market-prices market-dates))
+        ;; Regress only on dates where BOTH the stock and the market traded. Pairing the two
+        ;; return series by position instead would shift them against each other whenever the
+        ;; calendars differ (foreign listings, halts, or a stock younger than the market range),
+        ;; regressing each stock return on the wrong market day.
+        common-dates (filter #(contains? market-returns-by-date %) (keys stock-returns-by-date))
+        stock-returns (map stock-returns-by-date common-dates)
+        market-returns (map market-returns-by-date common-dates)
+        ;; The first full window covers returns 1..252, so its regression is plotted on the
+        ;; 252nd common date. drop (unlike the previous subvec) yields an empty series instead
+        ;; of throwing when the stock is younger than the window.
+        plotted-dates (vec (drop 251 common-dates))
         model (rolling-capm-regression stock-returns market-returns 252)]
     (-> {}
         (assoc :plotted-dates plotted-dates)

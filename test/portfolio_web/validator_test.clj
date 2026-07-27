@@ -77,7 +77,12 @@
     (is (re-find #"No trades provided" (error-message "")))
     (is (re-find #"No trades provided" (error-message "  \n \n"))))
   (testing "starting cash must be numeric — read-string is gone, reader forms are rejected"
-    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a number"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
                           (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "abc"})))
-    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a number"
-                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "(+ 1 2)"})))))
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
+                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "(+ 1 2)"}))))
+  (testing "starting cash must be positive — zero divides the annualized return and one-dollar chart, negative feeds NaN logarithms"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
+                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "0"})))
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
+                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "-50000"})))))

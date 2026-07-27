@@ -114,13 +114,15 @@
 
 (defn- parse-starting-cash
   "Parses the starting-cash form field (the controller has already stripped $
-   and commas). Throws ex-info with a user-facing message when non-numeric.
+   and commas). Throws ex-info with a user-facing message when non-numeric or
+   non-positive — zero starting cash divides the annualized return and the
+   one-dollar chart by zero, negative makes their logarithms NaN.
    Replaces the previous read-string call, which crashed downstream on
    non-numeric input (and evaluated arbitrary reader forms)."
   [s]
   (let [s (str/trim (or s ""))]
-    (when-not (parseable-number? s)
-      (throw (ex-info (str "Starting cash must be a number, got \"" s "\".") {})))
+    (when-not (and (parseable-number? s) (pos? (Double/parseDouble s)))
+      (throw (ex-info (str "Starting cash must be a positive number, got \"" s "\".") {})))
     (Double/parseDouble s)))
 
 ;; The below functions are used when the form data is encoded in multipart/form-data

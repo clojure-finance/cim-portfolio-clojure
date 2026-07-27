@@ -72,6 +72,15 @@ The dashboard shows the most relevant statistics about your portfolio performanc
 - performance metrics of individual stocks
 - rolling alpha/beta versus the market index, volatility, and Sharpe ratio
 
+**Net-short portfolios:** the cumulative-return figures show "n/a" for any period in which the
+portfolio's value was negative (e.g. a net-short book), because a percentage return on negative
+capital is undefined — the naive ratio flips sign exactly when the book is short. A possible
+future extension is to compute these returns on gross exposure instead (daily PnL divided by the
+sum of the absolute holding values), which is the standard convention for long-short portfolios,
+is well-defined for shorts, and reduces to the current calculation for long-only books. It would
+require reworking the cumulative aggregation (log-return summing no longer applies directly) and
+relabeling the affected figures as returns on gross invested capital.
+
 ## AI News Analyzer
 
 Open [http://localhost:3000/news](http://localhost:3000/news), enter your API keys, pick an LLM provider and model, and submit a topic. Each fetched article is analyzed into a 15-field breakdown (sentiment, summary, market impact, investment stance, risk level, actionable insight, and more), displayed on a results dashboard with sentiment distribution and per-article cards. If the provider returns an error (e.g. an exhausted balance or an invalid key), the real API error is surfaced in the UI.

@@ -36,6 +36,20 @@
       (is (= 9 (count sharpe)))
       (is (every? some? sharpe)))))
 
+(deftest sum-pnl-series-with-forward-fill-test
+  (testing "a holding's PnL is carried forward on days its market is closed instead of vanishing"
+    (let [us {"2026-01-05" 100.0 "2026-01-06" 150.0 "2026-01-07" 120.0}
+          jp {"2026-01-05" 50.0 "2026-01-07" 80.0}] ;; closed on 2026-01-06
+      (is (= {"2026-01-05" 150.0 "2026-01-06" 200.0 "2026-01-07" 200.0}
+             (pf/sum-pnl-series-with-forward-fill [us jp])))))
+  (testing "a series contributes nothing before its trade's first date"
+    (let [early {"2026-01-05" 10.0 "2026-01-06" 20.0}
+          late {"2026-01-06" 5.0}]
+      (is (= {"2026-01-05" 10.0 "2026-01-06" 25.0}
+             (pf/sum-pnl-series-with-forward-fill [early late])))))
+  (testing "no trades yields an empty map"
+    (is (= {} (pf/sum-pnl-series-with-forward-fill [])))))
+
 (deftest rolling-sharpe-ratio-zero-volatility-test
   (testing "returns nil instead of dividing by zero when the portfolio value never moved"
     (let [prices (repeat 25 100.0)
