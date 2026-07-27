@@ -148,7 +148,7 @@
     [:div.graph [:div {:id "portfolio-performance-by-day" :class "miscChart" :data-plot (json/write-str (data :portfolio-one-dollar-performance-graph))}]]]
 
    [:div.card.full-width
-    [:h2 "30-Day Annualized EWMA Rolling Volatility of Portfolio (lambda = 0.94)"]
+    [:h2 "Annualized EWMA Volatility of Portfolio (lambda = 0.94)"]
     [:div.graph [:div {:id "rolling-ewma-volatility" :class "miscChart"
                        :data-plot (json/write-str (data :default-rolling-ewma-volatility-figs))
                        :data-alt-plot (json/write-str (data :alternative-rolling-ewma-volatility-figs))}]]
