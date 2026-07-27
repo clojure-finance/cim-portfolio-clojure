@@ -374,77 +374,39 @@
          (map util/std-dev)
          (map #(* 100 % scaling-factor)))))
 
-;; Calculates the "Annualized" Rolling EWMA volatility (standard deviation) for a given sliding window-size
+;; Calculates the Annualized EWMA volatility (in %, like rolling-annualized-volatility) via the RiskMetrics recursion:
+;; variance_t = (1 - alpha) * variance_(t-1) + alpha * return_t^2, seeded with the first squared return.
+;; No window is needed, so there is one value per daily return — from the second price point onward, however short the history.
 ;; Prices here are the Portfolio values by date (I assume is already sorted), and follow the following structure:
 ;; (10000, 10001.21, 10011.8, ...)
 ;; In the future, user may input the alpha parameter in the dashboard. Might also have to make sure that when portfolio is changed, the return is 0.
 
-(defn ewma-rolling-volatility [prices window-size alpha]
+(defn ewma-rolling-volatility [prices alpha]
   (let [returns (:arithmetic-returns (calculate-returns prices))
-        returns-squared (map #(* % %) returns)
+        returns-squared (map #(* % %) returns)]
+    (when (seq returns-squared)
+      (->> (reductions (fn [prev-variance r-squared]
+                         (+ (* (- 1 alpha) prev-variance) (* alpha r-squared)))
+                       (first returns-squared)
+                       (rest returns-squared))
+           (mapv #(* 100 (Math/sqrt 252) (Math/sqrt %)))))))
 
-        ;; Calculate the weights that will be applied to each squared return in a window
-        ;; The size of vector "weights" will be the same as the size of the window 
-        applied-weights (loop
-                         [i (- window-size 1)
-                          weights [(- 1 alpha)]]
-
-                          (if (= i 0)
-
-                            weights
-
-                            (recur
-                             (- i 1) ;; Decrement i
-                             (conj weights ;; Add to "weights" vector
-                                   (* (peek weights) (- 1 alpha)))) ;; Multiply previous weight by (1 - alpha)
-                            ))
-
-        ;; Reverses the applied weights
-        reversed-applied-weights (rseq applied-weights)
-
-        ;; Apply Sliding Window
-        rolling-returns-squared (partition window-size 1 returns-squared)
-
-        ;; Rolling EWMA Variance
-        ;; Structure: [0.12, 3, 2.11, ...]
-
-        ;; Calculate the rolling ewma variance with the below steps:
-        ;; 1. Multiply each element in each window with the applied weights in reverse order
-        ;; 2. Sum all the calculated figures in each window
-
-        rolling-ewma-variance
-
-        (loop
-         [sliding-window rolling-returns-squared
-          ewma-rolling-portfolio-variance []]
-
-          (if (empty? sliding-window)
-
-            ewma-rolling-portfolio-variance
-
-            (recur
-             (rest sliding-window) ;; Remove first window
-             (conj ewma-rolling-portfolio-variance
-                   (reduce + ;; Sum all products in each window
-                           (map * (first sliding-window) reversed-applied-weights)) ;; Multiply each element in first window, with the corresponding weight
-                   ))))
-;; Rolling EWMA Standard Deviation (just square root the previous variable)
-        rolling-ewma-sd (map #(Math/sqrt %) rolling-ewma-variance)
-
-        ;; Annualized EWMA Standard Deviation (just multiply by sqrt 252)
-        annualized-rolling-ewma-sd (map #(* (Math/sqrt 252) %) rolling-ewma-sd)]
-
-    (vec annualized-rolling-ewma-sd)))
-
-;; Calculates the annualized rolling sharpe ratio, intended to be used with a measure of annualized rolling volatility with the same size for the sliding window
+;; Calculates the annualized rolling sharpe ratio: the window-size rolling mean return (annualized),
+;; divided by the per-return-day annualized volatility in % as produced by ewma-rolling-volatility
 
 (defn rolling-sharpe-ratio [prices volatility window-size]
   (let [returns (:arithmetic-returns (calculate-returns prices))
         rolling-returns (partition window-size 1 returns)
         rolling-average-returns (map #(/ (reduce + %) window-size) rolling-returns)
         annualized-rolling-average-returns (map #(* 252 %) rolling-average-returns)
-        rolling-sharpe-ratio (map / annualized-rolling-average-returns volatility)]
-    rolling-sharpe-ratio))
+        ;; The volatility series has one entry per daily return; the first window's mean covers
+        ;; returns 1..window-size, so its counterpart is the volatility at return window-size
+        aligned-volatility (drop (- window-size 1) volatility)]
+    (map (fn [annualized-return vol]
+           (when (pos? vol) ;; nil instead of dividing by zero when the portfolio value never moved
+             (/ annualized-return (/ vol 100))))
+         annualized-rolling-average-returns
+         aligned-volatility)))
 
 ;;; ### Portfolio Processing Section
 

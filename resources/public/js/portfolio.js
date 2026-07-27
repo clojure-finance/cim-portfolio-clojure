@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (volatilityBtn.textContent.includes("0.97")) {
       Plotly.newPlot(volatilityChartDiv.id, [JSON.parse(volatilityChartDiv.dataset.altPlot)]);
       volatilityBtn.textContent = "Switch to λ = 0.94";
-      currentTitle.textContent = "30-Day Annualized EWMA Rolling Volatility of Portfolio (λ = 0.97)";
+      currentTitle.textContent = "Annualized EWMA Volatility of Portfolio (λ = 0.97)";
       } 
     else { 
       Plotly.newPlot(volatilityChartDiv.id, [JSON.parse(volatilityChartDiv.dataset.plot)]);
       volatilityBtn.textContent = "Switch to λ = 0.97";
-      currentTitle.textContent = "30-Day Annualized EWMA Rolling Volatility of Portfolio (λ = 0.94)";
+      currentTitle.textContent = "Annualized EWMA Volatility of Portfolio (λ = 0.94)";
       }});
 
   // Logic for portfolio sharpe ratio graphs
