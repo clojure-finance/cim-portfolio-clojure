@@ -283,6 +283,7 @@
         alternative-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 0.03) ;; Lambda = 1 - alpha = 0.97
 
         ;; Calculate the 30-Day Annualized Rolling Sharpe Ratio using the Annualized EWMA Volatility
+        ;; (the mean-return window expands from day two until it reaches 21 trading days, so young portfolios get values immediately)
         default-rolling-sharpe-ratio (portfolio/rolling-sharpe-ratio (map second portfolio-value-by-day) default-rolling-ewma-volatility 21)
         alternative-rolling-sharpe-ratio (portfolio/rolling-sharpe-ratio (map second portfolio-value-by-day) alternative-rolling-ewma-volatility 21)
 
@@ -505,7 +506,7 @@
         default-rolling-sharpe-ratio-figs
 
         {:x (map #(first %) portfolio-value-by-day)
-         :y (concat (repeat 21 nil) default-rolling-sharpe-ratio) ;; The first 21 trading days have no value because the rolling mean return needs a full 21-day window
+         :y (cons nil default-rolling-sharpe-ratio) ;; Only the first day has no value — the mean return window expands until it reaches 21 days
          :type "scatter"
          :mode "lines"
          :name "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.94)"}
@@ -513,7 +514,7 @@
         alternative-rolling-sharpe-ratio-figs
 
         {:x (map #(first %) portfolio-value-by-day)
-         :y (concat (repeat 21 nil) alternative-rolling-sharpe-ratio) ;; The first 21 trading days have no value because the rolling mean return needs a full 21-day window
+         :y (cons nil alternative-rolling-sharpe-ratio) ;; Only the first day has no value — the mean return window expands until it reaches 21 days
          :type "scatter"
          :mode "lines"
          :name "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.97)"}]

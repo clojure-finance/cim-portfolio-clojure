@@ -391,22 +391,28 @@
                        (rest returns-squared))
            (mapv #(* 100 (Math/sqrt 252) (Math/sqrt %)))))))
 
-;; Calculates the annualized rolling sharpe ratio: the window-size rolling mean return (annualized),
-;; divided by the per-return-day annualized volatility in % as produced by ewma-rolling-volatility
+;; Calculates the annualized rolling sharpe ratio: the mean daily return (annualized) divided by
+;; the per-return-day annualized volatility in % as produced by ewma-rolling-volatility.
+;; The mean uses an expanding window until window-size returns have accumulated, then a
+;; window-size rolling window — so the ratio has a value from the first return onward instead
+;; of staying blank for a month on a young portfolio.
 
 (defn rolling-sharpe-ratio [prices volatility window-size]
-  (let [returns (:arithmetic-returns (calculate-returns prices))
-        rolling-returns (partition window-size 1 returns)
-        rolling-average-returns (map #(/ (reduce + %) window-size) rolling-returns)
-        annualized-rolling-average-returns (map #(* 252 %) rolling-average-returns)
-        ;; The volatility series has one entry per daily return; the first window's mean covers
-        ;; returns 1..window-size, so its counterpart is the volatility at return window-size
-        aligned-volatility (drop (- window-size 1) volatility)]
+  (let [returns (vec (:arithmetic-returns (calculate-returns prices)))
+        cumulative-sums (vec (reductions + 0.0 returns)) ;; cumulative-sums[i] = sum of the first i returns
+        ;; Expanding mean until window-size returns exist, window-size rolling mean afterwards —
+        ;; one value per daily return, mirroring ewma-rolling-volatility
+        mean-returns (map (fn [i]
+                            (let [start (max 0 (- i window-size))]
+                              (/ (- (cumulative-sums i) (cumulative-sums start))
+                                 (- i start))))
+                          (range 1 (inc (count returns))))
+        annualized-mean-returns (map #(* 252 %) mean-returns)]
     (map (fn [annualized-return vol]
            (when (pos? vol) ;; nil instead of dividing by zero when the portfolio value never moved
              (/ annualized-return (/ vol 100))))
-         annualized-rolling-average-returns
-         aligned-volatility)))
+         annualized-mean-returns
+         volatility)))
 
 ;;; ### Portfolio Processing Section
 
