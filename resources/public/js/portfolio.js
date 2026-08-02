@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
   chartDivs.forEach(div => {
     const plotData = JSON.parse(div.dataset.plot);
     if (plotData == null) return; // A missing dataset must not abort rendering of the remaining charts
-    Plotly.newPlot(div.id, [plotData]);
+    const layout = div.classList.contains('logChart') ? { yaxis: { type: 'log' } } : {};
+    Plotly.newPlot(div.id, [plotData], layout);
   });
 
   // Logic for portfolio volatility graphs

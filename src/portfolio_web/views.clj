@@ -144,8 +144,8 @@
     [:div.graph [:div {:id "portfolio-value-by-day" :class "miscChart" :data-plot (json/write-str (data :portfolio-value-figs))}]]]
 
    [:div.card.full-width
-    [:h2 "One Dollar Invested in Portfolio at Time Zero (Log(x) scale)"]
-    [:div.graph [:div {:id "portfolio-performance-by-day" :class "miscChart" :data-plot (json/write-str (data :portfolio-one-dollar-performance-graph))}]]]
+    [:h2 "One Dollar Invested in Portfolio at Time Zero (log scale)"]
+    [:div.graph [:div {:id "portfolio-performance-by-day" :class "miscChart logChart" :data-plot (json/write-str (data :portfolio-one-dollar-performance-graph))}]]]
 
    [:div.card.full-width
     [:h2 "Annualized EWMA Volatility of Portfolio (lambda = 0.94)"]
@@ -186,8 +186,8 @@
          [:details.stockAccordion
           [:summary [:strong ticker]]
           [:div.graphRow
-           [:div.graph [:h4.stock-performance-header "One Dollar Invested at Time Zero (Log(x) scale)"]
-            [:div {:id (str ticker "-performance") :class "performanceChart"
+           [:div.graph [:h4.stock-performance-header "One Dollar Invested at Time Zero (log scale)"]
+            [:div {:id (str ticker "-performance") :class "performanceChart logChart"
                    :data-plot (json/write-str (get (data :stock-performances-graphs) ticker))}]]]])]])])
 
 (defn portfolio-page [data]
