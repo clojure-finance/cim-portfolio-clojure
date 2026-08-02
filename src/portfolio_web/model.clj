@@ -352,28 +352,27 @@
         ;; Portfolio Performance (One Dollar Invested in Portfolio)
         one-dollar-invested-in-portfolio-at-time-zero
         (let
-         [log-dollar-performance
+         [dollar-performance
           (util/sort-map-by-date
            (into {}
                  (map
                   (fn [[date value]]
                     (if (pos? value)
-                      [date (Math/log
-                             (/ value starting-cash))] ;; Starting cash should be the initial portfolio value
-                      [date nil]) ;; Negative values would make the logarithm NaN, zero -Infinity — both unserializable as JSON
+                      [date (/ value starting-cash)] ;; Starting cash should be the initial portfolio value
+                      [date nil]) ;; Non-positive values cannot be drawn on the log-scale axis, so leave a gap
                     )
                   portfolio-value-by-day)))
 
           plotly-data
-          {:x (keys log-dollar-performance)
-           :y (vals log-dollar-performance)
+          {:x (keys dollar-performance)
+           :y (vals dollar-performance)
            :type "scatter"
            :mode "lines"
            :name "Portfolio Performance"}]
 
           plotly-data)
 
-        ;; Stock Performance (Log Returns based on Closing Price)
+        ;; Stock Performance (One Dollar Invested, based on Closing Price)
         one-dollar-invested-in-stock-at-time-zero
         (if (raw-data :show-stock-performances)
 
@@ -387,60 +386,47 @@
 
                 prices-until-end-date complete-stock-prices
 
-                ;; The following will return each stock and their logged dollar performance over time in the following format.
-                ;; {"NVDA" {"2025-01-31" 0, "2025-02-01" 0.006, ...}, 
-                ;;  "MSFT" {"2025-01-31" 0, "2025-02-01" -0.0255, ...}, ...}
+                ;; The following will return each stock and their dollar performance over time in the following format.
+                ;; {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.006, ...},
+                ;;  "MSFT" {"2025-01-31" 1, "2025-02-01" 0.9745, ...}, ...}
 
-                log-dollar-performance (loop
-                                        [tickers (keys prices-until-end-date)
-                                         one-dollar-performance {} ;; Dollar Performance but not logged 
-                                         log-one-dollar-performance {}]
-                                         (if (empty? tickers)
+                dollar-performance (loop
+                                    [tickers (keys prices-until-end-date)
+                                     one-dollar-performance {}]
+                                     (if (empty? tickers)
 
-                                           log-one-dollar-performance ;; Ignore one-dollar-performance for now
+                                       one-dollar-performance
 
-                                           (recur
-                                            (rest tickers) ;; Remove first ticker in collection
+                                       (recur
+                                        (rest tickers) ;; Remove first ticker in collection
 
-                                            ;; Add new ticker with its dollar performance to variable one-dollar-performance
-                                            ;; It will have the tickers as the key, and values which are maps with keys being the trade dates, and values being the dollar performance
-                                            ;; e.g. {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.16, ...}, 
-                                            ;;       "MSFT" {"2025-01-31" 1, "2025-02-01" 0.98, ...}, ...}
+                                        ;; Add new ticker with its dollar performance to variable one-dollar-performance
+                                        ;; It will have the tickers as the key, and values which are maps with keys being the trade dates, and values being the dollar performance
+                                        ;; e.g. {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.16, ...},
+                                        ;;       "MSFT" {"2025-01-31" 1, "2025-02-01" 0.98, ...}, ...}
 
-                                            (assoc one-dollar-performance (first tickers)
-                                                   (util/sort-map-by-date
-                                                    (zipmap
-                                                     (keys
-                                                      (get prices-until-end-date (first tickers))) ;; Get the dates for the price data 
-                                                     (map #(/ % (second (first (vals (get prices-until-end-date (first tickers)))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance 
-                                                          (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
-                                                               (vals
-                                                                (get prices-until-end-date (first tickers)))) ;; Get the price data for the first ticker in collection)
-                                                          ))))
+                                        (assoc one-dollar-performance (first tickers)
+                                               (util/sort-map-by-date
+                                                (zipmap
+                                                 (keys
+                                                  (util/sort-map-by-date (get prices-until-end-date (first tickers)))) ;; Get the dates for the price data 
+                                                 (map #(/ % (second (first (vals (get prices-until-end-date (first tickers)))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance
+                                                      (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
+                                                           (vals
+                                                            (util/sort-map-by-date (get prices-until-end-date (first tickers))))) ;; Get the price data for the first ticker in collection) 
+                                                      )))))))
 
-                                            ;; Now, just do the same things as the above, but take the natural logarithm 
-                                            (assoc log-one-dollar-performance (first tickers)
-                                                   (util/sort-map-by-date
-                                                    (zipmap
-                                                     (keys
-                                                      (util/sort-map-by-date (get prices-until-end-date (first tickers)))) ;; Get the dates for the price data 
-                                                     (map #(Math/log (/ % (second (first (vals (get prices-until-end-date (first tickers))))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance, and take the natural logarithm 
-                                                          (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
-                                                               (vals
-                                                                (util/sort-map-by-date (get prices-until-end-date (first tickers))))) ;; Get the price data for the first ticker in collection) 
-                                                          )))))))
-
-                ;; This will hold a map of all tickers currently and previously existing in the portfolio, and the graphs of its log dollar performance
+                ;; This will hold a map of all tickers currently and previously existing in the portfolio, and the graphs of its dollar performance
                 ;; The data format will be the following:
                 ;; {"NVDA" {:x ["2025-01-01" "2025-01-02" ...]
-                ;;          :y [0.123 -0.234 ...]
+                ;;          :y [1.123 0.876 ...]
                 ;;          :type "scatter"
                 ;;          :mode "lines"
                 ;;          :name "NVDA Performance")},
                 ;;  "MSFT" {...},}
 
                 plotly-data (loop
-                             [tickers (keys log-dollar-performance)
+                             [tickers (keys dollar-performance)
                               plotly-data {}]
 
                               (if (empty? tickers)
@@ -455,10 +441,10 @@
                                              ;; Find the number of trade dates between first trade date of a stock and first trade date of the portfolio
                                              (repeat (count (filter
                                                              (fn [d]
-                                                               (.isBefore (date-parser d) (date-parser (first (keys (get log-dollar-performance (first tickers)))))))
+                                                               (.isBefore (date-parser d) (date-parser (first (keys (get dollar-performance (first tickers)))))))
                                                              (map #(first %) portfolio-value-by-day)))
                                                      nil)
-                                             (vals (get log-dollar-performance (first tickers)))) ;; Already ordered
+                                             (vals (get dollar-performance (first tickers)))) ;; Already ordered
                                          :type "scatter"
                                          :mode "lines"
                                          :name (str (first tickers) " Performance")}))))]
