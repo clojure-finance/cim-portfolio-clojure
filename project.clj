@@ -16,7 +16,7 @@
                  [org.slf4j/slf4j-simple "2.0.9"]
                  [generateme/fastmath "3.0.0-alpha3"]
                  [datalevin "0.9.22"]
-                 [com.github.clojure-finance/clj-yfinance "0.1.7"] ; Prices, info, and split events
+                 [com.github.clojure-finance/clj-yfinance "0.1.8"] ; Prices, info, and split events
                  [com.github.clojure-finance/ecbjure "0.1.5"] ; ECB rates for currency conversion
 ]     ; Add this line for SLF4J Simple Logger
   :main ^:skip-aot cim-portfolio.core

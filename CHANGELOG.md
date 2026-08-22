@@ -15,6 +15,10 @@ This branch is the Clerk-notebook variant of cim_portfolio (see the
   failing later in the analysis
 
 ### Changed
+- clj-yfinance bumped 0.1.7 → 0.1.8. Its breaking changes (`:auto-adjust` now
+  defaults to true, `:adjusted` removed, `:adj-close` always present) do not affect
+  this project: both price fetches already pass `:auto-adjust true` explicitly and
+  only read `:timestamp`/`:open`/`:close`, so the fetched series is unchanged
 - Market data and split events are fetched natively via
   [clj-yfinance](https://github.com/clojure-finance/clj-yfinance) and currency
   conversion uses ECB rates via
