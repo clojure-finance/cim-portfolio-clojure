@@ -20,7 +20,7 @@
                  [ring/ring-codec "1.3.0"]
                  [hiccup "1.0.5"]
                  ;; Portfolio data sources
-                 [com.github.clojure-finance/clj-yfinance "0.1.7"]
+                 [com.github.clojure-finance/clj-yfinance "0.1.8"]
                  [com.github.clojure-finance/ecbjure "0.1.5"]
                  ;; News analysis
                  [clj-http/clj-http "3.12.3"]
