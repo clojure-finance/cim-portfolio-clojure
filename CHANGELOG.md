@@ -31,6 +31,10 @@ All notable changes to this project will be documented in this file. This change
   error message with line numbering, and the numeric starting-cash guard
 
 ### Changed
+- clj-yfinance bumped 0.1.7 → 0.1.8. Its breaking changes (`:auto-adjust` now
+  defaults to true, `:adjusted` removed, `:adj-close` always present) do not affect
+  this project: both price fetches already pass `:auto-adjust true` explicitly and
+  only read `:timestamp`/`:open`/`:close`, so the fetched series is unchanged
 - DeepSeek set as default LLM provider and model (deepseek-chat)
 - Default output directory for CLI mode changed from hardcoded path to `reports/`
 - Heroku deploys now build from source via the Clojure buildpack (`:uberjar-name`
