@@ -59,6 +59,12 @@
         annualized-return (portfolio/calculate-annualized-return starting-cash current-portfolio-value (first (first sorted-portfolio-value))
                                                                  (first (last sorted-portfolio-value)))
 
+        ;; First date of the portfolio-value series (the first trading day on/after the first trade).
+        ;; Used by the views to flag 1-year metrics whose window is clamped to a shorter history.
+        portfolio-inception-date (first (first sorted-portfolio-value))
+        portfolio-younger-than-one-year? (.isAfter (date-parser portfolio-inception-date)
+                                                   (.minusDays (java.time.LocalDate/now) 365))
+
         ;; Read from bottom to top for this variable to understand it (Deprecated)
         ;; The reason why I incorporated a lot of different data in this one variable is so that we don't have to fetch from yfinance multiple times (preventing rate limits)
         ;; complete-portfolio-return-data (zipmap
@@ -524,6 +530,9 @@
 
      :past-five-weeks-1y-cumulative-return-excl-cash one-year-cumulative-returns-past-five-weeks-without-cash
      :past-five-weeks-1y-cumulative-return-incl-cash one-year-cumulative-returns-past-five-weeks-with-cash
+
+     :portfolio-inception-date portfolio-inception-date
+     :portfolio-younger-than-one-year? portfolio-younger-than-one-year?
 
      :rolling-annualized-volatility rolling-annualized-volatility ;; Window size is 21 days (no. of trading days/month)
 

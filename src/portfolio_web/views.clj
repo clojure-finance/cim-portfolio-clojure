@@ -98,7 +98,10 @@
      [:div.metric [:span "Annualized Return of Portfolio:"] [:span#annualReturn (if-let [v (data :annualized-portfolio-return)] (format "%.2f%%" v) "n/a — not enough history")]]
      [:div.metric [:span "Annualized Volatility of Portfolio:"] [:span#annualVolatility (if-let [v (data :annualized-portfolio-volatility)] (format "%.2f%%" v) "n/a — not enough history")]]
      [:div.metric [:span "1-Year Cumulative Portfolio Return:"]
-      [:span#cumulativeReturn (if-let [v (:one-year-cumulative-return-from-today (data :past-five-weeks-1y-cumulative-return-incl-cash))] (format "%.2f%%" (* 100 v)) "n/a — undefined while the portfolio value was negative")]]]]
+      [:span#cumulativeReturn (if-let [v (:one-year-cumulative-return-from-today (data :past-five-weeks-1y-cumulative-return-incl-cash))] (format "%.2f%%" (* 100 v)) "n/a — undefined while the portfolio value was negative")]
+      (when (data :portfolio-younger-than-one-year?)
+        [:span.metric-note (str "Portfolio history starts " (data :portfolio-inception-date)
+                                " — less than 1 year, so this is the return since inception, not a full year.")])]]]
 
    [:div.card
     [:h2 "Portfolio Allocation"]
@@ -117,6 +120,9 @@
 
    [:div.card.return-comparison-card
     [:h2 "1-Year Cumulative Portfolio Return"]
+    (when (data :portfolio-younger-than-one-year?)
+      [:p.metric-note (str "Portfolio history starts " (data :portfolio-inception-date)
+                           " — less than 1 year, so these are returns since inception, not full 1-year windows.")])
     [:div.return-comparison
      [:div.return-column [:h3 "Including Cash"]
       [:ul#returnByWeekIncl

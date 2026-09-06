@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file. This change
   public, unauthenticated form field
 
 ### Added
+- The results page marks the 1-Year Cumulative Portfolio Return (both the summary
+  metric and the weekly comparison card) with a note when the portfolio's history
+  is shorter than a year: the window is clamped to inception, so the figure is a
+  since-inception return rather than a full 1-year one
 - The news form remembers both API keys in the browser (localStorage): they are
   saved on submit and pre-filled on later visits, so they no longer have to be
   retyped every time
