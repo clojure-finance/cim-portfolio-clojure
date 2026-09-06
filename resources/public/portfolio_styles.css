@@ -149,7 +149,15 @@ header h1 {
 .metric {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap; /* lets a full-width .metric-note drop below the value */
     font-size: 1rem;
+}
+
+.metric-note {
+    flex-basis: 100%;
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+    color: #6c757d;
 }
 
 canvas {
