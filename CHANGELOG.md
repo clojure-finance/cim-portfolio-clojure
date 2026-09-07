@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file. This change
   through `read-string`, which evaluates Clojure reader forms (`#=(...)`) from a
   public, unauthenticated form field
 
+### Removed
+- Heroku deployment support: `Procfile`, `system.properties`, and the README's
+  "Deploying to Heroku" section. The Heroku app has been shut down; the app is
+  now deployed from a locally built uberjar (`lein uberjar` →
+  `target/uberjar/cim_portfolio-standalone.jar`, name pinned via `:uberjar-name`)
+
 ### Added
 - The results page marks the 1-Year Cumulative Portfolio Return (both the summary
   metric and the weekly comparison card) with a note when the portfolio's history

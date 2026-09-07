@@ -92,43 +92,6 @@ The API keys are only ever held in your browser and sent with the analysis reque
 This is a work-in-progress software and bugs may be present. Please flag and report them :)
 
 
-## Deploying to Heroku
-
-Deployment is a plain `git push` — Heroku builds the app from source at deploy time, so no jar is committed to the repository. (This replaces the old flow where a pre-built `cim_portfolio-0.1.1-standalone.jar` was committed and run directly; that jar is no longer tracked.)
-
-### One-time setup
-
-1. Install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli), log in (`heroku login`), and add the app as a git remote:
-   ```bash
-   heroku git:remote -a <app-name>
-   ```
-2. Configure the buildpack. The app needs **only** the Clojure buildpack — the Python buildpack from the old setup is obsolete (the Python dependency was removed in July 2026):
-   ```bash
-   heroku buildpacks:clear
-   heroku buildpacks:add heroku/clojure
-   ```
-3. Tell the buildpack to build the uberjar (by default it only runs `lein compile`, which would not produce the jar the Procfile expects):
-   ```bash
-   heroku config:set LEIN_BUILD_TASK="do clean, uberjar"
-   ```
-
-No API-key config vars are needed: the AI News Analyzer takes the keys from the
-web form (the deployed web app never reads `NEWSDATA_API_KEY`/`DEEPSEEK_API_KEY`;
-those env vars are only used by the CLI/notebook code paths).
-
-### Deploying a new version
-
-```bash
-git push heroku web-application:main
-```
-
-This pushes the local `web-application` branch to Heroku's `main` branch and triggers the build: Heroku runs `lein uberjar` (Java 21, per `system.properties`) and starts the app via the `Procfile`, which points at `target/uberjar/cim_portfolio-standalone.jar` — that path is version-independent because `:uberjar-name` is pinned in `project.clj`.
-
-Notes:
-
-- Pushing to GitHub (`git push origin web-application`) is a separate step for syncing the repository only; it does not deploy anything.
-- Building locally (`lein clean && lein uberjar`) is optional — useful to verify the build before pushing, but Heroku compiles on the server regardless.
-
 ## License
 
 This program and the accompanying materials are made available under the
