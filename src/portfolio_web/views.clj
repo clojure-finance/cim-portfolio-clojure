@@ -28,7 +28,7 @@
   [:header
    [:h1 [:a.title-link {:href "/"} "CIM Portfolio Analysis Tool"]]
    (into [:nav.top-nav] nav-items)
-   [:a.github-link {:href "https://github.com/clojure-finance/cim-portfolio-clojure/tree/web-application"
+   [:a.github-link {:href "https://github.com/clojure-finance/cim-portfolio-clojure"
                     :target "_blank" :rel "noopener noreferrer"
                     :aria-label "View project on GitHub"}
     github-icon " View on GitHub"]])
