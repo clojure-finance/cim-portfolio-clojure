@@ -1,106 +1,104 @@
-# cim_portfolio_clojure
+# CIM Portfolio
 
-A portfolio analysis program written in Clojure, now featuring **AI-Powered Market News Analysis**.
+Analyze your investment portfolio with real market data — track performance, measure risk, and get AI-powered news insights. Written in Clojure.
 
 The web app has two pages:
 
-- **`/` — Portfolio Analyzer**: enter or upload your trades, set your starting cash, and get a full performance dashboard. No API keys required.
-- **`/news` — AI News Analyzer**: fetches real-time market news and uses Large Language Models (LLMs) to provide sentiment analysis, summaries, and investment signals. Requires API keys (see below).
+- **`/` — Portfolio Analyzer**: no API keys needed
+- **`/news` — AI News Analyzer**: bring your own API keys
 
-## 🚀 Quick Start
+## Features
 
-### Prerequisites
+### Portfolio Analyzer
 
-The Portfolio Analyzer works out of the box. To use the AI News Analyzer, you additionally need API keys for:
-1. **NewsData.io** (for fetching news) — free tier at [newsdata.io](https://newsdata.io)
-2. **LLM API** — choose one:
-   - **DeepSeek** (default, recommended) — [platform.deepseek.com](https://platform.deepseek.com)
-   - **OpenRouter** (100+ models, free tiers available) — [openrouter.ai](https://openrouter.ai)
+Type in or upload your trades, set your starting cash, and get a performance dashboard:
 
-You enter both keys directly in the `/news` form — no environment variables or config
-files needed. After your first analysis run, the browser remembers the keys
-(localStorage) and pre-fills them on later visits.
+- **Portfolio value** — cash plus holdings, with units, value, and weight per security
+- **Performance charts** — portfolio value and cumulative return since your first trade
+- **Risk metrics** — rolling alpha/beta vs. the S&P 500, volatility, and Sharpe ratio
+- **Per-stock breakdown** — how each security has performed
 
-### Option 1: Run with Docker Compose (Recommended)
+Works with any ticker on Yahoo Finance. Stock splits are handled automatically, and prices for non-USD tickers are converted to USD at ECB exchange rates.
 
-1. **Start the service**:
-   ```bash
-   docker-compose up --build
-   ```
+### AI News Analyzer
 
-2. **Access the App**:
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+Pick a topic and get recent market news analyzed by an LLM:
 
-### Option 2: Run Locally (Non-Docker)
+- **Sentiment** — positive/negative/neutral, with a 1–10 score
+- **Investment signal** — Strong Buy to Strong Sell, plus market impact and risk factors
+- **Summaries** — a short summary of each article, plus sectors, key quotes, and a bias check
 
-1. **Install Dependencies**: Java (JDK 21+), Leiningen.
-2. **Run the App**:
-   ```bash
-   # Mac/Linux
-   ./run_web_app.sh
+Results appear as a dashboard with the sentiment breakdown and one card per article. If the provider returns an error, such as an invalid key or an empty balance, the error message is shown on the page.
 
-   # Windows
-   run_web_app.bat
-   ```
-   Or manually: `lein run`
+## Quick Start
 
----
+### Docker (recommended)
 
-## Portfolio Analyzer
+```bash
+docker-compose up --build
+```
 
-Open [http://localhost:3000](http://localhost:3000), enter your trades manually (one CSV-style row per line) or upload a trade CSV file, set your starting cash amount (in USD — it influences your return %, portfolio volatility, etc.), and submit. The results dashboard is generated from your trades and live market data.
+Open [http://localhost:3000](http://localhost:3000)
 
-Market data is fetched natively via [clj-yfinance](https://github.com/clojure-finance/clj-yfinance), and currency conversion uses ECB rates via [ecbjure](https://github.com/clojure-finance/ecbjure) — no Python installation is required. An internet connection is needed to fetch prices and FX rates.
+### Local
 
-### Trade File Format
+Requires Java 21+ and [Leiningen](https://leiningen.org/).
 
-Each trade file is a csv with one row per trade:
+```bash
+./run_web_app.sh   # Mac/Linux
+run_web_app.bat    # Windows
+```
 
-Date (YYYY-MM-DD)   |   Action (buy/sell)   |   Number of units bought/sold    |    Ticker    |    Price (optional; the actual per-unit price paid/received)
+Or simply: `lein run`
 
-A header line is optional — it is recognized and skipped automatically, whether pasted into the manual form or included in an uploaded file. Rows are validated before analysis; invalid dates, actions, amounts, or prices are rejected with a line-numbered message shown on the form.
+You need an internet connection either way, because prices and exchange rates are fetched live.
 
-Record trades exactly as they happened: units and prices as of the trade date. Stock splits are handled automatically — trade data is normalized to post-split units before analysis, consistent with Yahoo Finance's split-adjusted price history. Sample files are provided in the `examples/` directory (e.g. `examples/testPortfolio.csv`).
+## Using the Portfolio Analyzer
 
-### Output
+1. **Enter trades** — type or paste them into the form, one per line, or upload a CSV file
+2. **Set starting cash** (USD) — this changes your return %, volatility, and the other metrics
+3. **Submit** — the dashboard is built from your trades and live market data
 
-The dashboard shows the most relevant statistics about your portfolio performance:
+### Trade format
 
-- your current portfolio value (cash + stocks)
-- an overview of which securities you hold (number of units as well as their current value)
-- cumulative portfolio return and the portfolio-value chart from the first day of trades
-- performance metrics of individual stocks
-- rolling alpha/beta versus the market index, volatility, and Sharpe ratio
+One trade per row:
 
-**Net-short portfolios:** the cumulative-return figures show "n/a" for any period in which the
-portfolio's value was negative (e.g. a net-short book), because a percentage return on negative
-capital is undefined — the naive ratio flips sign exactly when the book is short. A possible
-future extension is to compute these returns on gross exposure instead (daily PnL divided by the
-sum of the absolute holding values), which is the standard convention for long-short portfolios,
-is well-defined for shorts, and reduces to the current calculation for long-only books. It would
-require reworking the cumulative aggregation (log-return summing no longer applies directly) and
-relabeling the affected figures as returns on gross invested capital.
+| Date | Action | Quantity | Ticker | Price (optional) |
+|------|--------|----------|--------|------------------|
+| 2023-10-13 | buy | 100 | SPY | |
+| 2023-11-03 | buy | 50 | SPY | 432.50 |
+| 2024-01-15 | sell | 25 | SPY | |
 
-## AI News Analyzer
+- **Date**: `YYYY-MM-DD`
+- **Action**: `buy` or `sell`
+- **Quantity**: number of units bought or sold
+- **Ticker**: Yahoo Finance symbol
+- **Price**: the per-unit price you actually paid or received, in the ticker's own currency. If you leave it out, the opening price on the trade date is used.
 
-Open [http://localhost:3000/news](http://localhost:3000/news), enter your API keys, pick an LLM provider and model, and submit a topic. Each fetched article is analyzed into a 15-field breakdown (sentiment, summary, market impact, investment stance, risk level, actionable insight, and more), displayed on a results dashboard with sentiment distribution and per-article cards. If the provider returns an error (e.g. an exhausted balance or an invalid key), the real API error is surfaced in the UI.
+Enter trades exactly as they happened, with units and prices as of the trade date. Don't adjust them for later splits; the app does that for you.
 
-The API keys are only ever held in your browser and sent with the analysis request — the server does not store them. After the first analysis run your browser remembers them (localStorage) and pre-fills the form on later visits.
+A header row is optional and gets skipped automatically. Every row is checked before analysis, and any problems are listed on the form by line number. Sample portfolios are in [`examples/`](examples/).
 
-### Bugs
+## API Keys (News Analyzer only)
 
-This is a work-in-progress software and bugs may be present. Please flag and report them :)
+1. **[NewsData.io](https://newsdata.io)** — for fetching news (free tier available)
+2. **An LLM provider** — choose one:
+   - [DeepSeek](https://platform.deepseek.com) (default, recommended)
+   - [OpenRouter](https://openrouter.ai) (100+ models, some free)
 
+Enter the keys in the `/news` form; no environment variables or config files are needed. Your keys stay in your browser and are only sent along with each analysis request. The server never stores them. After your first run, the browser remembers the keys and fills them in next time.
+
+## Technical Notes
+
+- Market data comes from [clj-yfinance](https://github.com/clojure-finance/clj-yfinance), and currency conversion from [ecbjure](https://github.com/clojure-finance/ecbjure). No Python is needed.
+- **Net-short portfolios**: cumulative returns show "n/a" for any period when the portfolio's value was negative, because a percentage return on negative capital is undefined. A possible future extension is to measure returns against gross exposure (the sum of absolute holding values), the usual convention for long-short books.
+
+## Bugs
+
+This is a work in progress and may have bugs. Please report any you find.
 
 ## License
 
-This program and the accompanying materials are made available under the
-terms of the Eclipse Public License 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0.
+EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0
 
-This Source Code may also be made available under the following Secondary
-Licenses when the conditions for such availability set forth in the Eclipse
-Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
-at https://www.gnu.org/software/classpath/license.html.
+See the [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/) and the [GNU Classpath Exception](https://www.gnu.org/software/classpath/license.html).
