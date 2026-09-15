@@ -45,3 +45,47 @@
       ;; 299 stock rows -> 298 stock returns, all on market dates -> windows over 298 common returns
       (is (= (- 298 251) (count plotted-dates)))
       (is (not-any? #(= missing-date %) plotted-dates)))))
+
+(defn- market-series [n]
+  (mapv #(+ 100.0 (* 10.0 (Math/sin (* 0.1 %)))) (range n)))
+
+(defn- portfolio-series
+  "Portfolio values whose daily return is exactly daily-alpha + beta * the market's return."
+  [market-prices daily-alpha beta]
+  (let [market-returns (mapv (fn [[a b]] (- (/ b a) 1.0)) (partition 2 1 market-prices))]
+    (vec (reductions (fn [v r] (* v (+ 1.0 daily-alpha (* beta r)))) 1000.0 market-returns))))
+
+(deftest portfolio-alpha-beta-recovers-known-coefficients-test
+  (testing "portfolio returns of 0.0004 + 1.5 x market regress to beta 1.5 and an annualized alpha of 252 x 0.0004"
+    (let [n 60
+          ds (dates n)
+          market-prices (market-series n)
+          values (portfolio-series market-prices 0.0004 1.5)
+          {:keys [alpha beta]} (reg/portfolio-alpha-beta (mapv vector ds values) (rows ds market-prices))]
+      (is (< (Math/abs (- beta 1.5)) 1e-6))
+      (is (< (Math/abs (- alpha (* 252 0.0004))) 1e-6)))))
+
+(deftest portfolio-alpha-beta-calendar-join-test
+  (testing "portfolio dates the market did not trade are dropped before returns are taken"
+    (let [n 60
+          ds (dates n)
+          market-prices (market-series n)
+          values (portfolio-series market-prices 0.0004 1.5)
+          extra-date "2024-12-31" ;; e.g. a foreign holding's trading day with the US market closed
+          portfolio (into [[extra-date 900.0]] (mapv vector ds values))
+          {:keys [alpha beta]} (reg/portfolio-alpha-beta portfolio (rows ds market-prices))]
+      (is (< (Math/abs (- beta 1.5)) 1e-6))
+      (is (< (Math/abs (- alpha (* 252 0.0004))) 1e-6)))))
+
+(deftest portfolio-alpha-beta-undefined-test
+  (testing "nil with fewer than 21 common daily returns"
+    (let [ds (dates 21) ;; 21 values -> 20 returns
+          market-prices (market-series 21)]
+      (is (nil? (reg/portfolio-alpha-beta (mapv vector ds (portfolio-series market-prices 0.0 1.0))
+                                          (rows ds market-prices))))))
+  (testing "nil when the portfolio value went negative"
+    (let [n 60
+          ds (dates n)
+          market-prices (market-series n)
+          values (assoc (portfolio-series market-prices 0.0 1.0) 30 -5.0)]
+      (is (nil? (reg/portfolio-alpha-beta (mapv vector ds values) (rows ds market-prices)))))))

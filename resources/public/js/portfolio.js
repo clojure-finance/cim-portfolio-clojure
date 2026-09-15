@@ -39,17 +39,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   sharpeBtn.addEventListener("click", function() {
 
-    // Toggle between λ=0.94 and λ=0.97
-    const currentTitle = sharpeChartDiv.parentElement.parentElement.querySelector('h2'); 
+    // Toggle between λ=0.97 (default) and λ=0.94
+    const currentTitle = sharpeChartDiv.parentElement.parentElement.querySelector('h2');
 
-    if (sharpeBtn.textContent.includes("0.97")) {
+    if (sharpeBtn.textContent.includes("0.94")) {
       Plotly.newPlot(sharpeChartDiv.id, [JSON.parse(sharpeChartDiv.dataset.altPlot)]);
-      sharpeBtn.textContent = "Switch to λ = 0.94";
-      currentTitle.textContent = "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.97)";
-      } 
-    else { 
-      Plotly.newPlot(sharpeChartDiv.id, [JSON.parse(sharpeChartDiv.dataset.plot)]);
       sharpeBtn.textContent = "Switch to λ = 0.97";
-      currentTitle.textContent = "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.94)";
+      currentTitle.textContent = "Annualized EWMA Sharpe Ratio (λ = 0.94)";
+      }
+    else {
+      Plotly.newPlot(sharpeChartDiv.id, [JSON.parse(sharpeChartDiv.dataset.plot)]);
+      sharpeBtn.textContent = "Switch to λ = 0.94";
+      currentTitle.textContent = "Annualized EWMA Sharpe Ratio (λ = 0.97)";
       }});
 });

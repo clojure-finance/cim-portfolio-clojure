@@ -15,7 +15,7 @@ Type in or upload your trades, set your starting cash, and get a performance das
 
 - **Portfolio value** — cash plus holdings, with units, value, and weight per security
 - **Performance charts** — portfolio value and cumulative return since your first trade
-- **Risk metrics** — rolling alpha/beta vs. the S&P 500, volatility, and Sharpe ratio
+- **Risk metrics** — portfolio alpha and per-stock rolling alpha/beta vs. the S&P 500, volatility, and Sharpe ratio
 - **Per-stock breakdown** — how each security has performed
 
 Works with any ticker on Yahoo Finance. Stock splits are handled automatically, and prices for non-USD tickers are converted to USD at ECB exchange rates.

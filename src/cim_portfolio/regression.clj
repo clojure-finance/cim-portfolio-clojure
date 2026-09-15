@@ -46,6 +46,26 @@
         (assoc :plotted-alpha (vec (model :alpha)))
         (assoc :plotted-beta (vec (map first (model :beta)))))))
 
+;; Annualized CAPM alpha (and beta) of the whole portfolio against the market over its full history.
+;; portfolio-value-by-day is a seq of [date value] pairs sorted by date; market-data is a seq of
+;; [date open close] rows, e.g. as returned by cim_portfolio.yfinanceclient/get-ticker-price-all.
+;; Both value series are restricted to the dates they share BEFORE returns are taken, so each
+;; portfolio return covers the same interval as its market return (the portfolio series spans the
+;; union of every holding's exchange calendar). Like the per-stock rolling alpha, returns are raw
+;; (no risk-free rate); the daily intercept is annualized by 252 trading days.
+;; Returns nil when fewer than 21 common daily returns exist (a month of data — shorter regressions
+;; are noise), or when the portfolio value went negative (a return on negative capital is undefined).
+(defn portfolio-alpha-beta [portfolio-value-by-day market-data]
+  (let [market-close-by-date (into {} (map (fn [[d _ close]] [d close]) market-data))
+        common (filter (fn [[d _]] (contains? market-close-by-date d)) portfolio-value-by-day)
+        portfolio-returns (:arithmetic-returns (portfolio/calculate-returns (map second common)))
+        market-returns (:arithmetic-returns (portfolio/calculate-returns (map (comp market-close-by-date first) common)))]
+    (when (and (<= 21 (count portfolio-returns))
+               (not-any? (fn [[_ v]] (neg? v)) common))
+      (let [model (calculate-regression portfolio-returns market-returns)]
+        {:alpha (* 252 (:intercept model))
+         :beta (first (:beta model))}))))
+
 ;; Example usage (fetches live data)
 (comment
   (require '[cim_portfolio.yfinanceclient :as client])

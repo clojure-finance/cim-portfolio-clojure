@@ -391,28 +391,26 @@
                        (rest returns-squared))
            (mapv #(* 100 (Math/sqrt 252) (Math/sqrt %)))))))
 
-;; Calculates the annualized rolling sharpe ratio: the mean daily return (annualized) divided by
-;; the per-return-day annualized volatility in % as produced by ewma-rolling-volatility.
-;; The mean uses an expanding window until window-size returns have accumulated, then a
-;; window-size rolling window — so the ratio has a value from the first return onward instead
-;; of staying blank for a month on a young portfolio.
+;; Calculates the annualized EWMA Sharpe ratio: an EWMA mean daily return (annualized) divided by the
+;; annualized EWMA volatility in % from ewma-rolling-volatility, both with the same alpha.
+;; mean_t = (1 - alpha) * mean_(t-1) + alpha * return_t, seeded with the first return like the variance.
+;; Sharing the decay keeps numerator and denominator on the same effective window: a return fades out
+;; of both at the same rate, instead of dropping out of a fixed-length mean after 21 days while still
+;; lifting the volatility (which made the ratio jump on days when nothing happened).
+;; One value per daily return, aligned with ewma-rolling-volatility — from the first return onward.
 
-(defn rolling-sharpe-ratio [prices volatility window-size]
-  (let [returns (vec (:arithmetic-returns (calculate-returns prices)))
-        cumulative-sums (vec (reductions + 0.0 returns)) ;; cumulative-sums[i] = sum of the first i returns
-        ;; Expanding mean until window-size returns exist, window-size rolling mean afterwards —
-        ;; one value per daily return, mirroring ewma-rolling-volatility
-        mean-returns (map (fn [i]
-                            (let [start (max 0 (- i window-size))]
-                              (/ (- (cumulative-sums i) (cumulative-sums start))
-                                 (- i start))))
-                          (range 1 (inc (count returns))))
-        annualized-mean-returns (map #(* 252 %) mean-returns)]
-    (map (fn [annualized-return vol]
-           (when (pos? vol) ;; nil instead of dividing by zero when the portfolio value never moved
-             (/ annualized-return (/ vol 100))))
-         annualized-mean-returns
-         volatility)))
+(defn ewma-sharpe-ratio [prices alpha]
+  (let [returns (:arithmetic-returns (calculate-returns prices))
+        volatility (ewma-rolling-volatility prices alpha)]
+    (when (seq returns)
+      (map (fn [mean-return vol]
+             (when (pos? vol) ;; nil instead of dividing by zero when the portfolio value never moved
+               (/ (* 252 mean-return) (/ vol 100))))
+           (reductions (fn [prev-mean r]
+                         (+ (* (- 1 alpha) prev-mean) (* alpha r)))
+                       (first returns)
+                       (rest returns))
+           volatility))))
 
 ;;; ### Portfolio Processing Section
 
