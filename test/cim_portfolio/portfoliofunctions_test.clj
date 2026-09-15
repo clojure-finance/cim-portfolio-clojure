@@ -28,27 +28,26 @@
     (is (nil? (pf/ewma-rolling-volatility [] 0.06)))
     (is (nil? (pf/ewma-rolling-volatility [100] 0.06)))))
 
-(deftest rolling-sharpe-ratio-alignment-test
+(deftest ewma-sharpe-ratio-alignment-test
   (testing "yields one value per daily return, aligned with the EWMA volatility series"
     (let [prices (mapv double (range 100 130)) ;; 30 price points -> 29 daily returns
-          vols (pf/ewma-rolling-volatility prices 0.06)
-          sharpe (pf/rolling-sharpe-ratio prices vols 21)]
+          sharpe (pf/ewma-sharpe-ratio prices 0.06)]
       (is (= 29 (count sharpe)))
       (is (every? some? sharpe)))))
 
-(deftest rolling-sharpe-ratio-expanding-window-test
-  (testing "the mean return expands over all returns so far, then rolls once 21 have accumulated"
-    (let [prices (mapv double (range 100 130)) ;; 29 daily returns
-          returns (mapv (fn [[a b]] (- (/ b a) 1.0)) (partition 2 1 prices))
-          vols (pf/ewma-rolling-volatility prices 0.06)
-          sharpe (pf/rolling-sharpe-ratio prices vols 21)
-          expected (fn [t] ;; t = number of returns seen so far (1-based)
-                     (let [window (take-last (min t 21) (take t returns))
-                           mean (/ (reduce + window) (count window))]
-                       (/ (* 252 mean) (/ (nth vols (dec t)) 100))))]
-      (is (approx= (expected 1) (first sharpe))) ;; day two: a single return
-      (is (approx= (expected 5) (nth sharpe 4))) ;; mid warm-up: expanding mean over 5 returns
-      (is (approx= (expected 29) (last sharpe)))))) ;; past warm-up: rolling mean over the last 21 returns
+(deftest ewma-sharpe-ratio-recursion-test
+  (testing "the mean return uses the volatility's alpha: mean_t = (1 - alpha) * mean_(t-1) + alpha * r_t, seeded with r_1"
+    (let [prices [100.0 102.0 101.0 103.0]
+          alpha 0.06
+          [r1 r2 r3] (map (fn [[a b]] (- (/ b a) 1.0)) (partition 2 1 prices))
+          m1 r1
+          m2 (+ (* (- 1 alpha) m1) (* alpha r2))
+          m3 (+ (* (- 1 alpha) m2) (* alpha r3))
+          vols (pf/ewma-rolling-volatility prices alpha)
+          expected (map (fn [m vol] (/ (* 252 m) (/ vol 100))) [m1 m2 m3] vols)
+          actual (pf/ewma-sharpe-ratio prices alpha)]
+      (is (= 3 (count actual)))
+      (is (every? true? (map approx= actual expected))))))
 
 (deftest sum-pnl-series-with-forward-fill-test
   (testing "a holding's PnL is carried forward on days its market is closed instead of vanishing"
@@ -64,10 +63,10 @@
   (testing "no trades yields an empty map"
     (is (= {} (pf/sum-pnl-series-with-forward-fill [])))))
 
-(deftest rolling-sharpe-ratio-zero-volatility-test
+(deftest ewma-sharpe-ratio-zero-volatility-test
   (testing "returns nil instead of dividing by zero when the portfolio value never moved"
-    (let [prices (repeat 25 100.0)
-          vols (pf/ewma-rolling-volatility prices 0.06)
-          sharpe (pf/rolling-sharpe-ratio prices vols 21)]
+    (let [sharpe (pf/ewma-sharpe-ratio (repeat 25 100.0) 0.06)]
       (is (seq sharpe))
-      (is (every? nil? sharpe)))))
+      (is (every? nil? sharpe))))
+  (testing "nil when fewer than two price points, since no return exists yet"
+    (is (nil? (pf/ewma-sharpe-ratio [100.0] 0.06)))))

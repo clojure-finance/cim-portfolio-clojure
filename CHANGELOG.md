@@ -17,6 +17,11 @@ All notable changes to this project will be documented in this file. This change
   `target/uberjar/cim_portfolio-standalone.jar`, name pinned via `:uberjar-name`)
 
 ### Added
+- Performance Metrics shows the portfolio's annualized CAPM alpha against the
+  S&P 500 since inception (`cim_portfolio.regression/portfolio-alpha-beta`):
+  daily portfolio returns (cash included) regressed on `^GSPC` returns over
+  their common trading dates, intercept × 252. Shown as n/a with fewer than
+  21 common daily returns or while the portfolio value was negative
 - The results page marks the 1-Year Cumulative Portfolio Return (both the summary
   metric and the weekly comparison card) with a note when the portfolio's history
   is shorter than a year: the window is clamped to inception, so the figure is a
@@ -41,6 +46,13 @@ All notable changes to this project will be documented in this file. This change
   error message with line numbering, and the numeric starting-cash guard
 
 ### Changed
+- The Sharpe ratio chart is now an EWMA Sharpe ratio: the mean return in the
+  numerator uses the same exponential decay (λ = 0.94 / 0.97) as the EWMA
+  volatility in the denominator. It previously used a 21-day rolling mean, so
+  numerator and denominator had different effective windows (badly so at
+  λ = 0.97), and a large return dropping out of the 21-day mean made the ratio
+  jump while the volatility still carried it. The chart now opens at λ = 0.97
+  (the steadier, longer-memory estimate), with λ = 0.94 on the toggle
 - clj-yfinance bumped 0.1.7 → 0.1.8. Its breaking changes (`:auto-adjust` now
   defaults to true, `:adjusted` removed, `:adj-close` always present) do not affect
   this project: both price fetches already pass `:auto-adjust true` explicitly and

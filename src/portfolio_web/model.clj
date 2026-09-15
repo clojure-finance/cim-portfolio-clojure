@@ -284,14 +284,18 @@
                      (portfolio/volatility (map second sorted-portfolio-value)))
         rolling-annualized-volatility (portfolio/rolling-annualized-volatility (map second portfolio-value-by-day) 21)
 
+        ;; CAPM alpha and beta of the whole portfolio (cash included) against the S&P 500 since inception; nil renders as "n/a"
+        portfolio-capm (reg/portfolio-alpha-beta portfolio-value-by-day
+                                                 (client/get-ticker-price-all "^GSPC" portfolio-inception-date))
+
         ;; Calculates the Annualized EWMA Volatility (RiskMetrics recursion — one value per daily return, no minimum window)
         default-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 0.06) ;; Lambda = 1 - alpha = 0.94
         alternative-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 0.03) ;; Lambda = 1 - alpha = 0.97
 
-        ;; Calculate the 30-Day Annualized Rolling Sharpe Ratio using the Annualized EWMA Volatility
-        ;; (the mean-return window expands from day two until it reaches 21 trading days, so young portfolios get values immediately)
-        default-rolling-sharpe-ratio (portfolio/rolling-sharpe-ratio (map second portfolio-value-by-day) default-rolling-ewma-volatility 21)
-        alternative-rolling-sharpe-ratio (portfolio/rolling-sharpe-ratio (map second portfolio-value-by-day) alternative-rolling-ewma-volatility 21)
+        ;; Calculate the Annualized EWMA Sharpe Ratio: EWMA mean return over EWMA volatility, both with the same lambda
+        ;; Default is the longer memory (lambda = 0.97): a Sharpe ratio over a shorter effective window is mostly noise
+        default-rolling-sharpe-ratio (portfolio/ewma-sharpe-ratio (map second portfolio-value-by-day) 0.03) ;; Lambda = 1 - alpha = 0.97
+        alternative-rolling-sharpe-ratio (portfolio/ewma-sharpe-ratio (map second portfolio-value-by-day) 0.06) ;; Lambda = 1 - alpha = 0.94
 
         ;; Graphs
 
@@ -498,18 +502,18 @@
         default-rolling-sharpe-ratio-figs
 
         {:x (map #(first %) portfolio-value-by-day)
-         :y (cons nil default-rolling-sharpe-ratio) ;; Only the first day has no value — the mean return window expands until it reaches 21 days
+         :y (cons nil default-rolling-sharpe-ratio) ;; Only the first day has no value — there is no return yet
          :type "scatter"
          :mode "lines"
-         :name "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.94)"}
+         :name "Annualized EWMA Sharpe Ratio (λ = 0.97)"}
 
         alternative-rolling-sharpe-ratio-figs
 
         {:x (map #(first %) portfolio-value-by-day)
-         :y (cons nil alternative-rolling-sharpe-ratio) ;; Only the first day has no value — the mean return window expands until it reaches 21 days
+         :y (cons nil alternative-rolling-sharpe-ratio) ;; Only the first day has no value — there is no return yet
          :type "scatter"
          :mode "lines"
-         :name "30-Day Annualized Rolling Sharpe Ratio (EWMA λ = 0.97)"}]
+         :name "Annualized EWMA Sharpe Ratio (λ = 0.94)"}]
 
     {:current-portfolio-value current-portfolio-value
      :cash (+ starting-cash cash)
@@ -519,6 +523,7 @@
      :annualized-portfolio-return (when annualized-return (* annualized-return 100))
      :portfolio-volatility volatility
      :annualized-portfolio-volatility (when volatility (* (math/sqrt 252) volatility))
+     :annualized-portfolio-alpha (when portfolio-capm (* 100 (:alpha portfolio-capm)))
 
      :stocks-held-and-shorted portfolio
      :cash-invested cash-invested
