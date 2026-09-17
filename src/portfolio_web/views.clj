@@ -98,6 +98,7 @@
      [:div.metric [:span "Annualized Return of Portfolio:"] [:span#annualReturn (if-let [v (data :annualized-portfolio-return)] (format "%.2f%%" v) "n/a — not enough history")]]
      [:div.metric [:span "Annualized Volatility of Portfolio:"] [:span#annualVolatility (if-let [v (data :annualized-portfolio-volatility)] (format "%.2f%%" v) "n/a — not enough history")]]
      [:div.metric [:span "Annualized Alpha vs. S&P 500 (CAPM):"] [:span#annualAlpha (if-let [v (data :annualized-portfolio-alpha)] (format "%.2f%%" v) "n/a — needs 21+ trading days and a positive portfolio value")]]
+     [:div.metric [:span "Annualized Sharpe Ratio (1-year window):"] [:span#annualSharpe (if-let [v (data :annualized-sharpe-ratio)] (format "%.2f" v) "n/a — needs 21+ daily returns")]]
      [:div.metric [:span "1-Year Cumulative Portfolio Return:"]
       [:span#cumulativeReturn (if-let [v (:one-year-cumulative-return-from-today (data :past-five-weeks-1y-cumulative-return-incl-cash))] (format "%.2f%%" (* 100 v)) "n/a — undefined while the portfolio value was negative")]
       (when (data :portfolio-younger-than-one-year?)
@@ -162,7 +163,7 @@
     [:button {:id "lambdaSwitch"} "Switch to lambda = 0.97"]]
 
    [:div.card.full-width
-    [:h2 "Annualized EWMA Sharpe Ratio (lambda = 0.97)"]
+    [:h2 "Annualized EWMA Sharpe Ratio (1-year window)"]
     [:div.graph [:div {:id "rolling-sharpe-ratio" :class "miscChart"
                        :data-plot (json/write-str (data :default-rolling-sharpe-ratio-figs))
                        :data-alt-plot (json/write-str (data :alternative-rolling-sharpe-ratio-figs))}]]

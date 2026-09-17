@@ -374,8 +374,21 @@
          (map util/std-dev)
          (map #(* 100 % scaling-factor)))))
 
-;; Calculates the Annualized EWMA volatility (in %, like rolling-annualized-volatility) via the RiskMetrics recursion:
-;; variance_t = (1 - alpha) * variance_(t-1) + alpha * return_t^2, seeded with the first squared return.
+;; Bias-corrected EWMA of a series (pandas ewm adjust=true): the zero-seeded recursion
+;; s_t = (1 - alpha) * s_(t-1) + alpha * x_t divided by the accumulated weight 1 - (1 - alpha)^t,
+;; making each value an exact weighted mean of the observations so far. Without the correction the
+;; recursion has to be seeded with the first observation, and with a long memory (small alpha) that
+;; seed dominates the first months of the series.
+
+(defn bias-corrected-ewma [alpha xs]
+  (let [lambda (- 1.0 alpha)]
+    (->> (reductions (fn [s x] (+ (* lambda s) (* alpha x))) 0.0 xs)
+         (rest)
+         (map-indexed (fn [i s] (/ s (- 1.0 (Math/pow lambda (inc i)))))))))
+
+;; Calculates the Annualized EWMA volatility (in %, like rolling-annualized-volatility) as the
+;; bias-corrected EWMA of squared returns: the RiskMetrics decay, but weight-normalized (see
+;; bias-corrected-ewma) so early values don't lean on the first squared return as a seed.
 ;; No window is needed, so there is one value per daily return — from the second price point onward, however short the history.
 ;; Prices here are the Portfolio values by date (I assume is already sorted), and follow the following structure:
 ;; (10000, 10001.21, 10011.8, ...)
@@ -385,32 +398,45 @@
   (let [returns (:arithmetic-returns (calculate-returns prices))
         returns-squared (map #(* % %) returns)]
     (when (seq returns-squared)
-      (->> (reductions (fn [prev-variance r-squared]
-                         (+ (* (- 1 alpha) prev-variance) (* alpha r-squared)))
-                       (first returns-squared)
-                       (rest returns-squared))
-           (mapv #(* 100 (Math/sqrt 252) (Math/sqrt %)))))))
+      (mapv #(* 100 (Math/sqrt 252) (Math/sqrt %))
+            (bias-corrected-ewma alpha returns-squared)))))
 
-;; Calculates the annualized EWMA Sharpe ratio: an EWMA mean daily return (annualized) divided by the
-;; annualized EWMA volatility in % from ewma-rolling-volatility, both with the same alpha.
-;; mean_t = (1 - alpha) * mean_(t-1) + alpha * return_t, seeded with the first return like the variance.
+;; Converts an effective window length in trading days into the EWMA alpha whose weighted mean age
+;; matches a simple moving average of that length: alpha = 2 / (window + 1), the "span" convention
+;; (as in pandas ewm(span=...)). E.g. a one-year window of 252 trading days gives alpha ~0.0079,
+;; i.e. lambda = 1 - alpha ~0.992.
+
+(defn ewma-alpha-for-window [window-days]
+  (/ 2.0 (inc window-days)))
+
+;; A Sharpe ratio estimated from only a handful of returns is degenerate — at the very first return
+;; the bias-corrected mean is r_1 and the vol is sqrt(252)*|r_1|, so the ratio is exactly
+;; +/- sqrt(252) (~15.9) by construction, dwarfing the rest of the chart. Mask the series until it
+;; is based on at least this many returns (one trading month).
+(def sharpe-min-periods 21)
+
+;; Calculates the annualized EWMA Sharpe ratio: a bias-corrected EWMA mean daily return (annualized)
+;; divided by the annualized EWMA volatility in % from ewma-rolling-volatility, both with the same
+;; alpha and the same bias correction (see bias-corrected-ewma).
 ;; Sharing the decay keeps numerator and denominator on the same effective window: a return fades out
 ;; of both at the same rate, instead of dropping out of a fixed-length mean after 21 days while still
 ;; lifting the volatility (which made the ratio jump on days when nothing happened).
-;; One value per daily return, aligned with ewma-rolling-volatility — from the first return onward.
+;; One value per daily return, aligned with ewma-rolling-volatility — nil until min-periods returns
+;; exist (default sharpe-min-periods), then a value from there onward.
 
-(defn ewma-sharpe-ratio [prices alpha]
-  (let [returns (:arithmetic-returns (calculate-returns prices))
-        volatility (ewma-rolling-volatility prices alpha)]
-    (when (seq returns)
-      (map (fn [mean-return vol]
-             (when (pos? vol) ;; nil instead of dividing by zero when the portfolio value never moved
-               (/ (* 252 mean-return) (/ vol 100))))
-           (reductions (fn [prev-mean r]
-                         (+ (* (- 1 alpha) prev-mean) (* alpha r)))
-                       (first returns)
-                       (rest returns))
-           volatility))))
+(defn ewma-sharpe-ratio
+  ([prices alpha] (ewma-sharpe-ratio prices alpha sharpe-min-periods))
+  ([prices alpha min-periods]
+   (let [returns (:arithmetic-returns (calculate-returns prices))
+         volatility (ewma-rolling-volatility prices alpha)]
+     (when (seq returns)
+       (map (fn [n mean-return vol]
+              (when (and (>= n min-periods)
+                         (pos? vol)) ;; nil instead of dividing by zero when the portfolio value never moved
+                (/ (* 252 mean-return) (/ vol 100))))
+            (iterate inc 1) ;; n = number of returns the estimate is based on
+            (bias-corrected-ewma alpha returns)
+            volatility)))))
 
 ;;; ### Portfolio Processing Section
 
