@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Changed
+- The default EWMA Sharpe ratio's decay is now expressed as an effective window
+  length (`sharpe-ratio-window-days`, 252 trading days ≈ one year) and converted
+  to alpha via the span convention alpha = 2 / (window + 1)
+  (`ewma-alpha-for-window`), i.e. λ ≈ 0.992 instead of the previous hardcoded
+  λ = 0.97 (≈ a 66-day window). The λ = 0.94 alternative stays on the toggle
+- The EWMA volatility and Sharpe-ratio series are now bias-corrected
+  (`bias-corrected-ewma`, pandas `ewm(adjust=True)` style): the zero-seeded
+  recursion is divided by the accumulated weight 1 − λ^t, so each value is an
+  exact weighted mean of the returns so far. Previously the recursion was seeded
+  with the first (squared) return, which dominated the early part of the series —
+  months of it at the new 1-year Sharpe window
+- The EWMA Sharpe series is masked (nil, a gap in the chart) until it is based on
+  at least 21 daily returns (`sharpe-min-periods`): with fewer the estimate is
+  degenerate — at the very first return the ratio is ±√252 ≈ ±15.9 by
+  construction, which dwarfed the rest of the chart
+- The portfolio time-series charts (value, one-dollar performance, EWMA
+  volatility, EWMA Sharpe) pin their x-axis to the full trading-date span, so
+  they stay visually aligned: Plotly's autorange skips null points, which would
+  have started the masked Sharpe chart's axis a month after the others
+
 ### Security
 - Removed a hardcoded DeepSeek API key from `run_web_app.bat` (it had been committed
   and public on GitHub since May 2026 — the key itself must be revoked/rotated at
@@ -17,6 +38,10 @@ All notable changes to this project will be documented in this file. This change
   `target/uberjar/cim_portfolio-standalone.jar`, name pinned via `:uberjar-name`)
 
 ### Added
+- Performance Metrics shows the portfolio's annualized Sharpe ratio: the latest
+  point of the default 1-year-window EWMA Sharpe series, so the summary figure
+  always matches the chart's last value. Shown as n/a until 21+ daily returns
+  exist or while the portfolio value never moved (zero volatility)
 - Performance Metrics shows the portfolio's annualized CAPM alpha against the
   S&P 500 since inception (`cim_portfolio.regression/portfolio-alpha-beta`):
   daily portfolio returns (cash included) regressed on `^GSPC` returns over

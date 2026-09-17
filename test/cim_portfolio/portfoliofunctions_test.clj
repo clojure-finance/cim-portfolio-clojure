@@ -11,14 +11,25 @@
       (is (= 3 (count vols)))
       (is (every? pos? vols)))))
 
+(deftest bias-corrected-ewma-test
+  (testing "the first value is the first observation itself, for any alpha"
+    (is (approx= 5.0 (first (pf/bias-corrected-ewma 0.01 [5.0 7.0]))))
+    (is (approx= 5.0 (first (pf/bias-corrected-ewma 0.5 [5.0 7.0])))))
+  (testing "a constant series stays exactly constant instead of drifting off a seed"
+    (is (every? #(approx= 3.0 %) (pf/bias-corrected-ewma 0.06 (repeat 10 3.0)))))
+  (testing "with near-total memory the running value approaches the plain average"
+    (let [[_ m2] (pf/bias-corrected-ewma 1e-9 [1.0 2.0])]
+      (is (< (Math/abs (- m2 1.5)) 1e-6)))))
+
 (deftest ewma-rolling-volatility-recursion-test
-  (testing "matches the RiskMetrics recursion var_t = (1 - alpha) * var_(t-1) + alpha * r_t^2, seeded with r_1^2"
+  (testing "matches the bias-corrected EWMA of squared returns: var_t = sum(lambda^i * r_(t-i)^2) / sum(lambda^i)"
     (let [prices [100.0 102.0 101.0 103.0]
           alpha 0.06
+          lambda (- 1 alpha)
           [r1 r2 r3] (map (fn [[a b]] (- (/ b a) 1.0)) (partition 2 1 prices))
           v1 (* r1 r1)
-          v2 (+ (* (- 1 alpha) v1) (* alpha (* r2 r2)))
-          v3 (+ (* (- 1 alpha) v2) (* alpha (* r3 r3)))
+          v2 (/ (+ (* r2 r2) (* lambda r1 r1)) (+ 1 lambda))
+          v3 (/ (+ (* r3 r3) (* lambda r2 r2) (* lambda lambda r1 r1)) (+ 1 lambda (* lambda lambda)))
           expected (map #(* 100 (Math/sqrt 252) (Math/sqrt %)) [v1 v2 v3])
           actual (pf/ewma-rolling-volatility prices alpha)]
       (is (every? true? (map approx= actual expected))))))
@@ -29,25 +40,34 @@
     (is (nil? (pf/ewma-rolling-volatility [100] 0.06)))))
 
 (deftest ewma-sharpe-ratio-alignment-test
-  (testing "yields one value per daily return, aligned with the EWMA volatility series"
+  (testing "yields one entry per daily return, masked as nil until sharpe-min-periods returns exist"
     (let [prices (mapv double (range 100 130)) ;; 30 price points -> 29 daily returns
           sharpe (pf/ewma-sharpe-ratio prices 0.06)]
       (is (= 29 (count sharpe)))
-      (is (every? some? sharpe)))))
+      (is (every? nil? (take (dec pf/sharpe-min-periods) sharpe)))
+      (is (every? some? (drop (dec pf/sharpe-min-periods) sharpe))))))
 
 (deftest ewma-sharpe-ratio-recursion-test
-  (testing "the mean return uses the volatility's alpha: mean_t = (1 - alpha) * mean_(t-1) + alpha * r_t, seeded with r_1"
+  (testing "the mean return is the bias-corrected EWMA with the volatility's alpha: mean_t = sum(lambda^i * r_(t-i)) / sum(lambda^i)"
     (let [prices [100.0 102.0 101.0 103.0]
           alpha 0.06
+          lambda (- 1 alpha)
           [r1 r2 r3] (map (fn [[a b]] (- (/ b a) 1.0)) (partition 2 1 prices))
           m1 r1
-          m2 (+ (* (- 1 alpha) m1) (* alpha r2))
-          m3 (+ (* (- 1 alpha) m2) (* alpha r3))
+          m2 (/ (+ r2 (* lambda r1)) (+ 1 lambda))
+          m3 (/ (+ r3 (* lambda r2) (* lambda lambda r1)) (+ 1 lambda (* lambda lambda)))
           vols (pf/ewma-rolling-volatility prices alpha)
           expected (map (fn [m vol] (/ (* 252 m) (/ vol 100))) [m1 m2 m3] vols)
-          actual (pf/ewma-sharpe-ratio prices alpha)]
+          actual (pf/ewma-sharpe-ratio prices alpha 1)]
       (is (= 3 (count actual)))
       (is (every? true? (map approx= actual expected))))))
+
+(deftest ewma-alpha-for-window-test
+  (testing "maps a window length to the span-equivalent alpha: alpha = 2 / (window + 1)"
+    (is (approx= 0.5 (pf/ewma-alpha-for-window 3)))
+    (is (approx= (/ 2.0 253) (pf/ewma-alpha-for-window 252))))
+  (testing "a one-year window gives a decay near lambda = 0.992"
+    (is (< 0.991 (- 1 (pf/ewma-alpha-for-window 252)) 0.993))))
 
 (deftest sum-pnl-series-with-forward-fill-test
   (testing "a holding's PnL is carried forward on days its market is closed instead of vanishing"
