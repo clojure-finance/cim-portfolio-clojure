@@ -262,15 +262,22 @@ canvas {
 .allocation-columns {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 2rem;
+  grid-template-rows: auto auto;
+  column-gap: 2rem;
+  row-gap: 0;
 }
 
+/* Subgrid keeps the header row a shared height across all three columns, so
+   the lists stay aligned even when a heading wraps onto two lines. */
 .allocation-column {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  align-content: start;
 }
 
 .allocation-column h3 {
+  align-self: end;
   margin-top: 0;
   font-size: 1.1rem;
   border-bottom: 1px solid #eee;
