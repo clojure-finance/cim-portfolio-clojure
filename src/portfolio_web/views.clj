@@ -107,21 +107,32 @@
 
    [:div.card
     [:h2 "Portfolio Allocation"]
-    [:div.allocation-columns
-     [:div.allocation-column [:h3 "Ticker"]
-      [:ul#cashByStockTickers (for [ticker (data :unique-tickers)] [:li ticker])]]
-     [:div.allocation-column [:h3 "Nominal Value"]
-      [:ul#cashByStockValues
-       (for [ticker (data :unique-tickers)]
-         [:li (str (if (neg? (get (:values (data :current-stock-holdings-and-weights)) ticker)) "-" "")
-                   (.format currency-formatter (abs (get (:values (data :current-stock-holdings-and-weights)) ticker))))])]]
-     [:div.allocation-column [:h3 "Weight"]
-      [:ul#cashByStockWeights
-       (for [ticker (data :unique-tickers)]
-         [:li (format "%.2f%%" (* 100 (get (:weights (data :current-stock-holdings-and-weights)) ticker)))])]]]]
+    (let [stock-values (:values (data :current-stock-holdings-and-weights))
+          cash (data :cash)
+          total (data :current-portfolio-value)
+          include-cash? (not (zero? cash))
+       ;; Weights are relative to the total portfolio value (stocks + cash) so the column sums to 100%
+          format-value (fn [v] (str (if (neg? v) "-" "") (.format currency-formatter (abs v))))
+          format-weight (fn [v] (if (pos? total) (format "%.2f%%" (* 100.0 (/ v total))) "n/a"))]
+      [:div.allocation-columns
+       [:div.allocation-column [:h3 "Ticker"]
+        [:ul#cashByStockTickers
+         (for [ticker (data :unique-tickers)] [:li ticker])
+         (when include-cash? [:li "Cash"])]]
+       [:div.allocation-column [:h3 "Nominal Value"]
+        [:ul#cashByStockValues
+         (for [ticker (data :unique-tickers)]
+           [:li (format-value (get stock-values ticker))])
+         (when include-cash? [:li (format-value cash)])]]
+       [:div.allocation-column [:h3 "Weight"]
+        [:ul#cashByStockWeights
+         (for [ticker (data :unique-tickers)]
+           [:li (format-weight (get stock-values ticker))])
+         (when include-cash? [:li (format-weight cash)])]]])]
 
    [:div.card.return-comparison-card
     [:h2 "1-Year Cumulative Portfolio Return"]
+    [:p.metric-note "Each row is the trailing 1-year cumulative return measured as of a different date: today, then 1, 2, 3, 4, and 5 weeks ago (top to bottom) — showing how the 1-year figure has drifted over recent weeks. \"Including Cash\" covers the whole portfolio (stocks + cash); \"Excluding Cash\" covers the stock holdings only."]
     (when (data :portfolio-younger-than-one-year?)
       [:p.metric-note (str "Portfolio history starts " (data :portfolio-inception-date)
                            " — less than 1 year, so these are returns since inception, not full 1-year windows.")])
