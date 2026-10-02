@@ -90,3 +90,37 @@
       (is (every? nil? sharpe))))
   (testing "nil when fewer than two price points, since no return exists yet"
     (is (nil? (pf/ewma-sharpe-ratio [100.0] 0.06)))))
+
+(deftest detect-possible-corporate-actions-test
+  ;; Prices are the real CTVA numbers around the 2026-10-01 VYLR spin-off, which
+  ;; Yahoo reports with no split/dividend event — the motivating case
+  (let [spinoff-prices {"CTVA" {"2026-09-30" [77.91 77.65] "2026-10-01" [14.44 12.57]}}]
+    (testing "flags a held ticker whose close breaks by more than the threshold in one day"
+      (let [[w :as ws] (pf/detect-possible-corporate-actions spinoff-prices {"2026-09-15" {"CTVA" 100.0}})]
+        (is (= 1 (count ws)))
+        (is (= "CTVA" (:ticker w)))
+        (is (= "2026-10-01" (:date w)))
+        (is (< 83.0 (:drop-pct w) 85.0))))
+    (testing "silent when the position was closed out before the drop"
+      (is (= [] (pf/detect-possible-corporate-actions spinoff-prices
+                                                      {"2026-09-15" {"CTVA" 100.0} "2026-09-29" {"CTVA" 0.0}}))))
+    (testing "silent when the stock was first bought on the drop day itself (trade executes at post-drop prices)"
+      (is (= [] (pf/detect-possible-corporate-actions spinoff-prices {"2026-10-01" {"CTVA" 100.0}}))))
+    (testing "a short position is still flagged — the phantom PnL break is just as wrong"
+      (is (= 1 (count (pf/detect-possible-corporate-actions spinoff-prices {"2026-09-15" {"CTVA" -100.0}})))))
+    (testing "silent once a price-0 share receipt is recorded on the drop date"
+      (is (= [] (pf/detect-possible-corporate-actions spinoff-prices {"2026-09-15" {"CTVA" 100.0}}
+                                                      #{"2026-10-01"})))))
+  (testing "silent on an ordinary down day"
+    (is (= [] (pf/detect-possible-corporate-actions {"NVDA" {"2026-09-30" [100.0 100.0] "2026-10-01" [95.0 90.0]}}
+                                                    {"2026-09-15" {"NVDA" 10.0}})))))
+
+(deftest zero-cost-trade-dates-test
+  (testing "collects the dates of trades with an explicit price of 0, in any numeric spelling"
+    (is (= #{"2026-10-01"}
+           (pf/zero-cost-trade-dates [["header"]
+                                      ["2026-09-15" "buy" "100" "CTVA"]
+                                      ["2026-09-20" "buy" "50" "NVDA" "180.5"]
+                                      ["2026-10-01" "buy" "100" "VYLR" "0.0"]]))))
+  (testing "empty when no trade carries a zero price"
+    (is (= #{} (pf/zero-cost-trade-dates [["header"] ["2026-09-15" "buy" "100" "CTVA"]])))))

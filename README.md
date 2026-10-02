@@ -79,6 +79,18 @@ Enter trades exactly as they happened, with units and prices as of the trade dat
 
 A header row is optional and gets skipped automatically. Every row is checked before analysis, and any problems are listed on the form by line number. Sample portfolios are in [`examples/`](examples/).
 
+### Corporate actions
+
+Stock splits are adjusted automatically. **Spin-offs can't be** — price feeds don't report their terms — so on the ex-date the parent's price drops by the value of the spun-off business, and without a correction that drop shows up as a large loss. To fix it, record the shares you received as a buy with an explicit price of 0 on the ex-date:
+
+```
+2026-10-01,buy,100,NEWCO,0
+```
+
+No cash is spent, and the new position offsets the parent's drop. The same price-0 trick works for any shares received without payment, such as stock dividends. The dashboard shows a warning whenever a held stock has a one-day drop too large to be a market move, which usually means a corporate action is missing from the trade list; it goes away once a price-0 trade is recorded on that date.
+
+One caveat: data providers occasionally back-adjust the parent's pre-spin-off price history weeks later. If the parent's old prices suddenly shrink, remove the price-0 row again — otherwise the spin-off is counted twice.
+
 ## API Keys (News Analyzer only)
 
 1. **[NewsData.io](https://newsdata.io)** — for fetching news (free tier available)

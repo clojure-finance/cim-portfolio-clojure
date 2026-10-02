@@ -193,6 +193,23 @@ canvas {
     grid-column: 1 / -1;
 }
 
+/* Banner for a held stock whose one-day drop looks like an unrecorded corporate action */
+.corporate-action-warning {
+    background: #fff8e1;
+    border-left: 4px solid #e6a700;
+}
+
+.corporate-action-warning h2 {
+    color: #8a6d00;
+    border-bottom-color: #f0e0b0;
+}
+
+.corporate-action-warning-note {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    color: #6c5a10;
+}
+
 .rolling-alpha-header, .rolling-beta-header, .stock-performance-header {
     margin-left: 1rem
 }
