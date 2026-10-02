@@ -459,6 +459,59 @@
                         all-dates)))]
     (util/sort-map-by-date (apply merge-with + {} (map fill sorted-series)))))
 
+;; A one-day close-to-close drop at least this large in a held stock is flagged as a likely
+;; unrecorded corporate action. Splits can't trip it — the price series is already
+;; split-adjusted — and ordinary trading essentially never moves a stock this far in a day.
+(def corporate-action-drop-threshold 0.4)
+
+(defn zero-cost-trade-dates
+  "Dates (normalized to yyyy-MM-dd) of trades with an explicit price of 0 — the convention
+   for recording shares received in a corporate action (see README). Once such a trade
+   exists on a date, the corporate-action warning for that date is silenced: the user has
+   already recorded the receipt. `trades` is the parsed table (header row + data rows)."
+  [trades]
+  (set (keep (fn [[date _action _amount _ticker price :as row]]
+               (when (and (<= 5 (count row))
+                          (try (zero? (Double/parseDouble price)) ;; Tolerate malformed rows, like adjust-trade does
+                               (catch Exception _ false)))
+                 (util/parse-date date)))
+             (rest trades))))
+
+(defn detect-possible-corporate-actions
+  "Scans every ticker's (split-adjusted) daily close-to-close returns for one-day drops of
+   at least corporate-action-drop-threshold on days the ticker was held going into the drop.
+   Yahoo reports no spin-off events, so such a price break usually means shares of a
+   spun-off company were received but never recorded — the views show a warning telling the
+   user to record them as a buy at price 0 (zero cash, offsets the parent's drop).
+
+   complete-stock-prices is {ticker {date [open close]}} with dates ascending (the enhanced
+   form returned by analyze-portfolio); portfolio-composition-by-date is the date-sorted map
+   of post-trade portfolio snapshots; recorded-receipt-dates (see zero-cost-trade-dates)
+   are drop dates to stay silent about because a share receipt is already recorded there.
+   Returns [{:ticker _ :date _ :drop-pct _} ...] sorted by date then ticker; :date is the
+   day the price broke."
+  ([complete-stock-prices portfolio-composition-by-date]
+   (detect-possible-corporate-actions complete-stock-prices portfolio-composition-by-date #{}))
+  ([complete-stock-prices portfolio-composition-by-date recorded-receipt-dates]
+   (let [snapshots (vec portfolio-composition-by-date)
+         ;; Position after the last trade on/before `date`. Snapshots only ever gain tickers,
+         ;; so when the latest one lacks the ticker, every earlier one does too and the
+         ;; backwards scan correctly falls through to 0.
+         held-on? (fn [ticker date]
+                    (not (zero? (or (some (fn [[d pf]]
+                                            (when (<= (compare d date) 0) (get pf ticker)))
+                                          (rseq snapshots))
+                                    0))))]
+     (->> (for [[ticker prices] complete-stock-prices
+                [[d1 [_ close1]] [d2 [_ close2]]] (partition 2 1 prices)
+                :when (and (pos? close1)
+                           (<= (/ close2 close1) (- 1 corporate-action-drop-threshold))
+                           (not (contains? recorded-receipt-dates d2))
+                           (held-on? ticker d1))]
+            {:ticker ticker :date d2 :drop-pct (* 100.0 (- 1 (/ close2 close1)))})
+          (sort-by (juxt :date :ticker))
+          vec))))
+
 (defn analyze-portfolio [data]
   (loop [cash 0.0 ;; This is the cash spent by buying or obtained by selling so far
          portfolio {}

@@ -292,6 +292,13 @@
         portfolio-capm (reg/portfolio-alpha-beta portfolio-value-by-day
                                                  (client/get-ticker-price-all "^GSPC" portfolio-inception-date))
 
+        ;; Held tickers with a one-day drop too large to be anything but an unrecorded corporate
+        ;; action (e.g. a spin-off) — rendered as a warning banner explaining how to record the
+        ;; received shares, since the drop would otherwise appear as a huge phantom loss
+        corporate-action-warnings (portfolio/detect-possible-corporate-actions complete-stock-prices
+                                                                               portfolio-composition-by-date
+                                                                               (portfolio/zero-cost-trade-dates trades))
+
         ;; Calculates the Annualized EWMA Volatility (bias-corrected RiskMetrics recursion — one value per daily return, no minimum window)
         default-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 0.06) ;; Lambda = 1 - alpha = 0.94
         alternative-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 0.03) ;; Lambda = 1 - alpha = 0.97
@@ -544,6 +551,8 @@
 
      :portfolio-inception-date portfolio-inception-date
      :portfolio-younger-than-one-year? portfolio-younger-than-one-year?
+
+     :corporate-action-warnings corporate-action-warnings
 
      :rolling-annualized-volatility rolling-annualized-volatility ;; Window size is 21 days (no. of trading days/month)
 

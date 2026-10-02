@@ -83,8 +83,28 @@
 
 ;; ─── Portfolio results page ───────────────────────────────────────────────────
 
+(defn corporate-action-warning-banner
+  "Warning card shown when a held stock had a one-day drop too large to be anything but an
+   unrecorded corporate action (e.g. a spin-off) — see portfolio/detect-possible-corporate-actions.
+   Without the fix it suggests, the price break shows up as a huge phantom loss."
+  [warnings]
+  (when (seq warnings)
+    [:div.card.full-width.corporate-action-warning
+     [:h2 "Possible unrecorded corporate action"]
+     [:ul
+      (for [{:keys [ticker date drop-pct]} warnings]
+        [:li [:strong ticker] (format " fell %.1f%% on %s while in your portfolio." drop-pct date)])]
+     [:p.corporate-action-warning-note
+      "A one-day drop this large is rarely a market move — stock splits are already adjusted for"
+      " automatically, so this usually means a corporate action such as a spin-off. If you received"
+      " shares of another company that day, record them as a buy with an explicit price of 0, e.g. "
+      [:code "2026-10-01,buy,100,NEWCO,0"]
+      " — no cash is spent, and the new position offsets the drop instead of it showing as a loss."
+      " If it really was a crash, you can ignore this warning."]]))
+
 (defn portfolio-summary-section [data]
   [:div#summary.container
+   (corporate-action-warning-banner (data :corporate-action-warnings))
    [:div.card
     [:h2 "Portfolio Summary"]
     [:div.metrics
