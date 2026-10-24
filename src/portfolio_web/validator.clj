@@ -1,12 +1,8 @@
 (ns portfolio-web.validator
   (:require [clojure.string :as str]
-            [clojure.data.json :as json]
-            [ring.util.codec :as codec]
             [cim_portfolio.util :as util]))
 
-;; %0D%0A = newline
-;; %2C = comma
-
+;; Header row of the parsed trades table; the model skips it (first row)
 (def header
   ["Date of trade submitted (YYYY-MM-DD)"
    "Action"
@@ -14,27 +10,10 @@
    "Ticker"
    "Price"])
 
-;; DEPRECATED, used when the form data is in encoded in application/x-www-form-urlencoded
-(defn parse-trades [raw-body] ;; Returns a map
-  (let [decoded (codec/url-decode raw-body) ;; Converts all of the url-encoded characters into normal characters
-        ;; Currently it looks like 
-        ;; trades=2024-10-15,buy,100,NVDA 2024-11-25,buy,50,GOOG 2024-12-22,sell,30,TSLA 2025-01-08,sell,30,NVDA&starting-cash=50000000
-        params (into {} ;; Creates an empty map
-                     (map #(str/split % #"=" 2) (str/split decoded #"&"))) ;; Split the string by "&", afterwards split it again into key and value by "=" (hashtag string denotes regex exp)
-        trades (-> (params "trades")
-                   (str/split-lines)) ;; Turns it into ["2024-10-15,buy,100,NVDA" "2024-11-25,buy,50,GOOG" "2024-12-22,sell,30,TSLA" "2025-01-08,sell,30,NVDA"] 
-        trades (into [header]
-                     (map #(str/split % #",") trades))
-        ;; Turns it into [["Date of trade submitted (YYYY-MM-DD)" "Action" "Amount Bought/Sold" "Ticker"] 
-        ;; ["2024-10-15" "buy" "100" "NVDA"] ["2024-11-25" "buy" "50" "GOOG"] ["2024-12-22" "sell" "30" "TSLA"] ["2025-01-08" "sell" "30" "NVDA"]] 
-        starting-cash (read-string (params "starting-cash"))] ;; Convert string to integer with read-string
-    {:trades trades
-     :starting-cash starting-cash}))
-
 ;; ─── Input validation ──────────────────────────────────────────────────────────
 ;; Every trade row a user submits is checked BEFORE it reaches the model: bad
-;; rows used to surface as raw 500s (NPE on unknown tickers, joda "Invalid
-;; format" on pasted header rows, etc.). Validation failures throw ex-info
+;; rows used to surface as raw 500s (NPE on unknown tickers, date-parse errors
+;; on pasted header rows, etc.). Validation failures throw ex-info
 ;; whose message is shown to the user by the controller.
 
 (defn- valid-date? [s]
@@ -93,11 +72,20 @@
       (and price (not (parseable-number? price)))
       (str prefix "price must be a number, got \"" price "\"."))))
 
+(defn- normalize-row
+  "Canonical form of a valid row, as the model expects it: date as yyyy-MM-dd,
+   action lower-case, ticker upper-case (Yahoo symbols are case-insensitive,
+   so \"nvda\" and \"NVDA\" must be the same position)."
+  [[date action amount ticker & price]]
+  (into [(util/parse-date date) (str/lower-case action) amount (str/upper-case ticker)] price))
+
 (defn- parse-trade-lines
   "Turns raw trade text (manual textarea or uploaded CSV) into the trades
    table [header row1 row2 ...] expected by the model. Skips blank lines and
    a leading column-header line; throws ex-info listing the invalid lines
-   (numbered as in the input) if any row fails validation."
+   (numbered as in the input) if any row fails validation. Valid rows are
+   normalized and sorted by date (stable, so same-day trades keep their order):
+   the model processes trades in sequence and needs them in date order."
   [text]
   (let [numbered (map-indexed (fn [i line] [(inc i) line]) (str/split-lines (or text "")))
         numbered (remove (fn [[_ line]] (str/blank? line)) numbered)
@@ -110,7 +98,7 @@
       (throw (ex-info "No trades provided — enter at least one line like: 2024-10-15,buy,100,NVDA" {})))
     (when (seq errors)
       (throw (ex-info (str/join "\n" (take 5 errors)) {:errors (vec errors)})))
-    (into [header] (map second) rows)))
+    (into [header] (sort-by first (map (comp normalize-row second) rows)))))
 
 (defn- parse-starting-cash
   "Parses the starting-cash form field (the controller has already stripped $
@@ -125,29 +113,15 @@
       (throw (ex-info (str "Starting cash must be a positive number, got \"" s "\".") {})))
     (Double/parseDouble s)))
 
-;; The below functions are used when the form data is encoded in multipart/form-data
-;; With any function below, the final data should be in the following format:
-;; {:trades [["Date of trade submitted (YYYY-MM-DD)" "Action" "Amount Bought/Sold" "Ticker"] 
-;;           ["2024-10-15" "buy" "100" "NVDA"] ["2024-11-25" "buy" "50" "GOOG"]
-;;           ["2024-12-22" "sell" "30" "TSLA"] ["2025-01-08" "sell" "30" "NVDA"]], 
-;;  :starting-cash 50000000,
-;;  :show-capm-metrics true,
-;;  :show-stock-performances true}
-
-;; For Manual Input
-(defn parse-manual-input [trades-map] ;; Returns a map
-  ;; trades-map looks like
-  ;; {:trades "2024-10-15,buy,100,NVDA,130\r\n2024-11-25,buy,50,GOOG,\r\n..."
-  ;;  :starting-cash "50000000"
-  ;;  :show-capm-metrics "true",
-  ;;  :show-stock-performances "true"}
-  {:trades (parse-trade-lines (:trades trades-map))
-   :starting-cash (parse-starting-cash (:starting-cash trades-map))
-   :show-capm-metrics (= (get trades-map :show-capm-metrics) "true") ;; Convert checkbox value to boolean
-   :show-stock-performances (= (get trades-map :show-stock-performances) "true")})
-
-;; For File Input — identical to manual input: parse-trade-lines recognizes and
-;; drops a leading header line itself, so (unlike before) a headerless CSV no
-;; longer silently loses its first trade.
-(defn parse-file-input [trades-map] ;; Returns a map
-  (parse-manual-input trades-map))
+;; Parses the analysis form (manual entry or uploaded CSV — both arrive as text) into
+;; {:trades [header ["2024-10-15" "buy" "100" "NVDA"] ["2024-11-25" "buy" "50" "GOOG" "165"] ...]
+;;  :starting-cash 5.0E7
+;;  :show-capm-metrics true
+;;  :show-stock-performances false}
+;; from {:trades "2024-10-15,buy,100,NVDA\r\n..." :starting-cash "50000000"
+;;       :show-capm-metrics "true" :show-stock-performances "false"} (checkbox values are strings).
+(defn parse-input [form]
+  {:trades (parse-trade-lines (:trades form))
+   :starting-cash (parse-starting-cash (:starting-cash form))
+   :show-capm-metrics (= (:show-capm-metrics form) "true")
+   :show-stock-performances (= (:show-stock-performances form) "true")})

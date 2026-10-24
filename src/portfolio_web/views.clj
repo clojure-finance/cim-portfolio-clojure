@@ -1,5 +1,5 @@
 (ns portfolio-web.views
-  (:require [hiccup.core :as h]
+  (:require [hiccup2.core :as h] ;; Escapes text and attribute values: tickers, error messages and news content come from users or third parties
             [clojure.data.json :as json]
             [clojure.string :as str]
             [news-llm.core :as news])
@@ -187,18 +187,18 @@
     [:div.graph [:div {:id "portfolio-performance-by-day" :class "miscChart logChart" :data-plot (json/write-str (data :portfolio-one-dollar-performance-graph))}]]]
 
    [:div.card.full-width
-    [:h2 "Annualized EWMA Volatility of Portfolio (lambda = 0.94)"]
+    [:h2 "Annualized EWMA Volatility of Portfolio (λ = 0.94)"]
     [:div.graph [:div {:id "rolling-ewma-volatility" :class "miscChart"
                        :data-plot (json/write-str (data :default-rolling-ewma-volatility-figs))
                        :data-alt-plot (json/write-str (data :alternative-rolling-ewma-volatility-figs))}]]
-    [:button {:id "lambdaSwitch"} "Switch to lambda = 0.97"]]
+    [:button {:id "lambdaSwitch"} "Switch to λ = 0.97"]]
 
    [:div.card.full-width
     [:h2 "Annualized EWMA Sharpe Ratio (1-year window)"]
     [:div.graph [:div {:id "rolling-sharpe-ratio" :class "miscChart"
                        :data-plot (json/write-str (data :default-rolling-sharpe-ratio-figs))
                        :data-alt-plot (json/write-str (data :alternative-rolling-sharpe-ratio-figs))}]]
-    [:button {:id "sharpeLambdaSwitch"} "Switch to lambda = 0.94"]]
+    [:button {:id "sharpeLambdaSwitch"} "Switch to λ = 0.94"]]
 
    (if (= (data :alpha-beta-figs) "")
      [:div.card.full-width [:h2 "Alpha & Beta (per stock) (Omitted)"]]
@@ -366,33 +366,39 @@
            ;; Keep provider cards and model dropdown in sync: a model from the
            ;; wrong provider is rejected with HTTP 400 by the API.
            [:script
-            (str "function selectProvider(p) {"
-                 "  document.getElementById('card-deepseek').classList.toggle('active', p === 'deepseek');"
-                 "  document.getElementById('card-openrouter').classList.toggle('active', p === 'openrouter');"
-                 "  var ds = document.getElementById('models-deepseek');"
-                 "  var op = document.getElementById('models-openrouter');"
-                 "  ds.disabled = (p !== 'deepseek');"
-                 "  op.disabled = (p === 'deepseek');"
-                 "  document.getElementById('model-select').value ="
-                 "    (p === 'deepseek' ? ds : op).firstElementChild.value;"
-                 "}"
-                 "selectProvider(document.querySelector('input[name=\"llm-provider\"]:checked').value);"
-                 ;; Remember API keys in this browser so they don't have to be
-                 ;; retyped on every visit (localStorage is per-browser and can
-                 ;; be unavailable, e.g. in private windows -- hence try/catch).
-                 "var keyFields = ['newsdata-api-key', 'llm-api-key'].map(function(n) {"
-                 "  return document.querySelector('input[name=\"' + n + '\"]');"
-                 "});"
-                 "try {"
-                 "  keyFields.forEach(function(f) {"
-                 "    f.value = localStorage.getItem(f.name) || f.value;"
-                 "  });"
-                 "} catch (e) {}"
-                 "document.getElementById('news-form').addEventListener('submit', function() {"
-                 "  try {"
-                 "    keyFields.forEach(function(f) { localStorage.setItem(f.name, f.value); });"
-                 "  } catch (e) {}"
-                 "});")]]]))))
+            (h/raw
+             (str "function selectProvider(p) {"
+                  "  document.getElementById('card-deepseek').classList.toggle('active', p === 'deepseek');"
+                  "  document.getElementById('card-openrouter').classList.toggle('active', p === 'openrouter');"
+                  "  var ds = document.getElementById('models-deepseek');"
+                  "  var op = document.getElementById('models-openrouter');"
+                  "  ds.disabled = (p !== 'deepseek');"
+                  "  op.disabled = (p === 'deepseek');"
+                  "  document.getElementById('model-select').value ="
+                  "    (p === 'deepseek' ? ds : op).firstElementChild.value;"
+                  "}"
+                  "selectProvider(document.querySelector('input[name=\"llm-provider\"]:checked').value);"
+                  ;; Remember API keys in this browser so they don't have to be
+                  ;; retyped on every visit (localStorage is per-browser and can
+                  ;; be unavailable, e.g. in private windows -- hence try/catch).
+                  "var keyFields = ['newsdata-api-key', 'llm-api-key'].map(function(n) {"
+                  "  return document.querySelector('input[name=\"' + n + '\"]');"
+                  "});"
+                  "try {"
+                  "  keyFields.forEach(function(f) {"
+                  "    f.value = localStorage.getItem(f.name) || f.value;"
+                  "  });"
+                  "} catch (e) {}"
+                  "document.getElementById('news-form').addEventListener('submit', function() {"
+                  "  try {"
+                  "    keyFields.forEach(function(f) { localStorage.setItem(f.name, f.value); });"
+                  "  } catch (e) {}"
+                  "});"))]]]))))
+
+;; Article links come from the news feed: only http(s) URLs become links (no javascript: etc.)
+(defn- safe-url [url]
+  (when (and (string? url) (re-find #"(?i)^https?://" url))
+    url))
 
 (defn news-results-page [results error-msg]
   (str (h/html
@@ -465,8 +471,8 @@
                      [:div.article-card-header {:class hdr-class}
                       [:div.article-header-left
                        [:h3.article-header-title
-                        (if (:link r)
-                          [:a {:href (:link r) :target "_blank" :rel "noopener"} (:title r)]
+                        (if-let [url (safe-url (:link r))]
+                          [:a {:href url :target "_blank" :rel "noopener"} (:title r)]
                           (:title r))]
                        [:div.article-header-meta
                         (when (:published r) [:span (:published r)])
@@ -552,6 +558,6 @@
                       (if (seq (:published r))
                         [:span (str "Published: " (:published r))]
                         [:span ""])
-                      (when (:link r)
-                        [:a {:href (:link r) :target "_blank" :rel "noopener"}
+                      (when-let [url (safe-url (:link r))]
+                        [:a {:href url :target "_blank" :rel "noopener"}
                          "Read Full Article ->"])]]))]))]]])))

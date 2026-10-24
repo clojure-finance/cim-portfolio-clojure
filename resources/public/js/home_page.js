@@ -1,5 +1,3 @@
-// Sorry for the inconsistent use of single and double quotation marks
-
 document.addEventListener('DOMContentLoaded', function() {
     // Input Mode Selection
     const radios = document.querySelectorAll('input[name=\"input-mode\"]');
@@ -56,9 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
        fillExampleButton.addEventListener('click', function(e) {
            // Use the text inside the hidden <pre> (preserves newlines)
            manualTextarea.value = examplePre.innerText;
-        //    // Make sure manual input is visible (in case JS toggling changed state)
-        //    manualInput.classList.remove('hidden');
-        //    fileInput.classList.add('hidden');
            // Focus the textarea so user can review/edit
            manualTextarea.focus();
        });

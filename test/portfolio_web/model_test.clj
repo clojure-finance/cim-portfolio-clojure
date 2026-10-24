@@ -16,3 +16,18 @@
     (testing "zero values are fine — an empty portfolio is a normal state, not an undefined one"
       (is (false? (model/window-contains-negative-value? [["2026-01-05" 100.0] ["2026-01-06" 0.0] ["2026-01-07" 80.0]]
                                                          "2026-01-05" "2026-01-07"))))))
+
+(deftest trailing-one-year-returns-test
+  (let [today (java.time.LocalDate/parse "2026-10-24")
+        inception (java.time.LocalDate/parse "2026-01-02")
+        log-returns {"2026-10-20" (Math/log 1.1) "2026-01-05" (Math/log 1.2)}
+        values [["2026-01-02" 100.0] ["2026-01-05" 120.0] ["2026-10-20" 132.0]]
+        returns (model/trailing-one-year-returns log-returns values inception today)]
+    (testing "each window sums the log returns dated inside it"
+      (is (< (Math/abs (- 0.32 (:one-year-cumulative-return-from-today returns))) 1e-12))
+      (is (< (Math/abs (- 0.2 (:one-year-cumulative-return-from-one-week-ago returns))) 1e-12)))
+    (testing "all six windows are present"
+      (is (= 6 (count returns))))
+    (testing "a window touching a negative value is nil (rendered n/a)"
+      (is (nil? (:one-year-cumulative-return-from-today
+                 (model/trailing-one-year-returns log-returns (conj values ["2026-10-21" -5.0]) inception today)))))))

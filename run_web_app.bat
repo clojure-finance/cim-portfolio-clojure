@@ -1,6 +1,6 @@
 @echo off
 setlocal
-echo Starting CIM Portfolio News Analyzer...
+echo Starting CIM Portfolio...
 
 if not defined PORT set PORT=3000
 

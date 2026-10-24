@@ -1,294 +1,106 @@
-;;; # CIM Portfolio 
+;;; # CIM Portfolio
 ;;; 36920869+W-Edward@users.noreply.github.com Edward Widjaja
 
 ;;; This is the backend logic (model) to generate the results on the website
 
 (ns portfolio-web.model
-  (:require [cim_portfolio.util :as util]
-            [cim_portfolio.yfinanceclient :as client]
+  (:require [cim_portfolio.yfinanceclient :as client]
             [cim_portfolio.corporate-actions :as actions]
             [clojure.math :as math]
-            [clojure.pprint :refer [pprint]]
-            [clojure.string :as string]
             [cim_portfolio.regression :as reg]
-            [cim_portfolio.portfoliofunctions :as portfolio]
-            [clojure.data.json :as json]))
-
-;; (def portfolio-options {:starting-cash 200000}) ;; Make this dynamic later on 
+            [cim_portfolio.portfoliofunctions :as portfolio])
+  (:import (java.time LocalDate)))
 
 ;; True when any portfolio value that a cumulative-return window depends on is negative.
-;; A return on negative capital is undefined — its log-return is NaN at zero crossings (which
-;; json/write-str refuses to serialize, a 500) and sign-inverted while the book stays net short —
-;; so callers render "n/a" instead of a number. Zero values are fine: an empty portfolio is a
-;; normal state and calculate-returns already treats it as a 0% day.
+;; A return on negative capital is undefined — its log-return is NaN at zero crossings and
+;; sign-inverted while the book stays net short — so callers render "n/a" instead of a number.
+;; Zero values are fine: an empty portfolio is a normal state and calculate-returns already
+;; treats it as a 0% day.
 ;; values-by-day is a seq of [date value] pairs sorted by date; the last entry before start-date
 ;; is included in the check because the window's first return is measured from it.
 ;; (A gross-exposure denominator — PnL over the sum of |holdings| — would make these windows
-;; well-defined for net-short books instead of n/a; noted in the README as a future extension.)
+;; well-defined for net-short books instead of n/a.)
 (defn window-contains-negative-value? [values-by-day start-date end-date]
-  (let [date-formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd")
-        parse (fn [d] (java.time.LocalDate/parse d date-formatter))
+  (let [parse (fn [d] (LocalDate/parse d))
         not-after-end (filter (fn [[d _]] (not (.isAfter (parse d) (parse end-date)))) values-by-day)
         before-start (filter (fn [[d _]] (.isBefore (parse d) (parse start-date))) not-after-end)
         in-window (remove (fn [[d _]] (.isBefore (parse d) (parse start-date))) not-after-end)]
     (boolean (some (fn [[_ v]] (neg? v)) (concat (take-last 1 before-start) in-window)))))
 
+;; The trailing 1-year return is shown as of today and as of 1-5 weeks ago (key, weeks back)
+(def ^:private one-year-return-windows
+  [[:one-year-cumulative-return-from-today 0]
+   [:one-year-cumulative-return-from-one-week-ago 1]
+   [:one-year-cumulative-return-from-two-weeks-ago 2]
+   [:one-year-cumulative-return-from-three-weeks-ago 3]
+   [:one-year-cumulative-return-from-four-weeks-ago 4]
+   [:one-year-cumulative-return-from-five-weeks-ago 5]])
+
+(defn trailing-one-year-returns
+  "Cumulative return over each 365-day window in one-year-return-windows, from a
+   {date log-return} map: exp(sum of the window's log returns) - 1. Windows are clamped
+   to start no earlier than `inception` (a LocalDate). A window's value is nil (rendered
+   \"n/a\") when values-by-day was negative in it — see window-contains-negative-value?."
+  [log-returns-by-date values-by-day inception today]
+  (into {}
+        (for [[k weeks] one-year-return-windows]
+          (let [end (.minusDays today (* 7 weeks))
+                start (let [s (.minusDays end 365)] (if (.isBefore s inception) inception s))
+                in-window? (fn [d] (let [d (LocalDate/parse d)]
+                                     (not (or (.isBefore d start) (.isAfter d end)))))
+                log-return (reduce + (keep (fn [[d r]] (when (in-window? d) r)) log-returns-by-date))]
+            [k (when-not (window-contains-negative-value? values-by-day (str start) (str end))
+                 (- (Math/exp log-return) 1))]))))
+
 ;; Effective window of the default rolling Sharpe ratio, in trading days (~ one calendar year).
 ;; Converted to the EWMA decay via portfolio/ewma-alpha-for-window.
 (def sharpe-ratio-window-days 252)
 
+(defn- line-chart
+  "Plotly trace for a line chart."
+  [name x y]
+  {:x x :y y :type "scatter" :mode "lines" :name name})
+
 (defn process-trades [raw-data]
-  (let [;; Variables 
-
-        ;; Java Date Parser
-        date-formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd")
-        date-parser (fn [d] (java.time.LocalDate/parse d date-formatter))
-
-        ;; Raw Variables
-        ;; Yahoo's split events, minus spin-offs it booked as splits (those are undone in the prices instead)
+  (let [;; Yahoo's split events, minus spin-offs it booked as splits (those are undone in the prices instead)
         {:keys [splits spin-offs]} (actions/separate-spin-offs (actions/fetch-splits (:trades raw-data)))
         trades (actions/adjust-trades-for-splits (:trades raw-data) splits) ;; Normalize share amounts and user-supplied prices to post-split units, consistent with Yahoo's split-adjusted prices
         starting-cash (:starting-cash raw-data)
 
-        ;; Processed Variables
-        [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices] (portfolio/analyze-portfolio trades :spin-offs spin-offs)
-        unique-tickers (keys portfolio)
-        sorted-portfolio-value (map #(vector (first %) (+ starting-cash (second %)))
-                                    portfolio-value)
-        ;; ^^^ Starting Cash + Each Portfolio Value, by Date (It is correct to use the original starting cash constantly 
-        ;; because we add the PnL of each trading day to original starting cash.)
+        [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested _ _ complete-stock-prices]
+        (portfolio/analyze-portfolio trades :spin-offs spin-offs)
 
-        cash-invested-by-dates (into [] cash-invested-by-date)
-        current-portfolio-value (+ starting-cash (+ cash current-value))
-        ;; End date is the last trading day's DATE — (last (last ...)) passed the day's dollar value, which
-        ;; clj-time silently failed to parse and Joda then treated as "now", so it only worked by accident
-        annualized-return (portfolio/calculate-annualized-return starting-cash current-portfolio-value (first (first sorted-portfolio-value))
-                                                                 (first (last sorted-portfolio-value)))
+        ;; Starting cash + cumulative PnL, as [date value] pairs sorted by date. Adding the PnL of
+        ;; each trading day to the original starting cash gives the whole portfolio's value (cash included).
+        portfolio-value-by-day (map (fn [[d pnl]] [d (+ starting-cash pnl)]) portfolio-value)
+        dates (map first portfolio-value-by-day)
+        values (map second portfolio-value-by-day)
 
-        ;; First date of the portfolio-value series (the first trading day on/after the first trade).
-        ;; Used by the views to flag 1-year metrics whose window is clamped to a shorter history.
-        portfolio-inception-date (first (first sorted-portfolio-value))
-        portfolio-younger-than-one-year? (.isAfter (date-parser portfolio-inception-date)
-                                                   (.minusDays (java.time.LocalDate/now) 365))
+        current-portfolio-value (+ starting-cash cash current-value)
+        portfolio-inception-date (first dates) ;; First trading day on/after the first trade
+        annualized-return (portfolio/calculate-annualized-return starting-cash current-portfolio-value
+                                                                 portfolio-inception-date (last dates))
+        today (LocalDate/now)
+        ;; Used by the views to flag 1-year metrics whose window is clamped to a shorter history
+        portfolio-younger-than-one-year? (.isAfter (LocalDate/parse portfolio-inception-date)
+                                                   (.minusDays today 365))
 
-        ;; Read from bottom to top for this variable to understand it (Deprecated)
-        ;; The reason why I incorporated a lot of different data in this one variable is so that we don't have to fetch from yfinance multiple times (preventing rate limits)
-        ;; complete-portfolio-return-data (zipmap
-        ;;                                 (concat (map #(first %) (rest cash-invested-by-date)) ;; Gets all execution dates except first execution date, also add current date
-        ;;                                         [(.toString (java.time.LocalDate/now))])
+        ;; Trailing 1-year returns, excluding cash (stock holdings only) and including cash
+        first-execution-date (LocalDate/parse (first (keys portfolio-composition-by-date)))
+        stocks-only (portfolio/set-of-portfolio-log-returns-and-weights-without-cash portfolio-composition-by-date complete-stock-prices)
+        one-year-returns-excl-cash (trailing-one-year-returns (:portfolio-log-returns stocks-only)
+                                                              (:portfolio-value stocks-only) ;; net-short stock book -> n/a
+                                                              first-execution-date today)
+        one-year-returns-incl-cash (trailing-one-year-returns (:log-returns (portfolio/calculate-returns-with-corresponding-date values dates))
+                                                              portfolio-value-by-day ;; losses beyond starting cash -> n/a
+                                                              first-execution-date today)
 
-        ;;                                 ;; (concat 0 ;; Returns this message for the first date of portfolio construction
-        ;;                                 (mapv #(portfolio/calculate-portfolio-return-and-weights-for-given-date ;; It will have the returns, weights, initial and final portfolio values 
-        ;;                                         (second (first %)) ;; This is the portfolio 
-        ;;                                         (first (first %)) ;; This is the start date 
-        ;;                                         (first (second %)) ;; This is the end date
-        ;;                                         )
-        ;;                                       (partition 2 1 (seq ;; This line creates a sliding window with window size = 2, and increment = 1,
-        ;;                                                       ;; ensuring that the iterator (the map function) is able to see entry at index "i+1" when iterating at index "i" 
-        ;;                                                       ;; The seq function will guarantee insertion order of entries in map as we are using "array-map" 
-        ;;                                                       (assoc portfolio-composition-by-date ;; Adds the new line into the historical portfolio compositions 
-        ;;                                                              (.toString (java.time.LocalDate/now)) {}) ;; This line provides the current date with an empty portfolio
-        ;;                                                       ))))
+        ;; Latest value and weight of each holding: {ticker number}
+        current-stock-holdings-and-weights {:values (val (last (:current-stock-holdings stocks-only)))
+                                            :weights (val (last (:stock-weights stocks-only)))}
 
-        ;; cumulative-portfolio-return (portfolio/calculate-portfolio-cumulative-return (map #(:portfolio-cumulative-return %) (vals complete-portfolio-return-data)))
-
-        portfolio-value-by-day sorted-portfolio-value
-
-        ;; The following variable holds the cumulative portfolio return for the past 1 year, ending at the past 5 weeks from the current date, and ending at the current date 
-        ;; This variable does not include cash
-        one-year-cumulative-returns-past-five-weeks-without-cash
-        (let [;; Date Variables
-              today (java.time.LocalDate/now)
-              all-trade-execution-dates (keys portfolio-composition-by-date) ;; Take All Order Execution Dates (These are all date strings, i.e. "yyyy-MM-dd")
-              earliest-trade-execution-date (reduce #(if (neg? (.compareTo %1 %2)) %1 %2) (map date-parser all-trade-execution-dates)) ;; Earliest order execution date (java.time.localDate Type)
-              one-week-ago (.minusDays today 7)
-              two-weeks-ago (.minusDays today 14)
-              three-weeks-ago (.minusDays today 21)
-              four-weeks-ago (.minusDays today 28)
-              five-weeks-ago (.minusDays today 35)
-              one-year-ago (.minusDays today 365)
-              one-year-from-one-week-ago (.minusDays one-week-ago 365)
-              one-year-from-two-weeks-ago (.minusDays two-weeks-ago 365)
-              one-year-from-three-weeks-ago (.minusDays three-weeks-ago 365)
-              one-year-from-four-weeks-ago (.minusDays four-weeks-ago 365)
-              one-year-from-five-weeks-ago (.minusDays five-weeks-ago 365)
-
-              ;; Complete data related to portfolio-composition-by-date from oldest date to today
-              set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights-without-cash portfolio-composition-by-date complete-stock-prices)
-              ;; Complete Log Returns Time-Series from oldest date to today
-              portfolio-log-returns (:portfolio-log-returns set-of-portfolio-complete-data)
-              ;; Cash-excluded portfolio values by day ([date value] pairs, sorted) — used to detect windows where the book was net short
-              portfolio-values-excl-cash (:portfolio-value set-of-portfolio-complete-data)
-
-              ;; Function to take log returns from start date to end date, and convert to arithmetic returns
-              ;; log-returns-by-date is a map of date strings (i.e. yyyy-MM-dd) as keys, and log returns as values. start-date and end-date are date strings.
-              get-cumulative-returns (fn [log-returns-by-date start-date end-date]
-                                       (let [;; If start-date is earlier than earliest-trade-execution-date, change start-date to earliest-trade-execution-date
-                                             start-date-enhanced (if (.isBefore (date-parser start-date) earliest-trade-execution-date) (.toString earliest-trade-execution-date) start-date)
-
-                                             ;; Additional info: if end-date is greater than current date (today), then dates after current date are not considered in the calculation
-
-                                             ;; Get all log returns where date is greater or equal to enhanced-start-date and less than end-date
-                                             log-returns-filtered-by-date (into {} ;; This will make it unsorted, but it doesn't matter because we are summing the log returns
-                                                                                (filter
-                                                                                 (fn [[d log-returns]]
-                                                                                   (and (or (.isAfter (date-parser d) (date-parser start-date-enhanced)) (.isEqual (date-parser d) (date-parser start-date-enhanced)))
-                                                                                        (or (.isBefore (date-parser d) (date-parser end-date)) (.isEqual (date-parser d) (date-parser end-date)))))
-                                                                                 log-returns-by-date))
-
-                                             ;; Get Cumulative Arithmetic Return
-                                             cumulative-return (-
-                                                                (Math/exp ;; Take the exponential
-                                                                 (reduce + ;; Sum all log returns
-                                                                         (vals log-returns-filtered-by-date)))
-                                                                1)]
-                                         ;; nil (rendered as "n/a") when the book was net short anywhere in the window — a return on negative capital is undefined
-                                         (when-not (window-contains-negative-value? portfolio-values-excl-cash start-date-enhanced end-date)
-                                           cumulative-return)))
-
-              ;; 1-Year Portfolio Cumulative returns
-              cumulative-return-today (get-cumulative-returns portfolio-log-returns (.toString one-year-ago) (.toString today))
-              cumulative-return-one-week-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-one-week-ago) (.toString one-week-ago))
-              cumulative-return-two-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-two-weeks-ago) (.toString two-weeks-ago))
-              cumulative-return-three-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-three-weeks-ago) (.toString three-weeks-ago))
-              cumulative-return-four-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-four-weeks-ago) (.toString four-weeks-ago))
-              cumulative-return-five-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-five-weeks-ago) (.toString five-weeks-ago))
-
-              ;; Other Variables
-              ;; current-portfolio-weights (get (:stock-weights set-of-portfolio-complete-data) (.toString today))
-              current-portfolio-weights (last
-                                         ;; This will return in the following format: ["2026-01-26" {"NVDA" 0.7827169202300716, "GOOG" 1.0001859082803983, "TSLA" -0.7829028285104699}]
-                                         (last (:stock-weights set-of-portfolio-complete-data)))
-              ;; current-portfolio-holdings (get (:current-stock-holdings set-of-portfolio-complete-data) (.toString today))
-              current-portfolio-holdings (last
-                                          ;; This will return in the following format: ["2026-01-26" {"NVDA" 13052.900085449, "GOOG" 16679.499816895, "TSLA" -13056.000366209999}]
-                                          (last (:current-stock-holdings set-of-portfolio-complete-data))) ;; This will return in the following format
-              ]
-
-          {:today (.toString today)
-           :one-week-ago (.toString one-week-ago)
-           :two-weeks-ago (.toString two-weeks-ago)
-           :three-weeks-ago (.toString three-weeks-ago)
-           :four-weeks-ago (.toString four-weeks-ago)
-           :five-weeks-ago (.toString five-weeks-ago)
-           :one-year-ago (.toString one-year-ago)
-           :one-year-from-one-week-ago (.toString one-year-from-one-week-ago)
-           :one-year-from-two-weeks-ago (.toString one-year-from-two-weeks-ago)
-           :one-year-from-three-weeks-ago (.toString one-year-from-three-weeks-ago)
-           :one-year-from-four-weeks-ago (.toString one-year-from-four-weeks-ago)
-           :one-year-from-five-weeks-ago (.toString one-year-from-five-weeks-ago)
-           :one-year-cumulative-return-from-today cumulative-return-today
-           :one-year-cumulative-return-from-one-week-ago cumulative-return-one-week-ago
-           :one-year-cumulative-return-from-two-weeks-ago cumulative-return-two-weeks-ago
-           :one-year-cumulative-return-from-three-weeks-ago cumulative-return-three-weeks-ago
-           :one-year-cumulative-return-from-four-weeks-ago cumulative-return-four-weeks-ago
-           :one-year-cumulative-return-from-five-weeks-ago cumulative-return-five-weeks-ago
-
-           ;; For use in other variables
-           :current-portfolio-weights current-portfolio-weights
-           :current-portfolio-holdings current-portfolio-holdings
-
-           ;; Testing purposes only
-
-           ;;  :portfolio-value-by-date (:portfolio-value set-of-portfolio-complete-data)
-           ;;  :portfolio-holdings-by-date (:portfolio-holdings-by-date set-of-portfolio-complete-data)
-           ;;  :portfolio-custom-cumulative-return (get-cumulative-returns portfolio-log-returns "2025-02-04" "2025-12-01")
-           })
-
-        ;; The following variable holds the cumulative portfolio return for the past 1 year, ending at the past 5 weeks from the current date, and ending at the current date 
-        ;; This variable includes cash in the portfolio
-        one-year-cumulative-returns-past-five-weeks-with-cash
-        (let [;; Date Variables
-              today (java.time.LocalDate/now)
-              all-trade-execution-dates (keys portfolio-composition-by-date) ;; Take All Order Execution Dates (These are all date strings, i.e. "yyyy-MM-dd")
-              earliest-trade-execution-date (reduce #(if (neg? (.compareTo %1 %2)) %1 %2) (map date-parser all-trade-execution-dates)) ;; Earliest order execution date (java.time.localDate Type)
-              one-week-ago (.minusDays today 7)
-              two-weeks-ago (.minusDays today 14)
-              three-weeks-ago (.minusDays today 21)
-              four-weeks-ago (.minusDays today 28)
-              five-weeks-ago (.minusDays today 35)
-              one-year-ago (.minusDays today 365)
-              one-year-from-one-week-ago (.minusDays one-week-ago 365)
-              one-year-from-two-weeks-ago (.minusDays two-weeks-ago 365)
-              one-year-from-three-weeks-ago (.minusDays three-weeks-ago 365)
-              one-year-from-four-weeks-ago (.minusDays four-weeks-ago 365)
-              one-year-from-five-weeks-ago (.minusDays five-weeks-ago 365)
-
-              ;; Complete data related to portfolio-composition-by-date from oldest date to today
-              set-of-portfolio-complete-data (portfolio/set-of-portfolio-log-returns-and-weights portfolio-composition-by-date
-                                                                                                 portfolio-value-by-day ;; not a map, it is in [date_str value, ...] format
-                                                                                                 (.toString one-year-from-five-weeks-ago)
-                                                                                                 (.toString today))
-              ;; Complete Log Returns Time-Series from oldest date to today, already in the form of a map of the form {date_str log_return}
-              portfolio-log-returns (:portfolio-log-returns set-of-portfolio-complete-data)
-
-              ;; Function to take log returns from start date to end date, and convert to arithmetic returns
-              ;; log-returns-by-date is a map of date strings (i.e. yyyy-MM-dd) as keys, and log returns as values. start-date and end-date are date strings.
-              get-cumulative-returns (fn [log-returns-by-date start-date end-date]
-                                       (let [;; If start-date is earlier than earliest-trade-execution-date, change start-date to earliest-trade-execution-date
-                                             start-date-enhanced (if (.isBefore (date-parser start-date) earliest-trade-execution-date) (.toString earliest-trade-execution-date) start-date)
-
-                                             ;; Additional info: if end-date is greater than current date (today), then dates after current date are not considered in the calculation
-
-                                             ;; Get all log returns where date is greater or equal to enhanced-start-date and less than or equal to end-date
-                                             log-returns-filtered-by-date (into {} ;; This will make it unsorted, but it doesn't matter because we are summing the log returns
-                                                                                (filter
-                                                                                 (fn [[d log-returns]]
-                                                                                   (and (or (.isAfter (date-parser d) (date-parser start-date-enhanced)) (.isEqual (date-parser d) (date-parser start-date-enhanced)))
-                                                                                        (or (.isBefore (date-parser d) (date-parser end-date)) (.isEqual (date-parser d) (date-parser end-date)))))
-                                                                                 log-returns-by-date))
-
-                                             ;; Get Cumulative Arithmetic Return
-                                             cumulative-return (-
-                                                                (Math/exp ;; Take the exponential
-                                                                 (reduce + ;; Sum all log returns
-                                                                         (vals log-returns-filtered-by-date)))
-                                                                1)]
-                                         ;; nil (rendered as "n/a") when the with-cash NAV went negative in the window (losses beyond starting cash) — same undefined-return problem as the ex-cash series
-                                         (when-not (window-contains-negative-value? portfolio-value-by-day start-date-enhanced end-date)
-                                           cumulative-return)))
-
-              ;; 1-Year Portfolio Cumulative returns
-              cumulative-return-today (get-cumulative-returns portfolio-log-returns (.toString one-year-ago) (.toString today))
-              cumulative-return-one-week-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-one-week-ago) (.toString one-week-ago))
-              cumulative-return-two-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-two-weeks-ago) (.toString two-weeks-ago))
-              cumulative-return-three-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-three-weeks-ago) (.toString three-weeks-ago))
-              cumulative-return-four-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-four-weeks-ago) (.toString four-weeks-ago))
-              cumulative-return-five-weeks-ago (get-cumulative-returns portfolio-log-returns (.toString one-year-from-five-weeks-ago) (.toString five-weeks-ago))]
-
-          {:today (.toString today)
-           :one-week-ago (.toString one-week-ago)
-           :two-weeks-ago (.toString two-weeks-ago)
-           :three-weeks-ago (.toString three-weeks-ago)
-           :four-weeks-ago (.toString four-weeks-ago)
-           :five-weeks-ago (.toString five-weeks-ago)
-           :one-year-ago (.toString one-year-ago)
-           :one-year-from-one-week-ago (.toString one-year-from-one-week-ago)
-           :one-year-from-two-weeks-ago (.toString one-year-from-two-weeks-ago)
-           :one-year-from-three-weeks-ago (.toString one-year-from-three-weeks-ago)
-           :one-year-from-four-weeks-ago (.toString one-year-from-four-weeks-ago)
-           :one-year-from-five-weeks-ago (.toString one-year-from-five-weeks-ago)
-           :one-year-cumulative-return-from-today cumulative-return-today
-           :one-year-cumulative-return-from-one-week-ago cumulative-return-one-week-ago
-           :one-year-cumulative-return-from-two-weeks-ago cumulative-return-two-weeks-ago
-           :one-year-cumulative-return-from-three-weeks-ago cumulative-return-three-weeks-ago
-           :one-year-cumulative-return-from-four-weeks-ago cumulative-return-four-weeks-ago
-           :one-year-cumulative-return-from-five-weeks-ago cumulative-return-five-weeks-ago
-
-           ;; Testing purposes only
-           :portfolio-log-returns portfolio-log-returns})
-
-;; Contains usage of deprecated function, will replace with set-of-portfolio-log-returns-and-weights soon
-        ;; current-stock-holdings-and-weights {:values (:current-stock-holdings (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))
-        ;;                         :weights (:stock-weights (get complete-portfolio-return-data (.toString (java.time.LocalDate/now))))}
-
-        ;; Updated with use of set-of-portfolio-log-returns-and-weights function
-        current-stock-holdings-and-weights {:values (:current-portfolio-holdings one-year-cumulative-returns-past-five-weeks-without-cash)
-                                            :weights (:current-portfolio-weights one-year-cumulative-returns-past-five-weeks-without-cash)}
-
-        volatility (when (<= 3 (count sorted-portfolio-value)) ;; Sample std-dev needs ≥2 daily returns, i.e. ≥3 value points — nil renders as "n/a" instead of a bogus 0%
-                     (portfolio/volatility (map second sorted-portfolio-value)))
-        rolling-annualized-volatility (portfolio/rolling-annualized-volatility (map second portfolio-value-by-day) 21)
+        volatility (when (<= 3 (count values)) ;; Sample std-dev needs ≥2 daily returns, i.e. ≥3 value points — nil renders as "n/a" instead of a bogus 0%
+                     (portfolio/volatility values))
 
         ;; CAPM alpha and beta of the whole portfolio (cash included) against the S&P 500 since inception; nil renders as "n/a"
         portfolio-capm (reg/portfolio-alpha-beta portfolio-value-by-day
@@ -301,276 +113,85 @@
                                                                                portfolio-composition-by-date
                                                                                (portfolio/zero-cost-trade-dates trades))
 
-        ;; Calculates the Annualized EWMA Volatility (bias-corrected RiskMetrics recursion — one value per daily return, no minimum window)
-        default-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 0.06) ;; Lambda = 1 - alpha = 0.94
-        alternative-rolling-ewma-volatility (portfolio/ewma-rolling-volatility (map second portfolio-value-by-day) 0.03) ;; Lambda = 1 - alpha = 0.97
+        ;; Annualized EWMA volatility (bias-corrected RiskMetrics recursion — one value per daily return, no minimum window)
+        default-rolling-ewma-volatility (portfolio/ewma-rolling-volatility values 0.06) ;; Lambda = 1 - alpha = 0.94
+        alternative-rolling-ewma-volatility (portfolio/ewma-rolling-volatility values 0.03) ;; Lambda = 1 - alpha = 0.97
 
-        ;; Calculate the Annualized EWMA Sharpe Ratio: EWMA mean return over EWMA volatility, both with the same lambda
+        ;; Annualized EWMA Sharpe ratio: EWMA mean return over EWMA volatility, both with the same lambda.
         ;; Default is a ~1-year effective window (sharpe-ratio-window-days): a Sharpe ratio over a shorter window is mostly noise
-        default-rolling-sharpe-ratio (portfolio/ewma-sharpe-ratio (map second portfolio-value-by-day)
-                                                                  (portfolio/ewma-alpha-for-window sharpe-ratio-window-days))
-        alternative-rolling-sharpe-ratio (portfolio/ewma-sharpe-ratio (map second portfolio-value-by-day) 0.06) ;; Lambda = 1 - alpha = 0.94
+        default-rolling-sharpe-ratio (portfolio/ewma-sharpe-ratio values (portfolio/ewma-alpha-for-window sharpe-ratio-window-days))
+        alternative-rolling-sharpe-ratio (portfolio/ewma-sharpe-ratio values 0.06) ;; Lambda = 1 - alpha = 0.94
 
-        ;; Graphs
-
-        ;; Alpha and Beta Rolling Regression (Sept 2022 to Present)
+        ;; Rolling 1-year alpha and beta of each traded stock vs. the S&P 500, from Sept 2022 on
+        ;; (optional, it fetches every ticker's history again): [α trace, β trace] per ticker
         alpha-beta-figs
-
-        (if (raw-data :show-capm-metrics)
-
-          ;; :show-capm-metrics = true
-          (let [unique-tickers (loop [data (rest trades)
-                                      complete-tickers #{}]
-                                 (if (empty? data)
-                                   complete-tickers
-                                   (recur (rest data)
-                                          (let [[date action amount ticker price] (first data)]
-                                            (-> complete-tickers
-                                                (conj ticker))))))
-                market-data (client/get-ticker-price-all "^GSPC" "2022-09-01") ;; Switch the Market Index here
-                ]
-            (loop [tickers unique-tickers
-                   plotly-data []]
-              (if (empty? tickers)
-
-                ;; Final Plotly Data
-                plotly-data
-
-                ;; Getting the data for Plotly
-                (let [ticker (first tickers)
-
-                      ;; The following commented code is used to replace "stock-data" and "market-data" and is optional, 
-                      ;; as it shows the data from only "One year from five weeks ago", but uses recycled data so less calls to yfinance
-
-                      ;; Recycle Data from previous computation and change the structure from
-                      ;; {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...} to
-                      ;; [["2025-01-31" $250 $251], ["2025-02-01" $251.25 $249.27], ...]
-                      ;; stock-data (mapv 
-                      ;;             (fn [[k v]]
-                      ;;               (into [k] v)) ;; Flatten the data to the new structure
-                      ;;             (get (:complete-ticker-prices one-year-cumulative-returns-past-five-weeks) ticker)) ;; Recycle Data
-
-                      ;; market-data (client/get-ticker-price-with-end "^GSPC" (:one-year-from-five-weeks-ago one-year-cumulative-returns-past-five-weeks)
-                      ;;                                               (.toString (java.time.LocalDate/now))) ;; Switch the Market Index here
-
-                      stock-data (client/get-ticker-price-all ticker "2022-09-01") ;; Note that the date is start date
-                      model-data (reg/get-alpha-beta stock-data market-data)
-                      alpha-data (map vector (:plotted-dates model-data) (:plotted-alpha model-data))
-                      beta-data (map vector (:plotted-dates model-data) (:plotted-beta model-data))]
-                  (recur (disj tickers ticker)
-                         (-> plotly-data
-                             (conj {:x (map first alpha-data)
-                                    :y (map second alpha-data)
-                                    :type "scatter"
-                                    :mode "lines"
-                                    :name (str ticker " α")})
-                             (conj {:x (map first beta-data)
-                                    :y (map second beta-data)
-                                    :type "scatter"
-                                    :mode "lines"
-                                    :name (str ticker " β")})))))))
-
-          ;; :show-capm-metrics = false
+        (if (:show-capm-metrics raw-data)
+          (let [market-data (client/get-ticker-price-all "^GSPC" "2022-09-01")] ;; Switch the market index here
+            (vec (mapcat (fn [ticker]
+                           (let [{:keys [plotted-dates plotted-alpha plotted-beta]}
+                                 (reg/get-alpha-beta (client/get-ticker-price-all ticker "2022-09-01") market-data)]
+                             [(line-chart (str ticker " α") plotted-dates plotted-alpha)
+                              (line-chart (str ticker " β") plotted-dates plotted-beta)]))
+                         (distinct (map #(nth % 3) (rest trades))))))
           "")
 
-        ;; Portfolio Performance (One Dollar Invested in Portfolio)
+        ;; Portfolio performance: value of one dollar invested at inception (starting cash = initial value)
         one-dollar-invested-in-portfolio-at-time-zero
-        (let
-         [dollar-performance
-          (util/sort-map-by-date
-           (into {}
-                 (map
-                  (fn [[date value]]
-                    (if (pos? value)
-                      [date (/ value starting-cash)] ;; Starting cash should be the initial portfolio value
-                      [date nil]) ;; Non-positive values cannot be drawn on the log-scale axis, so leave a gap
-                    )
-                  portfolio-value-by-day)))
+        (line-chart "Portfolio Performance"
+                    dates
+                    (map #(when (pos? %) (/ % starting-cash)) values)) ;; Non-positive values cannot be drawn on the log-scale axis, so leave a gap
 
-          plotly-data
-          {:x (keys dollar-performance)
-           :y (vals dollar-performance)
-           :type "scatter"
-           :mode "lines"
-           :name "Portfolio Performance"}]
-
-          plotly-data)
-
-        ;; Stock Performance (One Dollar Invested, based on Closing Price)
+        ;; Each stock's performance: its close divided by its first close, over the portfolio's dates
+        ;; (nil before the stock's first quote; on days its exchange was closed, the last close)
         one-dollar-invested-in-stock-at-time-zero
-        (if (raw-data :show-stock-performances)
-
-          ;; :show-stock-performances = true
-          (let [;; The following is a map where keys are the complete tickers from the creation of the first portfolio to the current portfolio
-                ;; The values are also maps where the keys are the trade dates from the first trade date in which the stock appears in the portfolio to today, 
-                ;; and values are vectors containing the opening price and closing price
-                ;; Data is already sorted by time.
-                ;; The following is the form of the data: {"NVDA" {"2025-01-31" [$250 $251], "2025-02-01" [$251.25 $249.27], ...}, 
-                ;;                                         "MSFT" {"2025-01-31" [$172 $180], "2025-02-01" [$177 $175], ...}, ...}
-
-                prices-until-end-date complete-stock-prices
-
-                ;; The following will return each stock and their dollar performance over time in the following format.
-                ;; {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.006, ...},
-                ;;  "MSFT" {"2025-01-31" 1, "2025-02-01" 0.9745, ...}, ...}
-
-                dollar-performance (loop
-                                    [tickers (keys prices-until-end-date)
-                                     one-dollar-performance {}]
-                                     (if (empty? tickers)
-
-                                       one-dollar-performance
-
-                                       (recur
-                                        (rest tickers) ;; Remove first ticker in collection
-
-                                        ;; Add new ticker with its dollar performance to variable one-dollar-performance
-                                        ;; It will have the tickers as the key, and values which are maps with keys being the trade dates, and values being the dollar performance
-                                        ;; e.g. {"NVDA" {"2025-01-31" 1, "2025-02-01" 1.16, ...},
-                                        ;;       "MSFT" {"2025-01-31" 1, "2025-02-01" 0.98, ...}, ...}
-
-                                        (assoc one-dollar-performance (first tickers)
-                                               (util/sort-map-by-date
-                                                (zipmap
-                                                 (keys
-                                                  (util/sort-map-by-date (get prices-until-end-date (first tickers)))) ;; Get the dates for the price data 
-                                                 (map #(/ % (second (first (vals (get prices-until-end-date (first tickers)))))) ;; Divide all closing prices by the first trade date closing price to get one dollar performance
-                                                      (map second ;; Just take closing prices for all (I think taking open price for first date introduces unnecessary complexity and confusion) 
-                                                           (vals
-                                                            (util/sort-map-by-date (get prices-until-end-date (first tickers))))) ;; Get the price data for the first ticker in collection) 
-                                                      )))))))
-
-                ;; This will hold a map of all tickers currently and previously existing in the portfolio, and the graphs of its dollar performance
-                ;; The data format will be the following:
-                ;; {"NVDA" {:x ["2025-01-01" "2025-01-02" ...]
-                ;;          :y [1.123 0.876 ...]
-                ;;          :type "scatter"
-                ;;          :mode "lines"
-                ;;          :name "NVDA Performance")},
-                ;;  "MSFT" {...},}
-
-                plotly-data (loop
-                             [tickers (keys dollar-performance)
-                              plotly-data {}]
-
-                              (if (empty? tickers)
-
-                                plotly-data
-
-                                (recur
-                                 (rest tickers) ;; Remove first ticker in collection
-                                 (assoc plotly-data (first tickers)
-                                        {:x (map #(first %) portfolio-value-by-day) ;; Already ordered
-                                         :y (concat
-                                             ;; Find the number of trade dates between first trade date of a stock and first trade date of the portfolio
-                                             (repeat (count (filter
-                                                             (fn [d]
-                                                               (.isBefore (date-parser d) (date-parser (first (keys (get dollar-performance (first tickers)))))))
-                                                             (map #(first %) portfolio-value-by-day)))
-                                                     nil)
-                                             (vals (get dollar-performance (first tickers)))) ;; Already ordered
-                                         :type "scatter"
-                                         :mode "lines"
-                                         :name (str (first tickers) " Performance")}))))]
-            plotly-data)
-
-          ;; :show-stock-performances = false
-          "")
-
-        ;; Portfolio Value by Day
-        portfolio-value-figs
-
-        {:x (map #(first %) portfolio-value-by-day)
-         :y (map #(second %) portfolio-value-by-day)
-         :type "scatter"
-         :mode "lines"
-         :name "Portfolio Value by Day"}
-
-        ;; 30-Day Rolling Annualized Volatility of Portfolio (Historical Standard Deviation)
-        rolling-annualized-volatility-figs
-
-        {:x (drop 21 (map #(first %) portfolio-value-by-day)) ;; drop the first 21 elements because window size is 21 days
-         :y rolling-annualized-volatility
-         :type "scatter"
-         :mode "lines"
-         :name "30-Day Rolling Annualized Volatility of Portfolio"}
-
-        ;; Annualized EWMA Volatility of Portfolio (Default is lambda = 0.94)
-        default-rolling-ewma-volatility-figs
-
-        {:x (map #(first %) portfolio-value-by-day)
-         :y (cons nil default-rolling-ewma-volatility) ;; Only the first day has no value — there is no return yet
-         :type "scatter"
-         :mode "lines"
-         :name "Annualized EWMA Volatility of Portfolio (λ = 0.94)"}
-
-        ;; Annualized EWMA Volatility of Portfolio (Alternative is lambda = 0.97)
-        alternative-rolling-ewma-volatility-figs
-
-        {:x (map #(first %) portfolio-value-by-day)
-         :y (cons nil alternative-rolling-ewma-volatility) ;; Only the first day has no value — there is no return yet
-         :type "scatter"
-         :mode "lines"
-         :name "Annualized EWMA Volatility of Portfolio (λ = 0.97)"}
-
-        default-rolling-sharpe-ratio-figs
-
-        {:x (map #(first %) portfolio-value-by-day)
-         :y (cons nil default-rolling-sharpe-ratio) ;; Only the first day has no value — there is no return yet
-         :type "scatter"
-         :mode "lines"
-         :name "Annualized EWMA Sharpe Ratio (1-year window)"}
-
-        alternative-rolling-sharpe-ratio-figs
-
-        {:x (map #(first %) portfolio-value-by-day)
-         :y (cons nil alternative-rolling-sharpe-ratio) ;; Only the first day has no value — there is no return yet
-         :type "scatter"
-         :mode "lines"
-         :name "Annualized EWMA Sharpe Ratio (λ = 0.94)"}]
+        (if (:show-stock-performances raw-data)
+          (into {}
+                (map (fn [[ticker prices]] ;; prices: {date [open close]}, sorted by date
+                       (let [first-date (key (first prices))
+                             first-close (second (val (first prices)))]
+                         [ticker
+                          (line-chart (str ticker " Performance")
+                                      dates
+                                      (map (fn [d]
+                                             (when (>= (compare d first-date) 0)
+                                               (/ (second (val (first (rsubseq prices <= d)))) first-close)))
+                                           dates))])))
+                complete-stock-prices)
+          "")]
 
     {:current-portfolio-value current-portfolio-value
      :cash (+ starting-cash cash)
      :stocks (- current-portfolio-value (+ starting-cash cash))
-     :unique-tickers unique-tickers
+     :unique-tickers (keys portfolio)
 
      :annualized-portfolio-return (when annualized-return (* annualized-return 100))
-     :portfolio-volatility volatility
      :annualized-portfolio-volatility (when volatility (* (math/sqrt 252) volatility))
      :annualized-portfolio-alpha (when portfolio-capm (* 100 (:alpha portfolio-capm)))
      :annualized-sharpe-ratio (last default-rolling-sharpe-ratio) ;; Latest point of the 1-year-window EWMA series, so it matches the chart's last value
 
      :stocks-held-and-shorted portfolio
      :cash-invested cash-invested
-     ;;  :cumulative-portfolio-return (* cumulative-portfolio-return 100)
      :current-stock-holdings-and-weights current-stock-holdings-and-weights
+     :portfolio-value-by-day portfolio-value-by-day ;; Includes cash
 
-     ;;  :portfolio-returns-by-date complete-portfolio-return-data ;; This gives the final portfolio returns and values before a new trade is executed, which changes the composition of the portfolio
-     :portfolio-value-by-day portfolio-value-by-day ;; This gives the final portfolio values, only takes into account values after change in portfolio composition, and includes cash
-
-     :past-five-weeks-1y-cumulative-return-excl-cash one-year-cumulative-returns-past-five-weeks-without-cash
-     :past-five-weeks-1y-cumulative-return-incl-cash one-year-cumulative-returns-past-five-weeks-with-cash
+     :past-five-weeks-1y-cumulative-return-excl-cash one-year-returns-excl-cash
+     :past-five-weeks-1y-cumulative-return-incl-cash one-year-returns-incl-cash
 
      :portfolio-inception-date portfolio-inception-date
      :portfolio-younger-than-one-year? portfolio-younger-than-one-year?
 
      :corporate-action-warnings corporate-action-warnings
 
-     :rolling-annualized-volatility rolling-annualized-volatility ;; Window size is 21 days (no. of trading days/month)
-
-     ;; Plotly Graphs
-
+     ;; Plotly traces
      :alpha-beta-figs alpha-beta-figs
      :portfolio-one-dollar-performance-graph one-dollar-invested-in-portfolio-at-time-zero
      :stock-performances-graphs one-dollar-invested-in-stock-at-time-zero
-     :portfolio-value-figs portfolio-value-figs
-     :rolling-annualized-volatility-figs rolling-annualized-volatility-figs
-     :default-rolling-ewma-volatility-figs default-rolling-ewma-volatility-figs
-     :alternative-rolling-ewma-volatility-figs alternative-rolling-ewma-volatility-figs
-     :default-rolling-sharpe-ratio-figs default-rolling-sharpe-ratio-figs
-     :alternative-rolling-sharpe-ratio-figs alternative-rolling-sharpe-ratio-figs
-
-     ;; Test Data (will delete later) 
-     ;; :test-data (client/get-ticker-price-all "^GSPC" "2022-09-01")
-     ;; :test-data (fx/convert (fx/make-converter) 100 "USD" "USD")
-     :test-data (client/convert-currency "6758.T" 3000)}))
+     :portfolio-value-figs (line-chart "Portfolio Value by Day" dates values)
+     :default-rolling-ewma-volatility-figs (line-chart "Annualized EWMA Volatility of Portfolio (λ = 0.94)"
+                                                       dates (cons nil default-rolling-ewma-volatility)) ;; Only the first day has no value — there is no return yet
+     :alternative-rolling-ewma-volatility-figs (line-chart "Annualized EWMA Volatility of Portfolio (λ = 0.97)"
+                                                           dates (cons nil alternative-rolling-ewma-volatility))
+     :default-rolling-sharpe-ratio-figs (line-chart "Annualized EWMA Sharpe Ratio (1-year window)"
+                                                    dates (cons nil default-rolling-sharpe-ratio))
+     :alternative-rolling-sharpe-ratio-figs (line-chart "Annualized EWMA Sharpe Ratio (λ = 0.94)"
+                                                        dates (cons nil alternative-rolling-sharpe-ratio))}))

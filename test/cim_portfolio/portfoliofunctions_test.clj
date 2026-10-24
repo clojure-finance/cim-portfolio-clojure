@@ -1,6 +1,7 @@
 (ns cim-portfolio.portfoliofunctions-test
   (:require [clojure.test :refer :all]
-            [cim_portfolio.portfoliofunctions :as pf]))
+            [cim_portfolio.portfoliofunctions :as pf]
+            [cim_portfolio.util :as util]))
 
 (defn- approx= [a b]
   (< (Math/abs (- (double a) (double b))) 1e-9))
@@ -124,3 +125,15 @@
                                       ["2026-10-01" "buy" "100" "VYLR" "0.0"]]))))
   (testing "empty when no trade carries a zero price"
     (is (= #{} (pf/zero-cost-trade-dates [["header"] ["2026-09-15" "buy" "100" "CTVA"]])))))
+
+(deftest stock-holdings-across-exchange-calendars-test
+  (testing "a holding keeps its last close on days its exchange is closed, instead of counting as $0"
+    (let [prices {"US" (util/sort-map-by-date {"2026-01-05" [10.0 10.0] "2026-01-06" [10.0 10.0] "2026-01-07" [10.0 11.0]})
+                  "HK" (util/sort-map-by-date {"2026-01-05" [5.0 5.0] "2026-01-07" [5.0 5.0]})} ;; HK closed on 01-06
+          composition (util/sort-map-by-date {"2026-01-05" {"US" 1.0 "HK" 2.0}})
+          {:keys [portfolio-value current-stock-holdings portfolio-log-returns]}
+          (pf/set-of-portfolio-log-returns-and-weights-without-cash composition prices)]
+      (is (= [["2026-01-05" 20.0] ["2026-01-06" 20.0] ["2026-01-07" 21.0]] (map vec portfolio-value)))
+      (is (= {"US" 11.0 "HK" 10.0} (val (last current-stock-holdings))))
+      (is (approx= (Math/log (/ 21.0 20.0)) (get portfolio-log-returns "2026-01-07")))
+      (is (zero? (get portfolio-log-returns "2026-01-06"))))))

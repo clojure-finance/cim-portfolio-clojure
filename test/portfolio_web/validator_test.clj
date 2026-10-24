@@ -3,7 +3,7 @@
             [portfolio-web.validator :as validator]))
 
 (defn- parse [text]
-  (validator/parse-manual-input {:trades text :starting-cash "50000000"}))
+  (validator/parse-input {:trades text :starting-cash "50000000"}))
 
 (defn- trade-rows [text]
   (rest (:trades (parse text)))) ;; Drop the synthetic header row the parser prepends
@@ -16,9 +16,9 @@
 (deftest valid-input
   (testing "rows are split, trimmed, and prefixed with the canonical header"
     (let [{:keys [trades starting-cash show-capm-metrics show-stock-performances]}
-          (validator/parse-manual-input {:trades " 2024-10-15 , buy , 100 , NVDA , 130 \r\n2024-11-25,buy,50,GOOG,"
-                                         :starting-cash "50000000"
-                                         :show-capm-metrics "true"})]
+          (validator/parse-input {:trades " 2024-10-15 , buy , 100 , NVDA , 130 \r\n2024-11-25,buy,50,GOOG,"
+                                  :starting-cash "50000000"
+                                  :show-capm-metrics "true"})]
       (is (= validator/header (first trades)))
       (is (= [["2024-10-15" "buy" "100" "NVDA" "130"]
               ["2024-11-25" "buy" "50" "GOOG"]] ;; trailing empty price cell is dropped
@@ -40,13 +40,26 @@
   (testing "a header line after the first data row is an error, with a hint"
     (is (re-find #"Line 2 .*looks like a header row"
                  (error-message "2024-10-15,buy,100,NVDA\ndate,action,amount,ticker"))))
-  (testing "file input behaves identically: header dropped when present, first data row kept when absent"
-    (let [file-parse #(rest (:trades (validator/parse-file-input {:trades % :starting-cash "1000"})))]
-      (is (= [["2024-10-15" "buy" "100" "NVDA"]]
-             (file-parse "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker,Price\r\n2024-10-15,buy,100,NVDA")))
-      (is (= [["2024-10-15" "buy" "100" "NVDA"]
-              ["2024-11-25" "buy" "50" "GOOG"]] ;; headerless files used to lose this first row
-             (file-parse "2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG"))))))
+  (testing "uploaded files (CRLF line ends): header dropped when present, first data row kept when absent"
+    (is (= [["2024-10-15" "buy" "100" "NVDA"]]
+           (trade-rows "Date of trade submitted (YYYY-MM-DD),Action,Amount Bought/Sold,Ticker,Price\r\n2024-10-15,buy,100,NVDA")))
+    (is (= [["2024-10-15" "buy" "100" "NVDA"]
+            ["2024-11-25" "buy" "50" "GOOG"]] ;; headerless files used to lose this first row
+           (trade-rows "2024-10-15,buy,100,NVDA\r\n2024-11-25,buy,50,GOOG")))))
+
+(deftest normalization
+  (testing "dates become yyyy-MM-dd, actions lower-case, tickers upper-case — the forms the model relies on"
+    (is (= [["2024-10-16" "buy" "100" "NVDA"]
+            ["2024-10-17" "sell" "50" "NVDA" "130"]
+            ["2024-11-05" "buy" "25" "0700.HK"]]
+           (trade-rows "2024/10/16,BUY,100,nvda\n20241017,Sell,50,Nvda,130\n2024-11-5,buy,25,0700.hk"))))
+  (testing "rows are sorted by date; same-day trades keep their input order"
+    (is (= [["2024-01-02" "buy" "10" "AAA"]
+            ["2024-01-02" "sell" "5" "BBB"]
+            ["2024-03-01" "buy" "1" "CCC"]]
+           (trade-rows "2024-03-01,buy,1,CCC\n2024-01-02,buy,10,AAA\n2024-01-02,sell,5,BBB"))))
+  (testing "impossible calendar dates are rejected, not clamped"
+    (is (re-find #"\"2024-02-30\" is not a valid date" (error-message "2024-02-30,buy,1,NVDA")))))
 
 (deftest row-errors
   (testing "each invalid field produces a line-numbered, user-facing message"
@@ -78,11 +91,11 @@
     (is (re-find #"No trades provided" (error-message "  \n \n"))))
   (testing "starting cash must be numeric — read-string is gone, reader forms are rejected"
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
-                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "abc"})))
+                          (validator/parse-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "abc"})))
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
-                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "(+ 1 2)"}))))
+                          (validator/parse-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "(+ 1 2)"}))))
   (testing "starting cash must be positive — zero divides the annualized return and one-dollar chart, negative feeds NaN logarithms"
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
-                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "0"})))
+                          (validator/parse-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "0"})))
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Starting cash must be a positive number"
-                          (validator/parse-manual-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "-50000"})))))
+                          (validator/parse-input {:trades "2024-10-15,buy,100,NVDA" :starting-cash "-50000"})))))

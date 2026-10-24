@@ -65,12 +65,12 @@ One trade per line, values separated by commas: `date,action,amount,ticker[,pric
 - **Date**: `YYYY-MM-DD`
 - **Action**: `buy` or `sell`
 - **Amount**: number of units bought or sold (a positive number)
-- **Ticker**: Yahoo Finance symbol
+- **Ticker**: Yahoo Finance symbol (upper or lower case)
 - **Price** (optional): the per-unit price you actually paid or received, in the ticker's own currency. If you leave it out, the opening price is used — on the trade date, or on the next trading day if the market was closed that day.
 
 Enter trades exactly as they happened, with units and prices as of the trade date. Don't adjust them for later splits; the app does that for you.
 
-A header row is optional: a first line whose first column starts with "Date" is skipped automatically. Every row is checked before analysis, and any problems are listed on the form by line number. Sample portfolios are in [`examples/`](examples/).
+A header row is optional: a first line whose first column starts with "Date" is skipped automatically. Trades can be listed in any order; they are sorted by date. Every row is checked before analysis, and any problems are listed on the form by line number. Sample portfolios are in [`examples/`](examples/).
 
 Trades aren't limited by your cash or holdings: buying for more than your cash takes cash below zero (like borrowing), and selling more than you hold opens a short position.
 
@@ -98,6 +98,7 @@ Enter the keys in the `/news` form; no environment variables or config files are
 ## Technical Notes
 
 - Market data comes from [clj-yfinance](https://github.com/clojure-finance/clj-yfinance), and currency conversion from [ecbjure](https://github.com/clojure-finance/ecbjure). No Python is needed.
+- **Currency conversion**: a non-USD stock's whole price history is converted at the latest ECB rate (reloaded daily), so its USD returns don't include exchange-rate moves.
 - **Net-short portfolios**: cumulative returns show "n/a" for any period when the portfolio's value was negative, because a percentage return on negative capital is undefined.
 - **Spin-offs booked as splits**: Yahoo sometimes rewrites a spin-off weeks later as a stock split of the parent and shrinks its pre-spin prices. Known cases are listed in `spin-offs-booked-as-splits` (`src/cim_portfolio/corporate_actions.clj`); for those the app ignores the fake split and restores the original prices, so users' price-0 rows stay correct. A new case counts the spun-off value twice until it is added to that list.
 
@@ -109,7 +110,7 @@ clojure -M:nrepl      # start an nREPL server (the port is written to .nrepl-por
 clojure -T:build uber # build target/uberjar/cim_portfolio-standalone.jar
 ```
 
-The standalone jar runs with `java -jar target/uberjar/cim_portfolio-standalone.jar [port]`, from a directory that contains the `examples/` folder.
+The standalone jar runs with `java -jar target/uberjar/cim_portfolio-standalone.jar [port]`.
 
 ## Bugs
 

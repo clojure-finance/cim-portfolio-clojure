@@ -3,7 +3,6 @@
             [ring.middleware.resource :as resource]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
-            [ring.util.codec :as codec]
             [portfolio-web.views :as views]
             [portfolio-web.validator :as validator]
             [portfolio-web.model :as model]
@@ -13,25 +12,22 @@
 ;; ─── Portfolio handlers ────────────────────────────────────────────────────────
 
 (defn home-handler [request]
-  (res/content-type (res/response (views/home-page)) "text/html"))
+  (res/content-type (res/response (views/home-page)) "text/html; charset=utf-8"))
 
 (defn analysis-handler [request]
   (res/content-type
    (res/response
     (try
       (let [params (:params request)
+            upload (:tempfile (get params "trades-file"))
             parsed-trades
-            (if (= (get params "trades") "")
-              (validator/parse-file-input
-               {:trades (slurp (:tempfile (get params "trades-file")))
-                :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
-                :show-capm-metrics (get params "show-capm-metrics" "false")
-                :show-stock-performances (get params "show-stock-performances" "false")})
-              (validator/parse-manual-input
-               {:trades (get params "trades")
-                :starting-cash (str/replace (get params "starting-cash") #"[$,]" "")
-                :show-capm-metrics (get params "show-capm-metrics" "false")
-                :show-stock-performances (get params "show-stock-performances" "false")}))]
+            (validator/parse-input
+             {:trades (if (and (str/blank? (get params "trades")) upload) ;; The form sends an empty textarea when a file is uploaded
+                        (slurp upload)
+                        (get params "trades"))
+              :starting-cash (str/replace (get params "starting-cash" "") #"[$,]" "")
+              :show-capm-metrics (get params "show-capm-metrics" "false")
+              :show-stock-performances (get params "show-stock-performances" "false")})]
         (-> parsed-trades
             (model/process-trades)
             (views/portfolio-page)))
@@ -43,14 +39,14 @@
                               (.getName (class e))
                               (when (.getMessage e) (str ": " (.getMessage e)))
                               "). Please check your trades and try again.")))))
-   "text/html"))
+   "text/html; charset=utf-8"))
 
 ;; ─── News Analysis handlers ────────────────────────────────────────────────────
 
 (defn news-page-handler [request]
   (res/content-type
    (res/response (views/news-page nil))
-   "text/html"))
+   "text/html; charset=utf-8"))
 
 ;; Keep the model consistent with the selected provider: a DeepSeek model name
 ;; sent to OpenRouter (or vice versa) is rejected with HTTP 400.
@@ -68,7 +64,9 @@
                         (if (= provider "deepseek") "platform.deepseek.com" "openrouter.ai")
                         " or switch provider.")
                401 (str provider-name " rejected the API key. Double-check the LLM API key.")
-               429 (str provider-name " is rate-limiting requests. Wait a minute and retry, or pick another model.")
+               429 (str provider-name " is rate-limiting requests. Wait a minute and retry, or pick another model."
+                        (when (= provider "openrouter")
+                          " Free models allow 20 requests a minute, and 50 a day until $10 of credits has been purchased."))
                400 (str provider-name " rejected the request — often a model that doesn't exist on this provider.")
                -1  (str "Could not reach " provider-name " — network error from the server.")
                nil)]
@@ -89,11 +87,11 @@
                          (when-not (str/blank? q) q))
           country      (get params "country" "us")
           language     (get params "language" "en")
-          max-articles (try (Integer/parseInt (get params "max-articles" "3"))
-                            (catch Exception _ 3))
+          max-articles (-> (try (Integer/parseInt (get params "max-articles" "3"))
+                                (catch Exception _ 3))
+                           (max 1) (min 10)) ;; Same bounds as the form field
           model        (normalize-model provider (get params "model" (first news/deepseek-models)))
-          delay-ms     (try (Long/parseLong (get params "delay" "1000"))
-                            (catch Exception _ 1000))]
+          delay-ms     1000] ;; Pause before each article's LLM call, to stay under provider rate limits
       (cond
         (str/blank? newsdata-key)
         (views/news-page "Newsdata.io API key is required.")
@@ -109,8 +107,7 @@
               (let [results (->> articles
                                  (mapv (fn [article]
                                          (try
-                                           (news/analyze-article
-                                            llm-key article model nil delay-ms 2 nil 0.7 llm-url)
+                                           (news/analyze-article llm-key article model llm-url delay-ms)
                                            (catch Exception _
                                              nil))))
                                  (filterv some?))]
@@ -127,7 +124,7 @@
                   (views/news-results-page results nil)))))
           (catch Exception e
             (views/news-page (str "Error: " (.getMessage e))))))))
-   "text/html"))
+   "text/html; charset=utf-8"))
 
 ;; ─── Router ───────────────────────────────────────────────────────────────────
 
