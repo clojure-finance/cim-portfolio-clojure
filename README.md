@@ -13,10 +13,13 @@ The web app has two pages:
 
 Type in or upload your trades, set your starting cash, and get a performance dashboard:
 
-- **Portfolio value** — cash plus holdings, with units, value, and weight per security
-- **Performance charts** — portfolio value and cumulative return since your first trade
-- **Risk metrics** — portfolio alpha and per-stock rolling alpha/beta vs. the S&P 500, volatility, and Sharpe ratio
-- **Per-stock breakdown** — how each security has performed
+- **Summary** — current portfolio value, cash, and stock holdings value
+- **Performance metrics** — annualized return and volatility, CAPM alpha vs. the S&P 500, Sharpe ratio, and 1-year cumulative return
+- **Allocation** — value and weight of each holding and of cash
+- **1-year return table** — the trailing 1-year return as of today and each of the past five weeks, with and without cash
+- **Charts** — portfolio value by day, growth of one dollar invested, and EWMA volatility and Sharpe ratio over time
+- **Optional per-stock views** (checkboxes on the form, off by default) — rolling alpha and beta of each stock vs. the S&P 500, and each stock's own performance
+- **Corporate-action warning** — flags a one-day drop too large to be a market move, which usually means a spin-off is missing from your trades
 
 Works with any ticker on Yahoo Finance. Stock splits are handled automatically, and prices for non-USD tickers are converted to USD at ECB exchange rates.
 
@@ -46,28 +49,30 @@ Then open [http://localhost:3000](http://localhost:3000). You need an internet c
 ## Using the Portfolio Analyzer
 
 1. **Enter trades** — type or paste them into the form, one per line, or upload a CSV file
-2. **Set starting cash** (USD) — this changes your return %, volatility, and the other metrics
+2. **Set starting cash** (USD, default $50,000,000; `$` and commas are fine) — this changes your return %, volatility, and the other metrics
 3. **Submit** — the dashboard is built from your trades and live market data
 
 ### Trade format
 
-One trade per row:
+One trade per line, values separated by commas: `date,action,amount,ticker[,price]`
 
-| Date | Action | Quantity | Ticker | Price (optional) |
-|------|--------|----------|--------|------------------|
-| 2023-10-13 | buy | 100 | SPY | |
-| 2023-11-03 | buy | 50 | SPY | 432.50 |
-| 2024-01-15 | sell | 25 | SPY | |
+```
+2023-10-13,buy,100,SPY
+2023-11-03,buy,50,SPY,432.50
+2024-01-15,sell,25,SPY
+```
 
 - **Date**: `YYYY-MM-DD`
 - **Action**: `buy` or `sell`
-- **Quantity**: number of units bought or sold
+- **Amount**: number of units bought or sold (a positive number)
 - **Ticker**: Yahoo Finance symbol
-- **Price**: the per-unit price you actually paid or received, in the ticker's own currency. If you leave it out, the opening price on the trade date is used.
+- **Price** (optional): the per-unit price you actually paid or received, in the ticker's own currency. If you leave it out, the opening price is used — on the trade date, or on the next trading day if the market was closed that day.
 
 Enter trades exactly as they happened, with units and prices as of the trade date. Don't adjust them for later splits; the app does that for you.
 
-A header row is optional and gets skipped automatically. Every row is checked before analysis, and any problems are listed on the form by line number. Sample portfolios are in [`examples/`](examples/).
+A header row is optional: a first line whose first column starts with "Date" is skipped automatically. Every row is checked before analysis, and any problems are listed on the form by line number. Sample portfolios are in [`examples/`](examples/).
+
+Trades aren't limited by your cash or holdings: buying for more than your cash takes cash below zero (like borrowing), and selling more than you hold opens a short position.
 
 ### Corporate actions
 
@@ -79,7 +84,7 @@ Stock splits are adjusted automatically. **Spin-offs can't be** — price feeds 
 
 No cash is spent, and the new position offsets the parent's drop. The same price-0 trick works for any shares received without payment, such as stock dividends. The dashboard shows a warning whenever a held stock has a one-day drop too large to be a market move, which usually means a corporate action is missing from the trade list; it goes away once a price-0 trade is recorded on that date.
 
-Keep the price-0 row even if Yahoo later rewrites the spin-off as a stock split of the parent (shrinking its pre-spin prices), as it did for the 2026 CTVA/VYLR spin-off. The app keeps a list of these cases (`spin-offs-booked-as-splits` in `src/cim_portfolio/corporate_actions.clj`), ignores the fake split, and restores the original prices. If a parent's old prices shrink for a spin-off not on that list, its value is counted twice until the case is added there.
+Keep the price-0 row even if Yahoo later rewrites the spin-off as a stock split of the parent, as it did for the 2026 CTVA/VYLR spin-off: the app corrects for this.
 
 ## API Keys (News Analyzer only)
 
@@ -93,7 +98,8 @@ Enter the keys in the `/news` form; no environment variables or config files are
 ## Technical Notes
 
 - Market data comes from [clj-yfinance](https://github.com/clojure-finance/clj-yfinance), and currency conversion from [ecbjure](https://github.com/clojure-finance/ecbjure). No Python is needed.
-- **Net-short portfolios**: cumulative returns show "n/a" for any period when the portfolio's value was negative, because a percentage return on negative capital is undefined. A possible future extension is to measure returns against gross exposure (the sum of absolute holding values), the usual convention for long-short books.
+- **Net-short portfolios**: cumulative returns show "n/a" for any period when the portfolio's value was negative, because a percentage return on negative capital is undefined.
+- **Spin-offs booked as splits**: Yahoo sometimes rewrites a spin-off weeks later as a stock split of the parent and shrinks its pre-spin prices. Known cases are listed in `spin-offs-booked-as-splits` (`src/cim_portfolio/corporate_actions.clj`); for those the app ignores the fake split and restores the original prices, so users' price-0 rows stay correct. A new case counts the spun-off value twice until it is added to that list.
 
 ## Development
 
@@ -107,7 +113,7 @@ The standalone jar runs with `java -jar target/uberjar/cim_portfolio-standalone.
 
 ## Bugs
 
-This is a work in progress and may have bugs. Please report any you find.
+This is a work in progress and may have bugs. Please report any you find on [GitHub Issues](https://github.com/clojure-finance/cim-portfolio-clojure/issues).
 
 ## License
 
