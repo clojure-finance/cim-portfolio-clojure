@@ -89,7 +89,7 @@ Stock splits are adjusted automatically. **Spin-offs can't be** — price feeds 
 
 No cash is spent, and the new position offsets the parent's drop. The same price-0 trick works for any shares received without payment, such as stock dividends. The dashboard shows a warning whenever a held stock has a one-day drop too large to be a market move, which usually means a corporate action is missing from the trade list; it goes away once a price-0 trade is recorded on that date.
 
-One caveat: data providers occasionally back-adjust the parent's pre-spin-off price history weeks later. If the parent's old prices suddenly shrink, remove the price-0 row again — otherwise the spin-off is counted twice.
+Keep the price-0 row even if Yahoo later rewrites the spin-off as a stock split of the parent (shrinking its pre-spin prices), as it did for the 2026 CTVA/VYLR spin-off. The app keeps a list of these cases (`spin-offs-booked-as-splits` in `src/cim_portfolio/corporate_actions.clj`), ignores the fake split, and restores the original prices. If a parent's old prices shrink for a spin-off not on that list, its value is counted twice until the case is added there.
 
 ## API Keys (News Analyzer only)
 

@@ -45,11 +45,13 @@
         date-parser (fn [d] (java.time.LocalDate/parse d date-formatter))
 
         ;; Raw Variables
-        trades (actions/adjust-trades-for-splits (:trades raw-data)) ;; Normalize share amounts and user-supplied prices to post-split units, consistent with Yahoo's split-adjusted prices
+        ;; Yahoo's split events, minus spin-offs it booked as splits (those are undone in the prices instead)
+        {:keys [splits spin-offs]} (actions/separate-spin-offs (actions/fetch-splits (:trades raw-data)))
+        trades (actions/adjust-trades-for-splits (:trades raw-data) splits) ;; Normalize share amounts and user-supplied prices to post-split units, consistent with Yahoo's split-adjusted prices
         starting-cash (:starting-cash raw-data)
 
         ;; Processed Variables
-        [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices] (portfolio/analyze-portfolio trades)
+        [cash portfolio portfolio-composition-by-date portfolio-value current-value cash-invested cash-invested-by-date change-in-cash-by-date complete-stock-prices] (portfolio/analyze-portfolio trades :spin-offs spin-offs)
         unique-tickers (keys portfolio)
         sorted-portfolio-value (map #(vector (first %) (+ starting-cash (second %)))
                                     portfolio-value)

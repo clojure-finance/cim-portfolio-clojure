@@ -1,5 +1,6 @@
 (ns cim_portfolio.portfoliofunctions
-  (:require [cim_portfolio.util :as util]
+  (:require [cim_portfolio.corporate-actions :as actions]
+            [cim_portfolio.util :as util]
             [cim_portfolio.yfinanceclient :as client]
             [clojure.math :as math]
             [clojure.pprint :refer [pprint]]
@@ -512,7 +513,9 @@
           (sort-by (juxt :date :ticker))
           vec))))
 
-(defn analyze-portfolio [data]
+;; spin-offs: {ticker [{:date :ratio}]} from corporate-actions/separate-spin-offs — spin-offs Yahoo
+;; booked as splits, whose pre-spin prices are restored so price-0 receipt rows don't double-count
+(defn analyze-portfolio [data & {:keys [spin-offs]}]
   (loop [cash 0.0 ;; This is the cash spent by buying or obtained by selling so far
          portfolio {}
          portfolio-composition-by-date (array-map) ;; Even if array-maps sort the data by key, they have a limit of sorting up to 8 items, so please use util/sort-map-by-date
@@ -557,7 +560,9 @@
 
                            ;; Obtain stock price data (Please check if vector is ordered by date) 
                            (if (= (get complete-stock-prices ticker "") "") ;; Check if we have fetched this ticker previously 
-                             (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for only one of the tickers from the trade date until today 
+                             (actions/undo-spin-off-price-adjustment ;; Real pre-spin prices for spin-offs Yahoo booked as splits
+                              (client/get-ticker-price-all ticker (util/parse-date date)) ;; Get prices for only one of the tickers from the trade date until today
+                              (get spin-offs ticker))
                              (get complete-stock-prices ticker 0)) ;; If already previously fetched, then no need to re-fetch
                            )
             _ (when (empty? ticker-prices) ;; Unknown/delisted ticker, failed fetch, or trade date after the last available quote — without this, nil prices NPE further down

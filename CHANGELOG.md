@@ -89,6 +89,13 @@ All notable changes to this project will be documented in this file. This change
   matching the Dockerfile and CI) instead of running a committed jar
 
 ### Fixed
+- Spin-offs that Yahoo later books as a split of the parent (CTVA/VYLR,
+  2026-10-01, ratio 6.665) are no longer counted twice: the fake split is
+  dropped from the share-count adjustment and the parent's pre-spin prices are
+  multiplied back to their real level (`spin-offs-booked-as-splits`,
+  `separate-spin-offs`, `undo-spin-off-price-adjustment`). Previously pre-spin
+  CTVA shares were multiplied by 6.665, so CTVA was valued at ~$83 a share and
+  the recommended price-0 VYLR row added the spun-off value a second time
 - The portfolio analyzer no longer answers bad input with a raw 500 page (all three
   crash classes were being hit by real visitors, per the VPS journal):
   - trade rows are validated before analysis, with line-numbered messages for
