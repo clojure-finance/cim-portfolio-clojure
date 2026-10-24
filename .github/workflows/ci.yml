@@ -21,12 +21,22 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Setup Leiningen
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein > lein
-          chmod +x lein
-          sudo mv lein /usr/local/bin/lein
-          lein -v
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@13
+        with:
+          cli: latest
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+          key: ${{ runner.os }}-deps-${{ hashFiles('deps.edn') }}
+          restore-keys: ${{ runner.os }}-deps-
 
       - name: Run tests
-        run: lein test
+        run: clojure -M:test
+
+      - name: Build standalone jar
+        run: clojure -T:build uber

@@ -42,14 +42,14 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Local
 
-Requires Java 21+ and [Leiningen](https://leiningen.org/).
+Requires Java 21+ and the [Clojure CLI](https://clojure.org/guides/install_clojure).
 
 ```bash
 ./run_web_app.sh   # Mac/Linux
 run_web_app.bat    # Windows
 ```
 
-Or simply: `lein run`
+Or simply: `clojure -M:run` (pass a port number to use one other than 3000)
 
 You need an internet connection either way, because prices and exchange rates are fetched live.
 
@@ -104,6 +104,16 @@ Enter the keys in the `/news` form; no environment variables or config files are
 
 - Market data comes from [clj-yfinance](https://github.com/clojure-finance/clj-yfinance), and currency conversion from [ecbjure](https://github.com/clojure-finance/ecbjure). No Python is needed.
 - **Net-short portfolios**: cumulative returns show "n/a" for any period when the portfolio's value was negative, because a percentage return on negative capital is undefined. A possible future extension is to measure returns against gross exposure (the sum of absolute holding values), the usual convention for long-short books.
+
+## Development
+
+```bash
+clojure -M:test       # run the tests
+clojure -M:nrepl      # start an nREPL server (the port is written to .nrepl-port)
+clojure -T:build uber # build target/uberjar/cim_portfolio-standalone.jar
+```
+
+The standalone jar runs with `java -jar target/uberjar/cim_portfolio-standalone.jar [port]`, from a directory that contains the `examples/` folder.
 
 ## Bugs
 

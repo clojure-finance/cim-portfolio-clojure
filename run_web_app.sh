@@ -8,4 +8,9 @@ echo "Starting CIM Portfolio News Analyzer..."
 
 export PORT="${PORT:-3000}"
 
-lein run
+if ! command -v clojure >/dev/null 2>&1; then
+    echo "[ERROR] The Clojure CLI was not found. Install it: https://clojure.org/guides/install_clojure"
+    exit 1
+fi
+
+clojure -M:run

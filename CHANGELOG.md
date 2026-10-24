@@ -3,6 +3,18 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 ### Changed
+- Build switched from Leiningen to the Clojure CLI (`deps.edn` + tools.build
+  `build.clj`): `clojure -M:run` starts the app, `clojure -M:test` runs the
+  tests, `clojure -M:nrepl` starts a REPL with the project's dependencies, and
+  `clojure -T:build uber` builds the same
+  `target/uberjar/cim_portfolio-standalone.jar` as before (all namespaces AOT
+  compiled with direct linking). Same library versions, except the unused
+  `nrepl` runtime dependency (now only in the `:nrepl` alias) and
+  tools.reader 1.3.6 → 1.5.2 (tools.deps picks the newest requested version).
+  `project.clj`, `lein.bat` and the dummy `pom.xml` left over from Heroku
+  are removed; CI, the launcher scripts and the README use the Clojure CLI;
+  CI also builds the jar
+- `run_web_app.sh` is now executable, as the README's `./run_web_app.sh` assumes
 - The default EWMA Sharpe ratio's decay is now expressed as an effective window
   length (`sharpe-ratio-window-days`, 252 trading days ≈ one year) and converted
   to alpha via the span convention alpha = 2 / (window + 1)

@@ -1,4 +1,6 @@
 temp/
+.cpcache/
+.nrepl-port
 .lein-repl-history
 .lein-failures
 .claude/settings.local.json*
