@@ -32,16 +32,6 @@ Results appear as a dashboard with the sentiment breakdown and one card per arti
 
 ## Quick Start
 
-### Docker (recommended)
-
-```bash
-docker-compose up --build
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
-### Local
-
 Requires Java 21+ and the [Clojure CLI](https://clojure.org/guides/install_clojure).
 
 ```bash
@@ -51,7 +41,7 @@ run_web_app.bat    # Windows
 
 Or simply: `clojure -M:run` (pass a port number to use one other than 3000)
 
-You need an internet connection either way, because prices and exchange rates are fetched live.
+Then open [http://localhost:3000](http://localhost:3000). You need an internet connection, because prices and exchange rates are fetched live.
 
 ## Using the Portfolio Analyzer
 

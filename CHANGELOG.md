@@ -44,6 +44,11 @@ All notable changes to this project will be documented in this file. This change
   public, unauthenticated form field
 
 ### Removed
+- Docker support: `Dockerfile`, `docker-compose.yml`, and the README's Docker
+  quick start. The setup had not worked since at least March 2026 (the image
+  deleted `src/` after copying it, expecting a bind mount that
+  `docker-compose.yml` never provided), and the app is run locally with the
+  Clojure CLI and deployed as a standalone jar
 - Heroku deployment support: `Procfile`, `system.properties`, and the README's
   "Deploying to Heroku" section. The Heroku app has been shut down; the app is
   now deployed from a locally built uberjar (`lein uberjar` →
